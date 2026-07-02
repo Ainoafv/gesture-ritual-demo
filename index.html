@@ -36,7 +36,7 @@
     background:radial-gradient(circle, rgba(255,224,168,.9) 0%, rgba(240,200,130,.5) 35%, rgba(240,200,130,0) 70%);
     filter:blur(6px); transition:opacity .2s ease;
   }
-  #halo.breathe { animation:breathe 2.6s ease-in-out forwards; opacity:1; }
+  #halo.breathe { animation:breathe 3.8s ease-in-out forwards; opacity:1; }
   @keyframes breathe {
     0% { transform:translate(-50%,-50%) scale(.6); opacity:.35; }
     38% { transform:translate(-50%,-50%) scale(1.15); opacity:1; }
@@ -152,7 +152,12 @@ const ZONES = {
 const SEQUENCE = ["2","0","4","6"];
 const WINDOW_MS = 4000;  // generous for a demo; the on-site value is tighter
 const PALM = [0,5,9,17];
-const DIRECTION = { "2":"up to the top", "0":"down to the bottom", "4":"to your left", "6":"to your right" };
+const MESSAGES = {
+  "2":"Raise your hand to the heavens",
+  "0":"Now draw down to the earth",
+  "4":"Move across to the left",
+  "6":"And finally, to the right",
+};
 
 function zoneAt(x,y){
   for (const [name,z] of Object.entries(ZONES)){
@@ -288,12 +293,14 @@ function celebrate(){
   // halo + word
   halo.classList.add("breathe");
   miracleWord.classList.add("show");
-  setTimeout(()=>{ portrait.classList.add("show"); }, 1500);
-  setTimeout(()=>{ miracleWord.classList.remove("show"); halo.classList.remove("breathe"); }, 2600);
+  setTimeout(()=>{ portrait.classList.add("show"); }, 2400);
+  setTimeout(()=>{ miracleWord.classList.remove("show"); halo.classList.remove("breathe"); }, 3800);
 }
 
 function resetAll(){
   portrait.classList.remove("show");
+  const sctx = shot.getContext("2d");
+  sctx.clearRect(0,0,shot.width,shot.height);
   celebrating = false;
   sm.reset(); renderSteps();
   setStatus("Trace the sign of the cross", true);
@@ -322,10 +329,10 @@ function loop(){
     renderSteps();
     if (!celebrating){
       if (!centroid){
-        setStatus("Show your open hand to the camera", false);
+        setStatus("Show your open hand to begin", false);
       } else {
         const exp = sm.expected;
-        setStatus(exp ? `Step ${sm.step+1} of 4 — move ${DIRECTION[exp]}` : "…", true);
+        setStatus(exp ? MESSAGES[exp] : "…", true);
       }
     }
   }
