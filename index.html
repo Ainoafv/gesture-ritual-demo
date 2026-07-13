@@ -299,9 +299,25 @@ const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
 const debugHud = document.getElementById("debugHud");
 if (DEBUG) debugHud.classList.add("on");
 
-function zoneAt(x,y){
-  for (const [n,z] of Object.entries(ZONES))
-    if (x>=z.x-PAD && x<z.x+z.w+PAD && y>=z.y-PAD && y<z.y+z.h+PAD) return n;
+function _contains(name, x, y) {
+  const z = ZONES[name];
+  return (
+    x >= z.x - PAD &&
+    x < z.x + z.w + PAD &&
+    y >= z.y - PAD &&
+    y < z.y + z.h + PAD
+  );
+}
+
+// Important: zones overlap (by design, to be forgiving).
+// Prefer the currently expected zone first; otherwise overlaps can “stick”
+// in the previous step (especially Earth vs Left/Right).
+function zoneAt(x, y, expected) {
+  if (expected && _contains(expected, x, y)) return expected;
+  for (const name of Object.keys(ZONES)) {
+    if (name === expected) continue;
+    if (_contains(name, x, y)) return name;
+  }
   return null;
 }
 
@@ -474,7 +490,7 @@ function tick(){
       if (!hasS){ sx=tx; sy=ty; hasS=true; }
       sx = sx*(1-SMOOTH) + tx*SMOOTH;
       sy = sy*(1-SMOOTH) + ty*SMOOTH;
-      zone = zoneAt(sx,sy);
+      zone = zoneAt(sx, sy, sm.exp);
       r=sm.upd(zone,now);
     } else { hasS=false; r=sm.upd(null,now); }
     if(r.r) resetVis();
