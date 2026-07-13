@@ -32,7 +32,12 @@
     background:#030304;
     box-shadow:0 0 0 1px rgba(201,168,106,.06), 0 50px 120px rgba(0,0,0,.8);
   }
-  #video { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+  /* Full-res capture — 1×1 px breaks hand tracking in Safari/Chrome */
+  #video {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; transform:scaleX(-1);
+    opacity:0; pointer-events:none; z-index:0;
+  }
   .scene {
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     background:radial-gradient(ellipse 70% 55% at 50% 42%, #1a1510 0%, #080606 55%, #020202 100%);
@@ -89,14 +94,14 @@
   }
   #miracleWord.show { opacity:1; }
   #miracleWord .line1 {
-    display:block; font-size:clamp(13px,3vw,15px); letter-spacing:.35em;
-    text-transform:uppercase; color:rgba(232,213,168,.75); font-weight:400;
-    margin-bottom:6px;
+    display:block; font-size:clamp(15px,3.8vw,20px); letter-spacing:.42em;
+    text-transform:uppercase; color:rgba(232,213,168,.8); font-weight:400;
+    margin-bottom:10px;
   }
   #miracleWord .line2 {
-    display:block; font-size:clamp(32px,8vw,56px); font-style:italic; font-weight:400;
-    color:#fff6e8; text-shadow:0 0 60px rgba(255,210,140,.85), 0 2px 20px rgba(0,0,0,.4);
-    letter-spacing:.04em;
+    display:block; font-size:clamp(44px,11vw,72px); font-style:italic; font-weight:400;
+    color:#fff6e8; text-shadow:0 0 70px rgba(255,210,140,.9), 0 2px 24px rgba(0,0,0,.45);
+    letter-spacing:.06em; line-height:1.05;
   }
   .cover {
     position:absolute; inset:0; z-index:10; display:flex; flex-direction:column;
@@ -219,7 +224,7 @@
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>Allow the camera. Trace the sign — above, below, left, right. The brass will not stir until the cross is whole.</p>
+        <p>Allow the camera. Trace the sign in the air in front of you — above, below, left, right. The brass stays still until the cross is whole.</p>
         <button class="btn" id="startBtn">Begin</button>
       </div>
     </div>
@@ -248,12 +253,13 @@ const ZONES = {
   "5": { x:0.6666, y:0.6666, w:0.3334, h:0.3334 },
 };
 const SEQUENCE = ["2","0","4","6"];
-const WINDOW_MS = 4000;
+const WINDOW_MS = 5500;
 const PALM = [0,5,9,17];
+const ZONE_PAD = 0.06;
 
 function zoneAt(x,y){
   for (const [name,z] of Object.entries(ZONES)){
-    if (x>=z.x && x<z.x+z.w && y>=z.y && y<z.y+z.h) return name;
+    if (x>=z.x-ZONE_PAD && x<z.x+z.w+ZONE_PAD && y>=z.y-ZONE_PAD && y<z.y+z.h+ZONE_PAD) return name;
   }
   return null;
 }
@@ -291,7 +297,7 @@ const sm = new StateMachine();
 let landmarker = null;
 let running = false;
 let celebrating = false;
-let mpTs = 0;
+let lastVideoTime = -1;
 
 async function loadModel(){
   coverContent.innerHTML = '<div class="spinner"></div><p style="color:var(--mute);font-style:italic">One moment</p>';
@@ -305,9 +311,9 @@ async function loadModel(){
     },
     runningMode: "VIDEO",
     numHands: 1,
-    minHandDetectionConfidence: 0.55,
-    minHandPresenceConfidence: 0.55,
-    minTrackingConfidence: 0.45,
+    minHandDetectionConfidence: 0.45,
+    minHandPresenceConfidence: 0.45,
+    minTrackingConfidence: 0.4,
   });
 }
 
@@ -360,18 +366,20 @@ function resetAll(){
 function loop(){
   if (!running) return;
 
-  if (!celebrating && landmarker && video.readyState >= 2){
-    mpTs += 16;
-    const res = landmarker.detectForVideo(video, mpTs);
+  if (!celebrating && landmarker && video.readyState >= 2
+      && video.currentTime !== lastVideoTime){
+    lastVideoTime = video.currentTime;
+    const res = landmarker.detectForVideo(video, performance.now());
+    const now = performance.now();
     if (res.landmarks?.length){
       const lm = res.landmarks[0];
       let sx=0, sy=0;
       for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
       const cx = Math.min(Math.max(1-(sx/PALM.length),0),1);
-      const cy = Math.min(Math.max(sy/PALM.length,0),1);
-      if (sm.update(zoneAt(cx,cy), performance.now())) celebrate();
+      const cy = Math.min(Math.max(sy/PALM.length, 0), 1);
+      if (sm.update(zoneAt(cx,cy), now)) celebrate();
     } else {
-      sm.update(null, performance.now());
+      sm.update(null, now);
     }
   }
   requestAnimationFrame(loop);
