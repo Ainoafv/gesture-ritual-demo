@@ -5,153 +5,221 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Gesture Ritual — Live Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg:#08070a; --ink:#efe7d8; --mute:#8a8072;
-    --brass:#c9a86a; --brass-soft:#e8d5a8; --line:rgba(201,168,106,.18);
-    --glow:0.32;
+    --bg:#060508; --ink:#efe7d8; --mute:#7a7268;
+    --brass-soft:#e8d5a8; --line:rgba(201,168,106,.16);
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  html,body { height:100%; }
   body {
-    font-family:Inter,system-ui,sans-serif;
-    background:radial-gradient(140% 100% at 50% 0%, #16121c 0%, var(--bg) 55%);
-    color:var(--ink); min-height:100dvh; display:flex; flex-direction:column; align-items:center;
-    padding:max(16px, env(safe-area-inset-top)) 12px max(20px, env(safe-area-inset-bottom));
+    font-family:"Cormorant Garamond",Georgia,serif;
+    background:radial-gradient(120% 90% at 50% -5%, #141018 0%, var(--bg) 50%);
+    color:var(--ink); min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:max(20px, env(safe-area-inset-top)) 14px max(24px, env(safe-area-inset-bottom));
   }
-  h1 { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:clamp(24px,5vw,38px); letter-spacing:.4px; }
-  h1 .em { color:var(--brass-soft); font-style:italic; }
+  h1 { font-weight:500; font-size:clamp(26px,5.5vw,40px); letter-spacing:.02em; text-align:center; }
+  h1 .em { color:var(--brass-soft); font-style:italic; font-weight:400; }
   .tag {
-    color:var(--mute); font-size:clamp(12px,3.2vw,13.5px); margin-top:6px; text-align:center;
-    max-width:min(480px, 92vw); line-height:1.6;
+    color:var(--mute); font-size:clamp(14px,3.5vw,16px); margin-top:10px;
+    text-align:center; max-width:420px; line-height:1.55; font-style:italic; font-weight:400;
   }
   .stage {
-    position:relative; flex:1; width:min(96vw, 520px); min-height:min(72dvh, 680px);
-    max-height:78dvh; margin-top:16px;
-    border-radius:clamp(14px, 3vw, 22px); overflow:hidden;
-    box-shadow:0 40px 100px rgba(0,0,0,.75), 0 0 0 1px rgba(201,168,106,.1);
-    background:#050406;
+    position:relative; flex:1; width:min(94vw, 480px);
+    min-height:min(68dvh, 640px); max-height:76dvh;
+    margin-top:20px; border-radius:4px; overflow:hidden;
+    background:#030304;
+    box-shadow:0 0 0 1px rgba(201,168,106,.06), 0 50px 120px rgba(0,0,0,.8);
   }
   #video { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
-  #canvas { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .scene {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(ellipse 70% 55% at 50% 42%, #1a1510 0%, #080606 55%, #020202 100%);
+  }
+  .font-svg {
+    width:78%; height:auto; max-height:72%; position:relative; z-index:2;
+    filter:drop-shadow(0 24px 48px rgba(0,0,0,.65));
+  }
   .vignette {
-    position:absolute; inset:0; pointer-events:none; z-index:2;
-    background:radial-gradient(ellipse 88% 78% at 50% 46%, transparent 35%, rgba(0,0,0,.5) 100%);
+    position:absolute; inset:0; pointer-events:none; z-index:5;
+    background:radial-gradient(ellipse 80% 70% at 50% 45%, transparent 30%, rgba(0,0,0,.65) 100%);
   }
-  /* Living halo — always on once ritual starts (= font is warm, not "awake" text) */
+  /* Resting halo — quiet life, never reacts per stroke */
   #haloRest {
-    position:absolute; left:50%; top:44%; width:88%; aspect-ratio:1;
+    position:absolute; left:50%; top:43%; width:min(85vw, 420px); aspect-ratio:1;
     transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; z-index:1;
-    opacity:calc(var(--glow) * 1.1);
     background:radial-gradient(circle,
-      rgba(255,238,200,.95) 0%,
-      rgba(255,210,140,.55) 28%,
-      rgba(220,170,90,.22) 48%,
-      transparent 68%);
-    filter:blur(16px) brightness(calc(0.85 + var(--glow) * 0.5));
-    transition:opacity .12s ease, filter .12s ease, transform .12s ease;
-    animation:liveBreath 5.5s ease-in-out infinite;
+      rgba(255,228,180,.55) 0%,
+      rgba(240,190,120,.28) 35%,
+      rgba(200,150,80,.08) 55%,
+      transparent 70%);
+    filter:blur(20px);
+    animation:restingLife 7s ease-in-out infinite;
   }
-  #haloRest.hand-near {
-    animation:readyBreath 2.2s ease-in-out infinite;
-    filter:blur(14px) brightness(calc(1 + var(--glow) * 0.6));
-  }
-  #haloRest.in-ritual {
-    animation:none;
-    transition:opacity .08s ease, filter .08s ease, transform .08s ease;
-  }
-  #haloRest.step-flash {
-    transform:translate(-50%,-50%) scale(1.08);
-    filter:blur(12px) brightness(1.45);
-  }
-  @keyframes liveBreath {
-    0%, 100% { transform:translate(-50%,-50%) scale(.94); opacity:calc(var(--glow) * 0.85); }
-    50% { transform:translate(-50%,-50%) scale(1.03); opacity:calc(var(--glow) * 1.25); }
-  }
-  @keyframes readyBreath {
-    0%, 100% { transform:translate(-50%,-50%) scale(.98); opacity:calc(var(--glow) * 1.1); }
-    50% { transform:translate(-50%,-50%) scale(1.08); opacity:calc(var(--glow) * 1.55); }
+  @keyframes restingLife {
+    0%, 100% { opacity:.38; transform:translate(-50%,-50%) scale(.97); }
+    50% { opacity:.52; transform:translate(-50%,-50%) scale(1.02); }
   }
   #halo {
-    position:absolute; left:50%; top:44%; width:92%; aspect-ratio:1;
-    transform:translate(-50%,-50%) scale(.5); border-radius:50%; pointer-events:none; z-index:3;
+    position:absolute; left:50%; top:43%; width:min(90vw, 440px); aspect-ratio:1;
+    transform:translate(-50%,-50%) scale(.4); border-radius:50%; pointer-events:none; z-index:4;
     opacity:0;
-    background:radial-gradient(circle, rgba(255,245,220,1) 0%, rgba(255,220,150,.75) 30%, transparent 62%);
-    filter:blur(10px);
+    background:radial-gradient(circle,
+      rgba(255,248,230,1) 0%,
+      rgba(255,220,160,.8) 25%,
+      rgba(240,180,100,.35) 45%,
+      transparent 65%);
+    filter:blur(12px);
   }
-  #halo.breathe { animation:miracleBreathe 4s ease-in-out forwards; opacity:1; }
-  @keyframes miracleBreathe {
-    0% { transform:translate(-50%,-50%) scale(.5); opacity:.15; filter:blur(12px) brightness(.9); }
-    22% { transform:translate(-50%,-50%) scale(1.18); opacity:1; filter:blur(8px) brightness(1.35); }
-    48% { transform:translate(-50%,-50%) scale(1.22); opacity:1; filter:blur(6px) brightness(1.5); }
-    100% { transform:translate(-50%,-50%) scale(.78); opacity:.25; filter:blur(14px) brightness(.95); }
+  #halo.miracle {
+    animation:miracleOnly 4.5s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  @keyframes miracleOnly {
+    0%   { opacity:0; transform:translate(-50%,-50%) scale(.5); filter:blur(18px); }
+    18%  { opacity:.5; transform:translate(-50%,-50%) scale(.85); }
+    35%  { opacity:1; transform:translate(-50%,-50%) scale(1.15); filter:blur(8px) brightness(1.2); }
+    55%  { opacity:1; transform:translate(-50%,-50%) scale(1.18); filter:blur(6px) brightness(1.35); }
+    100% { opacity:.35; transform:translate(-50%,-50%) scale(.92); filter:blur(16px); }
   }
   #miracleWord {
-    position:absolute; left:0; right:0; top:16%; text-align:center; pointer-events:none; z-index:4;
-    font-family:"Cormorant Garamond",serif; font-style:italic; font-size:clamp(26px,6vw,48px);
-    color:#fff8ea; text-shadow:0 0 50px rgba(255,220,150,1); opacity:0; transition:opacity .5s ease;
+    position:absolute; left:0; right:0; top:12%; text-align:center;
+    pointer-events:none; z-index:6; opacity:0;
+    transition:opacity .8s ease .4s;
   }
   #miracleWord.show { opacity:1; }
+  #miracleWord .line1 {
+    display:block; font-size:clamp(13px,3vw,15px); letter-spacing:.35em;
+    text-transform:uppercase; color:rgba(232,213,168,.75); font-weight:400;
+    margin-bottom:6px;
+  }
+  #miracleWord .line2 {
+    display:block; font-size:clamp(32px,8vw,56px); font-style:italic; font-weight:400;
+    color:#fff6e8; text-shadow:0 0 60px rgba(255,210,140,.85), 0 2px 20px rgba(0,0,0,.4);
+    letter-spacing:.04em;
+  }
   .cover {
-    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
-    gap:16px; padding:0 24px max(40px, env(safe-area-inset-bottom)); z-index:8; text-align:center;
-    background:linear-gradient(180deg, rgba(8,6,10,.1) 0%, rgba(8,6,10,.75) 100%);
+    position:absolute; inset:0; z-index:10; display:flex; flex-direction:column;
+    align-items:center; justify-content:flex-end; padding-bottom:max(44px, env(safe-area-inset-bottom));
+    background:linear-gradient(180deg, transparent 30%, rgba(4,3,5,.88) 100%);
+    text-align:center;
   }
   .cover.hidden { display:none; }
-  .cover p { color:var(--mute); max-width:340px; font-size:13px; line-height:1.65; }
+  .cover p { color:var(--mute); font-size:15px; font-style:italic; max-width:320px; line-height:1.6; margin-bottom:20px; }
   .btn {
-    font:500 14px Inter,sans-serif; color:#1a1408;
-    background:linear-gradient(180deg,#f0e0bc,var(--brass));
-    border:none; border-radius:999px; padding:14px 36px; cursor:pointer;
-    box-shadow:0 10px 32px rgba(201,168,106,.35);
+    font:500 13px "Cormorant Garamond",serif; letter-spacing:.12em; text-transform:uppercase;
+    color:#1a1408; background:linear-gradient(180deg,#ecd9a8,#b8924a);
+    border:none; padding:14px 40px; cursor:pointer;
+    box-shadow:0 8px 28px rgba(180,140,70,.25);
   }
   .btn.ghost {
     background:transparent; color:var(--brass-soft); border:1px solid var(--line);
-    font-size:13px; padding:11px 24px; box-shadow:none;
+    text-transform:uppercase; letter-spacing:.15em; font-size:12px; padding:12px 28px;
+    box-shadow:none;
   }
   .spinner {
-    width:32px; height:32px; border:2px solid var(--line); border-top-color:var(--brass);
-    border-radius:50%; animation:spin .8s linear infinite;
+    width:28px; height:28px; border:1px solid var(--line); border-top-color:var(--brass-soft);
+    border-radius:50%; animation:spin .9s linear infinite; margin:0 auto 12px;
   }
   @keyframes spin { to { transform:rotate(360deg); } }
   .portrait {
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:9;
-    background:rgba(4,3,6,.85); backdrop-filter:blur(10px); opacity:0; pointer-events:none;
-    transition:opacity .6s ease;
+    position:absolute; inset:0; z-index:11; display:flex; align-items:center; justify-content:center;
+    background:rgba(2,2,3,.88); opacity:0; pointer-events:none; transition:opacity .7s ease;
   }
   .portrait.show { opacity:1; pointer-events:auto; }
   .polaroid {
-    background:#f4efe4; padding:10px 10px 38px; border-radius:4px;
-    box-shadow:0 24px 60px rgba(0,0,0,.65);
-    transform:translateY(20px) scale(.94); transition:transform .65s cubic-bezier(.2,.85,.25,1);
-    width:min(72%,260px);
+    background:#f0ebe2; padding:8px 8px 36px; width:min(65%,240px);
+    box-shadow:0 20px 50px rgba(0,0,0,.7);
+    transform:translateY(16px); transition:transform .6s ease;
   }
-  .portrait.show .polaroid { transform:translateY(0) scale(1); }
-  .polaroid canvas { width:100%; border-radius:2px; display:block; filter:contrast(1.04) sepia(.06); }
-  .polaroid .cap {
-    font-family:"Cormorant Garamond",serif; font-style:italic; font-size:19px;
-    color:#2a2118; text-align:center; margin-top:10px;
-  }
-  .portrait .again { position:absolute; bottom:max(24px, env(safe-area-inset-bottom)); }
-  .err { color:#d4a0a0; font-size:13px; line-height:1.6; }
+  .portrait.show .polaroid { transform:translateY(0); }
+  .polaroid canvas { width:100%; display:block; filter:contrast(1.03) sepia(.05); }
+  .polaroid .cap { font-style:italic; font-size:18px; text-align:center; margin-top:10px; color:#2a2218; }
+  .portrait .again { position:absolute; bottom:max(28px, env(safe-area-inset-bottom)); }
+  .err { color:#c9a0a0; font-size:14px; font-style:italic; }
 </style>
 </head>
 <body>
   <h1>The <span class="em">Sign of the Cross</span></h1>
-  <div class="tag">The brass holds a quiet warmth. Trace the sign — it answers in light.</div>
+  <p class="tag">A quiet warmth behind the brass. Nothing moves until the sign is complete.</p>
 
   <div class="stage">
     <video id="video" playsinline muted></video>
-    <canvas id="canvas"></canvas>
-    <div id="haloRest"></div>
+
+    <div class="scene">
+      <div id="haloRest"></div>
+      <svg class="font-svg" viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="wallG" cx="50%" cy="42%" r="55%">
+            <stop offset="0%" stop-color="#221c16"/><stop offset="100%" stop-color="#0a0806"/>
+          </radialGradient>
+          <radialGradient id="rimHalo" cx="50%" cy="48%" r="50%">
+            <stop offset="72%" stop-color="rgba(255,210,140,0)"/>
+            <stop offset="88%" stop-color="rgba(255,200,120,.18)"/>
+            <stop offset="96%" stop-color="rgba(255,220,160,.08)"/>
+            <stop offset="100%" stop-color="rgba(255,200,100,0)"/>
+          </radialGradient>
+          <linearGradient id="brassMain" x1="30%" y1="15%" x2="70%" y2="85%">
+            <stop offset="0%" stop-color="#f2ddb0"/>
+            <stop offset="22%" stop-color="#c9a05a"/>
+            <stop offset="55%" stop-color="#8a6838"/>
+            <stop offset="100%" stop-color="#3d2e18"/>
+          </linearGradient>
+          <linearGradient id="brassEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fff0d0" stop-opacity=".55"/>
+            <stop offset="50%" stop-color="#d4b070" stop-opacity=".1"/>
+            <stop offset="100%" stop-color="#5a4020" stop-opacity=".4"/>
+          </linearGradient>
+          <radialGradient id="bowlIn" cx="50%" cy="55%" r="45%">
+            <stop offset="0%" stop-color="#1a1208"/>
+            <stop offset="45%" stop-color="#3d2a14"/>
+            <stop offset="100%" stop-color="#6b5030"/>
+          </radialGradient>
+          <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity=".55"/>
+          </filter>
+          <filter id="specular">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+            <feOffset dy="1" result="off"/><feComposite in="off" in2="blur" operator="out" result="shadow"/>
+            <feFlood flood-color="#fff8e0" flood-opacity=".25" result="color"/>
+            <feComposite in="color" in2="shadow" operator="in" result="hl"/>
+            <feMerge><feMergeNode in="hl"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <rect width="400" height="480" fill="url(#wallG)"/>
+        <ellipse cx="200" cy="230" rx="168" ry="168" fill="url(#rimHalo)"/>
+        <!-- Backplate shadow gap (15–20mm float feel) -->
+        <ellipse cx="200" cy="232" rx="155" ry="155" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="6"/>
+        <!-- Main disc -->
+        <circle cx="200" cy="228" r="138" fill="url(#brassMain)" filter="url(#softShadow)"/>
+        <circle cx="200" cy="228" r="138" fill="none" stroke="url(#brassEdge)" stroke-width="2.5" opacity=".7"/>
+        <!-- Specular crescent -->
+        <ellipse cx="168" cy="188" rx="52" ry="38" fill="rgba(255,245,220,.22)" transform="rotate(-25 168 188)"/>
+        <!-- Bowl -->
+        <ellipse cx="200" cy="268" rx="72" ry="48" fill="url(#bowlIn)"/>
+        <ellipse cx="200" cy="262" rx="58" ry="36" fill="none" stroke="rgba(255,230,190,.12)" stroke-width="1.5"/>
+        <!-- Spout lip -->
+        <path d="M 128 248 Q 108 258 112 278 Q 118 268 128 262 Z" fill="#6b5030" opacity=".85"/>
+        <path d="M 128 250 Q 115 258 118 270" fill="none" stroke="rgba(255,220,160,.15)" stroke-width="1"/>
+        <!-- Cross engraving hint (very subtle) -->
+        <g opacity=".08" stroke="#fff8e0" stroke-width="1.2" fill="none">
+          <line x1="200" y1="198" x2="200" y2="318"/>
+          <line x1="158" y1="248" x2="242" y2="248"/>
+        </g>
+      </svg>
+      <div id="halo"></div>
+    </div>
+
     <div class="vignette"></div>
-    <div id="halo"></div>
-    <div id="miracleWord">it is done</div>
+
+    <div id="miracleWord">
+      <span class="line1">The font</span>
+      <span class="line2">awakens</span>
+    </div>
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>Allow the camera. Make the sign — above, below, left, right.</p>
+        <p>Allow the camera. Trace the sign — above, below, left, right. The brass will not stir until the cross is whole.</p>
         <button class="btn" id="startBtn">Begin</button>
       </div>
     </div>
@@ -182,7 +250,6 @@ const ZONES = {
 const SEQUENCE = ["2","0","4","6"];
 const WINDOW_MS = 4000;
 const PALM = [0,5,9,17];
-const BASE_GLOW = 0.34;
 
 function zoneAt(x,y){
   for (const [name,z] of Object.entries(ZONES)){
@@ -199,20 +266,17 @@ class StateMachine {
     if (this.state==="IN_PROGRESS" && this.startedAt!==null && now-this.startedAt>WINDOW_MS) this.reset();
     const entered = zone!==this.lastZone ? zone : null;
     this.lastZone = zone;
-    if (entered===null) return { completed:false, advanced:false };
+    if (entered===null) return false;
     if (entered===this.expected){
       if (this.step===0){ this.startedAt=now; this.state="IN_PROGRESS"; }
       this.step++;
-      if (this.step>=SEQUENCE.length){ this.state="COMPLETE"; return { completed:true, advanced:true }; }
-      return { completed:false, advanced:true };
+      if (this.step>=SEQUENCE.length){ this.state="COMPLETE"; return true; }
     }
-    return { completed:false, advanced:false };
+    return false;
   }
 }
 
 const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
 const cover = document.getElementById("cover");
 const coverContent = document.getElementById("coverContent");
 const startBtn = document.getElementById("startBtn");
@@ -222,132 +286,15 @@ const miracleWord = document.getElementById("miracleWord");
 const portrait = document.getElementById("portrait");
 const againBtn = document.getElementById("againBtn");
 const shot = document.getElementById("shot");
-const stage = document.querySelector(".stage");
 
 const sm = new StateMachine();
 let landmarker = null;
 let running = false;
 let celebrating = false;
-let handPresent = false;
 let mpTs = 0;
-let pulseUntil = 0;
-let brassCache = null;
-
-function resizeCanvas(){
-  const r = stage.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.round(r.width * dpr);
-  canvas.height = Math.round(r.height * dpr);
-  brassCache = null;
-}
-
-function glowForProgress(step, now){
-  const progressBoost = step * 0.14;
-  const pulse = now < pulseUntil ? 0.28 : 0;
-  return BASE_GLOW + progressBoost + pulse;
-}
-
-function applyGlow(step, now){
-  const g = glowForProgress(step, now);
-  document.documentElement.style.setProperty("--glow", g.toFixed(3));
-}
-
-function flashStep(){
-  pulseUntil = performance.now() + 220;
-  haloRest.classList.add("step-flash");
-  setTimeout(()=> haloRest.classList.remove("step-flash"), 220);
-}
-
-function setPresence(mode){
-  haloRest.classList.toggle("hand-near", mode === "hand");
-  haloRest.classList.toggle("in-ritual", mode === "ritual");
-}
-
-function buildBrassCache(){
-  const w = canvas.width, h = canvas.height;
-  const off = document.createElement("canvas");
-  off.width = w; off.height = h;
-  const c = off.getContext("2d");
-  const cx = w * 0.5, cy = h * 0.44;
-  c.clearRect(0,0,w,h);
-  const wall = c.createRadialGradient(cx, cy, w*0.04, cx, cy, w*0.8);
-  wall.addColorStop(0, "#1e1814");
-  wall.addColorStop(0.5, "#0c0a08");
-  wall.addColorStop(1, "#030303");
-  c.fillStyle = wall;
-  c.fillRect(0,0,w,h);
-  c.save();
-  c.translate(cx, cy);
-  const plateR = w * 0.36;
-  const brass = c.createRadialGradient(-plateR*0.12, -plateR*0.18, plateR*0.08, 0, 0, plateR);
-  brass.addColorStop(0, "#e0c888");
-  brass.addColorStop(0.3, "#b89250");
-  brass.addColorStop(0.65, "#705830");
-  brass.addColorStop(1, "#3a2a16");
-  c.fillStyle = brass;
-  c.beginPath();
-  c.arc(0, 0, plateR*0.9, 0, Math.PI*2);
-  c.fill();
-  c.globalAlpha = 0.4;
-  const spec = c.createRadialGradient(-plateR*0.22, -plateR*0.3, 0, 0, 0, plateR*0.55);
-  spec.addColorStop(0, "#fff8e8");
-  spec.addColorStop(1, "rgba(255,240,200,0)");
-  c.fillStyle = spec;
-  c.beginPath();
-  c.arc(-plateR*0.06, -plateR*0.1, plateR*0.48, 0, Math.PI*2);
-  c.fill();
-  c.globalAlpha = 1;
-  const bowl = c.createRadialGradient(0, plateR*0.1, 0, 0, plateR*0.06, plateR*0.36);
-  bowl.addColorStop(0, "#241a0e");
-  bowl.addColorStop(0.55, "#503820");
-  bowl.addColorStop(1, "#8a6838");
-  c.fillStyle = bowl;
-  c.beginPath();
-  c.ellipse(0, plateR*0.14, plateR*0.3, plateR*0.2, 0, 0, Math.PI*2);
-  c.fill();
-  c.strokeStyle = "rgba(255,230,180,0.2)";
-  c.lineWidth = 2;
-  c.beginPath();
-  c.ellipse(0, plateR*0.14, plateR*0.26, plateR*0.17, 0, 0, Math.PI*2);
-  c.stroke();
-  c.restore();
-  brassCache = off;
-}
-
-function drawBrassPlate(step, now){
-  if (!brassCache || brassCache.width !== canvas.width) buildBrassCache();
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(brassCache, 0, 0);
-
-  const w = canvas.width, h = canvas.height;
-  const cx = w * 0.5, cy = h * 0.44;
-  const warm = glowForProgress(step, now);
-
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  const wash = ctx.createRadialGradient(cx, cy, w*0.05, cx, cy, w*0.42);
-  wash.addColorStop(0, `rgba(255,220,160,${0.08 + warm * 0.22})`);
-  wash.addColorStop(0.6, `rgba(255,180,100,${0.04 + step * 0.04})`);
-  wash.addColorStop(1, "rgba(255,160,80,0)");
-  ctx.fillStyle = wash;
-  ctx.fillRect(0,0,w,h);
-
-  if (now < pulseUntil){
-    const t = 1 - (pulseUntil - now) / 220;
-    ctx.globalAlpha = (1 - t) * 0.55;
-    const flash = ctx.createRadialGradient(cx, cy, 0, cx, cy, w*0.38);
-    flash.addColorStop(0, "#fff0c8");
-    flash.addColorStop(1, "rgba(255,200,120,0)");
-    ctx.fillStyle = flash;
-    ctx.beginPath();
-    ctx.arc(cx, cy, w*0.38, 0, Math.PI*2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
 
 async function loadModel(){
-  coverContent.innerHTML = '<div class="spinner"></div>';
+  coverContent.innerHTML = '<div class="spinner"></div><p style="color:var(--mute);font-style:italic">One moment</p>';
   const vision = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
   );
@@ -367,8 +314,6 @@ async function loadModel(){
 async function start(){
   try {
     if (!landmarker) await loadModel();
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
     const stream = await navigator.mediaDevices.getUserMedia({
       video:{ facingMode:"user", width:{ideal:1280}, height:{ideal:960} }, audio:false
     });
@@ -377,8 +322,6 @@ async function start(){
     cover.classList.add("hidden");
     running = true;
     sm.reset();
-    setPresence("idle");
-    applyGlow(0, performance.now());
     requestAnimationFrame(loop);
   } catch (e){
     cover.classList.remove("hidden");
@@ -389,78 +332,53 @@ async function start(){
 
 function celebrate(){
   celebrating = true;
-  setPresence("idle");
+  haloRest.style.transition = "opacity 1.2s ease";
+  haloRest.style.opacity = "0.15";
+  halo.classList.add("miracle");
+  miracleWord.classList.add("show");
   const sctx = shot.getContext("2d");
   shot.width = video.videoWidth; shot.height = video.videoHeight;
   sctx.translate(shot.width,0); sctx.scale(-1,1);
   sctx.drawImage(video,0,0,shot.width,shot.height);
-  haloRest.style.opacity = "0";
-  halo.classList.add("breathe");
-  miracleWord.classList.add("show");
-  setTimeout(()=> portrait.classList.add("show"), 2400);
-  setTimeout(()=>{
-    miracleWord.classList.remove("show");
-    halo.classList.remove("breathe");
-    haloRest.style.opacity = "";
-  }, 4000);
+  setTimeout(()=> portrait.classList.add("show"), 2800);
 }
 
 function resetAll(){
   portrait.classList.remove("show");
+  miracleWord.classList.remove("show");
+  halo.classList.remove("miracle");
+  halo.style.opacity = "0";
+  haloRest.style.opacity = "";
+  haloRest.style.transition = "";
   const sctx = shot.getContext("2d");
   sctx.setTransform(1,0,0,1,0,0);
   sctx.clearRect(0,0,shot.width,shot.height);
   celebrating = false;
   sm.reset();
-  setPresence("idle");
-  applyGlow(0, performance.now());
 }
 
-function loop(now){
+function loop(){
   if (!running) return;
 
-  if (!celebrating){
-    applyGlow(sm.step, now);
-    drawBrassPlate(sm.step, now);
-
-    if (landmarker && video.readyState >= 2){
-      mpTs += 16;
-      const res = landmarker.detectForVideo(video, mpTs);
-      if (res.landmarks?.length){
-        const lm = res.landmarks[0];
-        let sx=0, sy=0;
-        for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
-        const cx = Math.min(Math.max(1-(sx/PALM.length),0),1);
-        const cy = Math.min(Math.max(sy/PALM.length,0),1);
-        const zone = zoneAt(cx,cy);
-        const { completed, advanced } = sm.update(zone, now);
-
-        if (advanced) flashStep();
-
-        if (sm.state === "IN_PROGRESS") setPresence("ritual");
-        else if (!handPresent) { handPresent = true; setPresence("hand"); }
-        else setPresence("hand");
-
-        if (completed){
-          celebrate();
-          requestAnimationFrame(loop);
-          return;
-        }
-      } else {
-        sm.update(null, now);
-        if (handPresent){ handPresent = false; setPresence("idle"); }
-      }
+  if (!celebrating && landmarker && video.readyState >= 2){
+    mpTs += 16;
+    const res = landmarker.detectForVideo(video, mpTs);
+    if (res.landmarks?.length){
+      const lm = res.landmarks[0];
+      let sx=0, sy=0;
+      for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
+      const cx = Math.min(Math.max(1-(sx/PALM.length),0),1);
+      const cy = Math.min(Math.max(sy/PALM.length,0),1);
+      if (sm.update(zoneAt(cx,cy), performance.now())) celebrate();
+    } else {
+      sm.update(null, performance.now());
     }
   }
-
   requestAnimationFrame(loop);
 }
 
 startBtn.addEventListener("click", start);
 againBtn.addEventListener("click", resetAll);
-resizeCanvas();
-buildBrassCache();
-drawBrassPlate(0, 0);
 </script>
 </body>
 </html>
