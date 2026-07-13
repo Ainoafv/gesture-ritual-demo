@@ -166,11 +166,7 @@
 
       <rect width="400" height="720" fill="url(#bgNight)"/>
       <!-- Soft backdrop behind arch (reference: white drape → warm dark silk) -->
-      <ellipse cx="200" cy="340" rx="130" ry="160" fill="rgba(255,248,240,.04)"/>
-
-      <!-- LED halo BEHIND backplate (Riley: ring behind brass, 15–20mm float) -->
-      <circle cx="200" cy="340" r="168" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
-      <g id="ledBeads"></g>
+      <ellipse cx="200" cy="360" rx="130" ry="170" fill="rgba(255,248,240,.04)"/>
 
       <!-- Golden arch frame (reference: chamber / niche) -->
       <path fill="none" stroke="url(#archGold)" stroke-width="10"
@@ -183,13 +179,22 @@
       <path fill="none" stroke="url(#archGold)" stroke-width="6" opacity=".5"
         d="M345 520 Q352 420 345 320 Q338 220 345 120"/>
 
-      <!-- Brass backplate — centred in arch -->
-      <circle cx="200" cy="340" r="8" fill="#080604"/>
-      <circle cx="200" cy="340" r="132" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
-      <ellipse cx="168" cy="308" rx="48" ry="34" fill="rgba(255,250,235,.12)" transform="rotate(-15 168 308)"/>
+      <!-- LED halo BEHIND backplate (Riley: ring behind brass, 15–20mm float) -->
+      <circle cx="200" cy="360" r="168" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
+      <g id="ledBeads"></g>
 
-      <!-- Ornate cross — trefoil terminals, centred on plate (200,340) -->
-      <g id="ritualCross" transform="translate(0,0)">
+      <!-- Brass backplate — centred in arch / lens -->
+      <circle cx="200" cy="360" r="8" fill="#080604"/>
+      <circle cx="200" cy="360" r="132" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
+      <ellipse cx="168" cy="328" rx="48" ry="34" fill="rgba(255,250,235,.12)" transform="rotate(-15 168 328)"/>
+
+      <!-- Clip cross to plate so it never looks cut by the arch -->
+      <clipPath id="plateClip">
+        <circle cx="200" cy="360" r="125"/>
+      </clipPath>
+
+      <!-- Ornate cross — trefoil terminals, centred on plate (200,360) -->
+      <g id="ritualCross" clip-path="url(#plateClip)" transform="translate(0,20) scale(0.92)">
         <g fill="url(#crossDim)" opacity=".7">
           <!-- groove silhouette -->
           <path d="M192 340 L192 248 Q192 218 200 208 Q208 218 208 248 L208 340
@@ -222,8 +227,8 @@
       </g>
 
       <!-- Bowl — integrated below cross centre -->
-      <ellipse cx="200" cy="388" rx="58" ry="36" fill="#0a0806"/>
-      <ellipse cx="200" cy="382" rx="46" ry="28" fill="#1a140c" stroke="rgba(255,230,200,.06)" stroke-width="1"/>
+      <ellipse cx="200" cy="410" rx="58" ry="36" fill="#0a0806"/>
+      <ellipse cx="200" cy="404" rx="46" ry="28" fill="#1a140c" stroke="rgba(255,230,200,.06)" stroke-width="1"/>
     </svg>
 
     <div class="cam-hud">
@@ -255,9 +260,9 @@ import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@m
 const ZONES = { "2":{x:.3333,y:0,w:.3333,h:.3333}, "0":{x:.3333,y:.6666,w:.3333,h:.3334}, "4":{x:0,y:.3333,w:.3333,h:.3333}, "6":{x:.6666,y:.3333,w:.3334,h:.3333} };
 const SEQUENCE = ["2","0","4","6"];
 const SEGMENTS = ["segHeaven","segEarth","segLeft","segRight"];
-const WINDOW_MS = 6000;
+const WINDOW_MS = 7500;
 const PALM = [0,5,9,17];
-const PAD = .06;
+const PAD = .08;
 
 function zoneAt(x,y){
   for (const [n,z] of Object.entries(ZONES))
@@ -280,7 +285,7 @@ class SM {
 
 // LED beads around ring — matches brass diameter
 const beads = document.getElementById("ledBeads");
-const CX=200, CY=340, R=162, N=36;
+const CX=200, CY=360, R=162, N=36;
 for (let i=0;i<N;i++){
   const a = (i/N)*Math.PI*2 - Math.PI/2;
   const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
@@ -329,7 +334,7 @@ async function loadModel(){
   const v=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
   lm=await HandLandmarker.createFromOptions(v,{
     baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:"GPU"},
-    runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.4,minHandPresenceConfidence:.4,minTrackingConfidence:.35,
+    runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.35,minHandPresenceConfidence:.35,minTrackingConfidence:.3,
   });
 }
 
