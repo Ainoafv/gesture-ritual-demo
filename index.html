@@ -5,108 +5,144 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Gesture Ritual — Live Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg:#0d0b12; --ink:#efe7d8; --mute:#9a8f7d;
-    --brass:#c9a86a; --brass-soft:#e8d5a8; --line:rgba(201,168,106,.22);
+    --bg:#08070a; --ink:#efe7d8; --mute:#8a8072;
+    --brass:#c9a86a; --brass-soft:#e8d5a8; --line:rgba(201,168,106,.18);
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   html,body { height:100%; }
   body {
     font-family:Inter,system-ui,sans-serif;
-    background:radial-gradient(120% 90% at 50% -10%, #1d1626 0%, var(--bg) 60%);
+    background:radial-gradient(140% 100% at 50% 0%, #16121c 0%, var(--bg) 55%);
     color:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center;
-    padding:24px 16px 40px; overflow-x:hidden;
+    padding:28px 16px 36px;
   }
-  h1 { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:clamp(30px,5vw,46px); letter-spacing:.5px; }
+  h1 { font-family:"Cormorant Garamond",serif; font-weight:500; font-size:clamp(28px,4.5vw,42px); letter-spacing:.4px; font-weight:600; }
   h1 .em { color:var(--brass-soft); font-style:italic; }
-  .tag { color:var(--mute); font-size:14px; margin-top:6px; letter-spacing:.3px; text-align:center; max-width:560px; line-height:1.55; }
-  .stage {
-    position:relative; width:min(92vw,760px); aspect-ratio:4/3; margin-top:22px;
-    border-radius:16px; overflow:hidden;
-    border:1px solid var(--line);
-    box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.02);
-    background:radial-gradient(ellipse 80% 70% at 50% 45%, #2a2218 0%, #120e10 55%, #080608 100%);
+  .tag {
+    color:var(--mute); font-size:13.5px; margin-top:8px; text-align:center; max-width:480px;
+    line-height:1.65; letter-spacing:.2px;
   }
-  /* Camera runs hidden — guest signs blind, like on-site */
+  .stage {
+    position:relative; width:min(92vw,680px); aspect-ratio:3/4; max-height:78vh; margin-top:24px;
+    border-radius:20px; overflow:hidden;
+    box-shadow:
+      0 40px 100px rgba(0,0,0,.75),
+      0 0 0 1px rgba(201,168,106,.08),
+      inset 0 1px 0 rgba(255,255,255,.04);
+    background:#050406;
+  }
   #video { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
   #canvas { position:absolute; inset:0; width:100%; height:100%; }
+  .vignette {
+    position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:radial-gradient(ellipse 85% 75% at 50% 48%, transparent 40%, rgba(0,0,0,.55) 100%);
+  }
   #haloRest {
-    position:absolute; left:50%; top:50%; width:55%; aspect-ratio:1;
-    transform:translate(-50%,-50%) scale(.85); border-radius:50%; pointer-events:none;
-    opacity:.22;
-    background:radial-gradient(circle, rgba(255,224,168,.55) 0%, rgba(240,200,130,.2) 40%, transparent 70%);
-    filter:blur(8px);
+    position:absolute; left:50%; top:46%; width:72%; aspect-ratio:1;
+    transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; z-index:1;
+    opacity:.18;
+    background:radial-gradient(circle, rgba(255,230,180,.7) 0%, rgba(220,180,120,.25) 38%, transparent 68%);
+    filter:blur(14px);
+    animation:restGlow 6s ease-in-out infinite;
+  }
+  #haloRest.attentive {
+    animation:attentiveGlow 2.8s ease-in-out infinite;
+    opacity:.32;
+  }
+  @keyframes restGlow {
+    0%, 100% { opacity:.14; transform:translate(-50%,-50%) scale(.96); }
+    50% { opacity:.22; transform:translate(-50%,-50%) scale(1.02); }
+  }
+  @keyframes attentiveGlow {
+    0%, 100% { opacity:.22; transform:translate(-50%,-50%) scale(.98); }
+    50% { opacity:.42; transform:translate(-50%,-50%) scale(1.06); }
   }
   #halo {
-    position:absolute; left:50%; top:50%; width:60%; aspect-ratio:1;
-    transform:translate(-50%,-50%) scale(.6); border-radius:50%; pointer-events:none; opacity:0;
-    background:radial-gradient(circle, rgba(255,224,168,.9) 0%, rgba(240,200,130,.5) 35%, transparent 70%);
-    filter:blur(6px);
+    position:absolute; left:50%; top:46%; width:78%; aspect-ratio:1;
+    transform:translate(-50%,-50%) scale(.55); border-radius:50%; pointer-events:none; z-index:3;
+    opacity:0;
+    background:radial-gradient(circle, rgba(255,235,195,.95) 0%, rgba(240,200,130,.55) 32%, transparent 66%);
+    filter:blur(8px);
   }
-  #halo.breathe { animation:breathe 3.8s ease-in-out forwards; opacity:1; }
-  @keyframes breathe {
-    0% { transform:translate(-50%,-50%) scale(.6); opacity:.35; }
-    38% { transform:translate(-50%,-50%) scale(1.15); opacity:1; }
-    62% { transform:translate(-50%,-50%) scale(1.15); opacity:1; }
-    100% { transform:translate(-50%,-50%) scale(.7); opacity:.28; }
+  #halo.breathe { animation:miracleBreathe 4.2s ease-in-out forwards; opacity:1; }
+  @keyframes miracleBreathe {
+    0% { transform:translate(-50%,-50%) scale(.55); opacity:.2; }
+    28% { transform:translate(-50%,-50%) scale(1.12); opacity:1; }
+    45% { transform:translate(-50%,-50%) scale(1.12); opacity:1; }
+    100% { transform:translate(-50%,-50%) scale(.75); opacity:.2; }
   }
   #miracleWord {
-    position:absolute; left:0; right:0; top:14%; text-align:center; pointer-events:none;
-    font-family:"Cormorant Garamond",serif; font-style:italic; font-size:clamp(30px,6vw,60px);
-    color:#fff6e2; text-shadow:0 2px 30px rgba(255,220,150,.8); opacity:0; transition:opacity .4s ease;
+    position:absolute; left:0; right:0; top:18%; text-align:center; pointer-events:none; z-index:4;
+    font-family:"Cormorant Garamond",serif; font-style:italic; font-size:clamp(28px,5.5vw,52px);
+    color:#fff8ea; text-shadow:0 0 40px rgba(255,220,150,.9); opacity:0; transition:opacity .6s ease;
+    letter-spacing:.5px;
   }
   #miracleWord.show { opacity:1; }
   .cover {
-    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:16px; background:rgba(10,8,14,.72); backdrop-filter:blur(4px); text-align:center; padding:24px; z-index:6;
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+    gap:18px; padding:0 28px 48px; z-index:8; text-align:center;
+    background:linear-gradient(180deg, rgba(8,6,10,.15) 0%, rgba(8,6,10,.55) 55%, rgba(8,6,10,.88) 100%);
   }
   .cover.hidden { display:none; }
-  .cover p { color:var(--mute); max-width:420px; font-size:14px; line-height:1.65; }
+  .cover p { color:var(--mute); max-width:380px; font-size:13.5px; line-height:1.7; }
   .btn {
-    font:600 15px Inter,sans-serif; color:#20180c; background:linear-gradient(180deg,var(--brass-soft),var(--brass));
-    border:none; border-radius:999px; padding:13px 26px; cursor:pointer; letter-spacing:.3px;
-    box-shadow:0 8px 24px rgba(201,168,106,.35); transition:transform .12s ease, box-shadow .12s ease;
+    font:500 14px Inter,sans-serif; color:#1a1408; background:linear-gradient(180deg,#f0e0bc,var(--brass));
+    border:none; border-radius:999px; padding:14px 32px; cursor:pointer; letter-spacing:.4px;
+    box-shadow:0 10px 32px rgba(201,168,106,.28);
+    transition:transform .15s ease, box-shadow .15s ease;
   }
-  .btn:hover { transform:translateY(-1px); box-shadow:0 12px 30px rgba(201,168,106,.5); }
-  .btn.ghost { background:transparent; color:var(--brass-soft); border:1px solid var(--line); box-shadow:none; }
-  .spinner { width:34px; height:34px; border:3px solid var(--line); border-top-color:var(--brass); border-radius:50%; animation:spin 1s linear infinite; }
+  .btn:hover { transform:translateY(-1px); box-shadow:0 14px 36px rgba(201,168,106,.4); }
+  .btn.ghost {
+    background:transparent; color:var(--brass-soft); border:1px solid var(--line);
+    box-shadow:none; font-size:13px; padding:11px 22px;
+  }
+  .spinner {
+    width:32px; height:32px; border:2px solid var(--line); border-top-color:var(--brass);
+    border-radius:50%; animation:spin 1s linear infinite; margin-bottom:8px;
+  }
   @keyframes spin { to { transform:rotate(360deg); } }
-  .status { margin-top:18px; font-size:13px; color:var(--mute); min-height:20px; letter-spacing:.25px; text-align:center; font-family:"Cormorant Garamond",serif; font-style:italic; font-size:17px; }
   .portrait {
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:7;
-    background:rgba(8,6,11,.78); backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity .5s ease;
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:9;
+    background:rgba(4,3,6,.82); backdrop-filter:blur(8px); opacity:0; pointer-events:none;
+    transition:opacity .7s ease;
   }
   .portrait.show { opacity:1; pointer-events:auto; }
   .polaroid {
-    background:#f6f2e9; padding:12px 12px 46px; border-radius:6px; box-shadow:0 30px 70px rgba(0,0,0,.6);
-    transform:translateY(18px) rotate(-2deg) scale(.96); transition:transform .6s cubic-bezier(.2,.9,.2,1);
-    width:min(70%,320px);
+    background:#f4efe4; padding:10px 10px 40px; border-radius:4px;
+    box-shadow:0 24px 60px rgba(0,0,0,.65), 0 0 0 1px rgba(0,0,0,.06);
+    transform:translateY(24px) rotate(-1.5deg) scale(.94);
+    transition:transform .7s cubic-bezier(.2,.85,.25,1);
+    width:min(68%,280px);
   }
-  .portrait.show .polaroid { transform:translateY(0) rotate(-2deg) scale(1); }
-  .polaroid canvas { width:100%; border-radius:3px; display:block; filter:contrast(1.05) saturate(.9) sepia(.12); }
-  .polaroid .cap { font-family:"Cormorant Garamond",serif; font-style:italic; font-size:22px; color:#2a2118; text-align:center; margin-top:12px; }
-  .portrait .again { position:absolute; bottom:22px; }
-  .footer { margin-top:26px; color:var(--mute); font-size:11.5px; letter-spacing:.4px; text-align:center; }
-  .err { color:#e6a2a2; font-size:13px; max-width:420px; }
+  .portrait.show .polaroid { transform:translateY(0) rotate(-1.5deg) scale(1); }
+  .polaroid canvas { width:100%; border-radius:2px; display:block; filter:contrast(1.04) saturate(.88) sepia(.08); }
+  .polaroid .cap {
+    font-family:"Cormorant Garamond",serif; font-style:italic; font-size:20px;
+    color:#2a2118; text-align:center; margin-top:10px; letter-spacing:.3px;
+  }
+  .portrait .again { position:absolute; bottom:28px; }
+  .err { color:#d4a0a0; font-size:13px; max-width:400px; line-height:1.6; }
 </style>
 </head>
 <body>
   <h1>The <span class="em">Sign of the Cross</span></h1>
-  <div class="tag">Trace the sign in the air — the moment comes alive. No on-screen guides; the camera works silently behind the brass. Everything runs privately in your browser.</div>
+  <div class="tag">Trace the sign in the air. The brass responds. Nothing on screen guides you — as it will be on the rooftop.</div>
 
   <div class="stage">
     <video id="video" playsinline muted></video>
     <canvas id="canvas"></canvas>
     <div id="haloRest"></div>
+    <div class="vignette"></div>
     <div id="halo"></div>
     <div id="miracleWord">it is done</div>
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>Grant camera access, then make the sign of the cross naturally — above, below, left, right. Nothing on screen will tell you where to move.</p>
-        <button class="btn" id="startBtn">Begin the ritual</button>
+        <p>Allow the camera, then make the sign naturally — above, below, left, right.</p>
+        <button class="btn" id="startBtn">Begin</button>
       </div>
     </div>
 
@@ -115,12 +151,9 @@
         <canvas id="shot"></canvas>
         <div class="cap">Blessed &#10007;</div>
       </div>
-      <button class="btn ghost again" id="againBtn">Try again</button>
+      <button class="btn ghost again" id="againBtn">Again</button>
     </div>
   </div>
-
-  <div class="status" id="status">Camera not started</div>
-  <div class="footer">Computer-vision gesture engine · MediaPipe hand tracking · runs entirely on-device</div>
 
 <script type="module">
 import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -171,7 +204,6 @@ const ctx = canvas.getContext("2d");
 const cover = document.getElementById("cover");
 const coverContent = document.getElementById("coverContent");
 const startBtn = document.getElementById("startBtn");
-const statusEl = document.getElementById("status");
 const halo = document.getElementById("halo");
 const haloRest = document.getElementById("haloRest");
 const miracleWord = document.getElementById("miracleWord");
@@ -184,33 +216,92 @@ let landmarker = null;
 let running = false;
 let lastVideoTime = -1;
 let celebrating = false;
-
-const STATUS = {
-  idle: "The font is awake",
-  hand: "…",
-  active: "…",
-};
-
-function setStatus(t){ statusEl.textContent = t; }
+let handPresent = false;
 
 function drawBrassPlate(){
   const w = canvas.width, h = canvas.height;
+  const cx = w * 0.5, cy = h * 0.46;
+
   ctx.clearRect(0,0,w,h);
-  const g = ctx.createRadialGradient(w*.5, h*.48, w*.08, w*.5, h*.5, w*.55);
-  g.addColorStop(0, "#3d3428");
-  g.addColorStop(.45, "#1a1510");
-  g.addColorStop(1, "#0a0808");
-  ctx.fillStyle = g;
+
+  // Wall — deep shadow behind the font
+  const wall = ctx.createRadialGradient(cx, cy, w*0.05, cx, cy, w*0.75);
+  wall.addColorStop(0, "#1c1612");
+  wall.addColorStop(0.45, "#0e0c0a");
+  wall.addColorStop(1, "#050404");
+  ctx.fillStyle = wall;
   ctx.fillRect(0,0,w,h);
-  ctx.strokeStyle = "rgba(201,168,106,.12)";
-  ctx.lineWidth = 2;
+
+  // Backplate halo ring (physical brass plate)
+  ctx.save();
+  ctx.translate(cx, cy);
+  const plateR = w * 0.34;
+  const ring = ctx.createRadialGradient(0, 0, plateR*0.72, 0, 0, plateR*1.08);
+  ring.addColorStop(0, "rgba(180,140,80,0)");
+  ring.addColorStop(0.55, "rgba(200,160,90,0.35)");
+  ring.addColorStop(0.78, "rgba(160,120,70,0.55)");
+  ring.addColorStop(1, "rgba(80,60,35,0.2)");
+  ctx.fillStyle = ring;
   ctx.beginPath();
-  ctx.ellipse(w*.5, h*.52, w*.28, h*.32, 0, 0, Math.PI*2);
+  ctx.arc(0, 0, plateR*1.05, 0, Math.PI*2);
+  ctx.fill();
+
+  // Main brass disc
+  const brass = ctx.createRadialGradient(-plateR*0.15, -plateR*0.2, plateR*0.1, 0, 0, plateR);
+  brass.addColorStop(0, "#d4b87a");
+  brass.addColorStop(0.35, "#a8844a");
+  brass.addColorStop(0.7, "#6b5230");
+  brass.addColorStop(1, "#3d2e1a");
+  ctx.fillStyle = brass;
+  ctx.beginPath();
+  ctx.arc(0, 0, plateR*0.88, 0, Math.PI*2);
+  ctx.fill();
+
+  // Specular highlight
+  ctx.globalAlpha = 0.35;
+  const spec = ctx.createRadialGradient(-plateR*0.25, -plateR*0.35, 0, -plateR*0.1, -plateR*0.15, plateR*0.5);
+  spec.addColorStop(0, "#fff6dc");
+  spec.addColorStop(1, "rgba(255,240,200,0)");
+  ctx.fillStyle = spec;
+  ctx.beginPath();
+  ctx.arc(-plateR*0.08, -plateR*0.12, plateR*0.45, 0, Math.PI*2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Bowl depression
+  const bowl = ctx.createRadialGradient(0, plateR*0.12, 0, 0, plateR*0.08, plateR*0.38);
+  bowl.addColorStop(0, "#2a1f12");
+  bowl.addColorStop(0.5, "#4a3820");
+  bowl.addColorStop(1, "#7a5c34");
+  ctx.fillStyle = bowl;
+  ctx.beginPath();
+  ctx.ellipse(0, plateR*0.15, plateR*0.32, plateR*0.22, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Inner bowl rim
+  ctx.strokeStyle = "rgba(255,220,160,0.15)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.ellipse(0, plateR*0.15, plateR*0.28, plateR*0.19, 0, 0, Math.PI*2);
   ctx.stroke();
+
+  ctx.restore();
+
+  // Film grain (subtle)
+  ctx.globalAlpha = 0.04;
+  for (let i = 0; i < 120; i++) {
+    ctx.fillStyle = i % 2 ? "#fff" : "#000";
+    ctx.fillRect(Math.random()*w, Math.random()*h, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function setHaloMode(mode){
+  haloRest.classList.toggle("attentive", mode === "attentive");
 }
 
 async function loadModel(){
-  coverContent.innerHTML = '<div class="spinner"></div><p>Awakening the font…</p>';
+  coverContent.innerHTML = '<div class="spinner"></div><p style="color:var(--mute);font-size:13px">One moment…</p>';
   const vision = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
   );
@@ -230,27 +321,29 @@ async function loadModel(){
 async function start(){
   try {
     if (!landmarker) await loadModel();
-    coverContent.innerHTML = '<div class="spinner"></div><p>Starting camera…</p>';
+    coverContent.innerHTML = '<div class="spinner"></div>';
     const stream = await navigator.mediaDevices.getUserMedia({
       video:{ facingMode:"user", width:{ideal:1280}, height:{ideal:960} }, audio:false
     });
     video.srcObject = stream;
     await video.play();
-    canvas.width = 960; canvas.height = 720;
+    canvas.width = 720; canvas.height = 960;
     cover.classList.add("hidden");
     running = true;
-    setStatus(STATUS.idle);
     sm.reset();
+    setHaloMode("rest");
     drawBrassPlate();
     requestAnimationFrame(loop);
   } catch (e){
-    coverContent.innerHTML = '<p class="err">Could not start the camera: '+ (e?.message || e) +'<br><br>Check camera permission and https.</p>';
+    cover.classList.remove("hidden");
+    coverContent.innerHTML = '<p class="err">Camera unavailable. Check permission and try again.</p><button class="btn" id="retryBtn">Retry</button>';
+    document.getElementById("retryBtn")?.addEventListener("click", () => location.reload());
   }
 }
 
 function celebrate(){
   celebrating = true;
-  setStatus("The miracle");
+  setHaloMode("rest");
   const sctx = shot.getContext("2d");
   shot.width = video.videoWidth; shot.height = video.videoHeight;
   sctx.translate(shot.width,0); sctx.scale(-1,1);
@@ -258,12 +351,12 @@ function celebrate(){
   haloRest.style.opacity = "0";
   halo.classList.add("breathe");
   miracleWord.classList.add("show");
-  setTimeout(()=>{ portrait.classList.add("show"); }, 2400);
+  setTimeout(()=>{ portrait.classList.add("show"); }, 2600);
   setTimeout(()=>{
     miracleWord.classList.remove("show");
     halo.classList.remove("breathe");
     haloRest.style.opacity = "";
-  }, 3800);
+  }, 4200);
 }
 
 function resetAll(){
@@ -273,43 +366,40 @@ function resetAll(){
   sctx.clearRect(0,0,shot.width,shot.height);
   celebrating = false;
   sm.reset();
-  setStatus(STATUS.idle);
+  setHaloMode("rest");
   drawBrassPlate();
 }
 
 function loop(){
   if (!running) return;
+  drawBrassPlate();
   if (video.currentTime !== lastVideoTime && !celebrating){
     lastVideoTime = video.currentTime;
     const res = landmarker.detectForVideo(video, performance.now());
-    let hasHand = false;
     if (res.landmarks && res.landmarks.length){
-      hasHand = true;
       const lm = res.landmarks[0];
       let sx=0, sy=0;
       for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
       const cx = Math.min(Math.max(1-(sx/PALM.length),0),1);
       const cy = Math.min(Math.max(sy/PALM.length,0),1);
       const zone = zoneAt(cx,cy);
+      if (!handPresent){ handPresent = true; setHaloMode("attentive"); }
       if (sm.update(zone, performance.now())){
-        drawBrassPlate();
         celebrate();
         requestAnimationFrame(loop);
         return;
       }
     } else {
       sm.update(null, performance.now());
+      if (handPresent){ handPresent = false; setHaloMode("rest"); }
     }
-    drawBrassPlate();
-    if (sm.state === "IN_PROGRESS") setStatus(STATUS.active);
-    else if (hasHand) setStatus(STATUS.hand);
-    else setStatus(STATUS.idle);
   }
   requestAnimationFrame(loop);
 }
 
 startBtn.addEventListener("click", start);
 againBtn.addEventListener("click", resetAll);
+drawBrassPlate();
 </script>
 </body>
 </html>
