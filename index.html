@@ -7,280 +7,213 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg:#060508; --ink:#ebe3d4; --mute:#8a8278;
-    --brass:#c4a062; --brass-light:#e8d5a8; --line:rgba(196,160,98,.2);
-  }
+  :root { --ink:#ebe3d4; --mute:#8a8278; --gold:#e8c878; --line:rgba(196,160,98,.25); }
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
-    font-family:Inter,system-ui,sans-serif;
-    background:var(--bg);
-    color:var(--ink); min-height:100dvh;
-    display:flex; flex-direction:column; align-items:center;
-    padding:max(20px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    font-family:Inter,system-ui,sans-serif; background:#030304; color:var(--ink);
+    min-height:100dvh; display:flex; flex-direction:column; align-items:center;
+    padding:max(12px, env(safe-area-inset-top)) 0 max(12px, env(safe-area-inset-bottom));
   }
-  .header { text-align:center; max-width:440px; }
+  .header { text-align:center; padding:0 16px 8px; z-index:20; }
   h1 {
-    font-family:"Cormorant Garamond",Georgia,serif; font-weight:600;
-    font-size:clamp(28px,5vw,36px); letter-spacing:-.01em; line-height:1.15;
+    font-family:"Cormorant Garamond",serif; font-weight:600;
+    font-size:clamp(24px,5vw,32px); letter-spacing:.02em;
   }
-  .tag {
-    color:var(--mute); font-size:13px; margin-top:8px; line-height:1.5; font-weight:400;
-  }
+  .tag { color:var(--mute); font-size:12px; margin-top:4px; }
   .stage {
-    position:relative; flex:1; width:min(94vw, 460px);
-    min-height:min(66dvh, 620px); max-height:74dvh;
-    margin-top:18px; overflow:hidden;
-    background:#040404;
-    border:1px solid rgba(255,255,255,.04);
-    box-shadow:0 40px 100px rgba(0,0,0,.75);
+    position:relative; flex:1; width:100%; max-width:520px;
+    min-height:min(78dvh, 780px); margin-top:4px;
+    overflow:hidden; background:#000;
+    border-radius:2px;
+    box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 32px 80px rgba(0,0,0,.85);
   }
+  /* Live camera — full frame, mirrored */
   #video {
     position:absolute; inset:0; width:100%; height:100%;
     object-fit:cover; transform:scaleX(-1);
-    opacity:0; pointer-events:none; z-index:0;
   }
-  .scene {
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    background:radial-gradient(ellipse 65% 50% at 50% 44%, #181410 0%, #060505 100%);
+  .cam-grade {
+    position:absolute; inset:0; pointer-events:none; z-index:1;
+    background:
+      radial-gradient(ellipse 90% 80% at 50% 48%, transparent 25%, rgba(0,0,0,.55) 100%),
+      linear-gradient(180deg, rgba(20,14,8,.35) 0%, transparent 30%, transparent 70%, rgba(10,8,6,.5) 100%);
   }
-  .font-svg {
-    width:88%; max-height:78%; position:relative; z-index:2;
-    filter:drop-shadow(0 24px 48px rgba(0,0,0,.7));
+  /* Cross overlay — same 0–1 space as gesture zones */
+  .cross-layer {
+    position:absolute; inset:0; z-index:3; pointer-events:none;
+    width:100%; height:100%;
   }
   .cross-arm {
-    transition:opacity .45s ease, filter .45s ease;
-    opacity:.55;
+    transition:opacity .35s ease, filter .35s ease;
+    opacity:.22;
   }
   .cross-arm.lit {
     opacity:1;
-    filter:url(#crossLitGlow);
+    filter:url(#armGlow);
   }
-  .cross-arm.flash { animation:armFlash .7s ease-out; }
-  @keyframes armFlash {
-    0%   { opacity:.55; }
-    35%  { opacity:1; filter:url(#crossLitBurst); }
-    100% { opacity:1; filter:url(#crossLitGlow); }
+  .cross-arm.flash { animation:armBurst .65s ease-out; }
+  @keyframes armBurst {
+    0%   { opacity:.22; }
+    30%  { opacity:1; filter:url(#armBurst); }
+    100% { opacity:1; filter:url(#armGlow); }
   }
+  .cross-groove { opacity:.5; }
   #crossAura {
-    transition:opacity .5s ease, r .5s ease;
-    opacity:.08;
+    opacity:.06; transition:opacity .4s ease;
   }
-  #crossAura.s1 { opacity:.18; }
-  #crossAura.s2 { opacity:.28; }
-  #crossAura.s3 { opacity:.4; }
+  #crossAura.s1 { opacity:.15; }
+  #crossAura.s2 { opacity:.25; }
+  #crossAura.s3 { opacity:.38; }
   #crossAura.s4 { opacity:.55; }
-  .vignette {
-    position:absolute; inset:0; pointer-events:none; z-index:5;
-    background:radial-gradient(ellipse 75% 65% at 50% 46%, transparent 35%, rgba(0,0,0,.55) 100%);
-  }
   #haloRest {
-    position:absolute; left:50%; top:43%; width:88%; max-width:400px; aspect-ratio:1;
-    transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; z-index:1;
-    background:radial-gradient(circle, rgba(255,220,160,.4) 0%, rgba(220,170,100,.12) 45%, transparent 68%);
-    filter:blur(18px); opacity:.42;
-    animation:restBreath 6s ease-in-out infinite;
+    position:absolute; left:50%; top:50%; width:85%; aspect-ratio:1;
+    transform:translate(-50%,-50%); border-radius:50%; z-index:2; pointer-events:none;
+    background:radial-gradient(circle, rgba(255,210,140,.35) 0%, transparent 65%);
+    filter:blur(24px); opacity:.35;
+    animation:haloIdle 7s ease-in-out infinite;
   }
-  @keyframes restBreath {
-    0%, 100% { opacity:.36; transform:translate(-50%,-50%) scale(.98); }
-    50% { opacity:.48; transform:translate(-50%,-50%) scale(1.01); }
+  @keyframes haloIdle {
+    0%,100% { opacity:.28; transform:translate(-50%,-50%) scale(.96); }
+    50% { opacity:.4; transform:translate(-50%,-50%) scale(1.02); }
   }
   #halo {
-    position:absolute; left:50%; top:43%; width:92%; max-width:420px; aspect-ratio:1;
-    transform:translate(-50%,-50%) scale(.45); border-radius:50%; pointer-events:none; z-index:4;
-    opacity:0;
-    background:radial-gradient(circle, rgba(255,248,235,1) 0%, rgba(255,215,150,.7) 30%, transparent 62%);
-    filter:blur(10px);
+    position:absolute; inset:0; z-index:5; pointer-events:none; opacity:0;
+    background:radial-gradient(circle at 50% 50%, rgba(255,245,220,.95) 0%, rgba(255,200,120,.4) 35%, transparent 60%);
+    filter:blur(8px);
   }
-  #halo.miracle { animation:miracleHalo 4.2s ease-in-out forwards; }
-  @keyframes miracleHalo {
-    0%   { opacity:0; transform:translate(-50%,-50%) scale(.5); }
-    30%  { opacity:1; transform:translate(-50%,-50%) scale(1.12); }
-    55%  { opacity:1; transform:translate(-50%,-50%) scale(1.14); }
-    100% { opacity:.3; transform:translate(-50%,-50%) scale(.9); }
+  #halo.miracle { animation:miracle 4s ease-in-out forwards; }
+  @keyframes miracle {
+    0%   { opacity:0; transform:scale(.8); }
+    25%  { opacity:1; transform:scale(1.05); }
+    60%  { opacity:1; }
+    100% { opacity:.2; transform:scale(1); }
   }
   #miracleWord {
-    position:absolute; left:0; right:0; top:10%; text-align:center;
-    pointer-events:none; z-index:6; opacity:0;
-    font-family:"Cormorant Garamond",Georgia,serif;
-    font-size:clamp(32px,8vw,52px); font-weight:600; letter-spacing:-.01em;
-    color:#f5eedf;
-    text-shadow:0 0 48px rgba(255,210,140,.5);
-    transition:opacity .7s ease .35s;
+    position:absolute; left:0; right:0; top:8%; z-index:7; text-align:center;
+    pointer-events:none; opacity:0;
+    font-family:"Cormorant Garamond",serif;
+    font-size:clamp(34px,9vw,56px); font-weight:600; color:#f8f0e0;
+    text-shadow:0 0 40px rgba(255,200,120,.6), 0 2px 20px rgba(0,0,0,.8);
+    transition:opacity .6s ease .3s;
   }
   #miracleWord.show { opacity:1; }
   .cover {
-    position:absolute; inset:0; z-index:10; display:flex; flex-direction:column;
-    align-items:center; justify-content:flex-end; padding:0 24px max(40px, env(safe-area-inset-bottom));
-    background:linear-gradient(180deg, transparent 40%, rgba(4,3,5,.92) 100%);
+    position:absolute; inset:0; z-index:12;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+    padding:0 20px max(36px, env(safe-area-inset-bottom));
+    background:linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.88) 100%);
     text-align:center;
   }
   .cover.hidden { display:none; }
-  .cover p { color:var(--mute); font-size:13px; max-width:340px; line-height:1.65; margin-bottom:18px; }
+  .cover p { color:var(--mute); font-size:13px; max-width:320px; line-height:1.6; margin-bottom:16px; }
   .btn {
-    font:500 12px Inter,sans-serif; letter-spacing:.08em; text-transform:uppercase;
-    color:#141008; background:var(--brass-light);
-    border:none; padding:13px 32px; cursor:pointer;
+    font:500 11px Inter,sans-serif; letter-spacing:.1em; text-transform:uppercase;
+    background:var(--gold); color:#120e08; border:none; padding:13px 28px; cursor:pointer;
   }
   .btn.ghost {
-    background:transparent; color:var(--brass-light); border:1px solid var(--line);
-    font-size:11px; padding:11px 24px;
+    background:transparent; color:var(--gold); border:1px solid var(--line);
+    font-size:10px; padding:10px 20px;
   }
   .spinner {
-    width:24px; height:24px; border:2px solid var(--line); border-top-color:var(--brass);
-    border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 10px;
+    width:22px; height:22px; border:2px solid var(--line); border-top-color:var(--gold);
+    border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 8px;
   }
   @keyframes spin { to { transform:rotate(360deg); } }
   .portrait {
-    position:absolute; inset:0; z-index:11; display:flex; align-items:center; justify-content:center;
-    background:rgba(2,2,3,.9); opacity:0; pointer-events:none; transition:opacity .6s ease;
+    position:absolute; inset:0; z-index:13; display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.88); opacity:0; pointer-events:none; transition:opacity .5s;
   }
   .portrait.show { opacity:1; pointer-events:auto; }
   .polaroid {
-    background:#eee8dc; padding:8px 8px 32px; width:min(62%,220px);
-    box-shadow:0 16px 48px rgba(0,0,0,.65);
-    transform:translateY(12px); transition:transform .55s ease;
+    background:#ece6da; padding:8px 8px 30px; width:min(58%,200px);
+    box-shadow:0 16px 40px rgba(0,0,0,.7);
   }
-  .portrait.show .polaroid { transform:translateY(0); }
   .polaroid canvas { width:100%; display:block; }
   .polaroid .cap {
-    font-family:"Cormorant Garamond",serif; font-size:17px; font-weight:500;
-    text-align:center; margin-top:8px; color:#2a2418;
+    font-family:"Cormorant Garamond",serif; font-size:16px; font-weight:500;
+    text-align:center; margin-top:8px; color:#2a2218;
   }
-  .portrait .again { position:absolute; bottom:max(24px, env(safe-area-inset-bottom)); }
+  .portrait .again { position:absolute; bottom:max(20px, env(safe-area-inset-bottom)); }
   .err { color:#b89090; font-size:13px; }
 </style>
 </head>
 <body>
   <header class="header">
     <h1>Sign of the Cross</h1>
-    <p class="tag">Gesture recognition prototype · on-device · camera required</p>
+    <p class="tag">Gesture prototype · camera aligned to cross zones</p>
   </header>
 
   <div class="stage">
-    <video id="video" playsinline muted></video>
+    <video id="video" playsinline muted autoplay></video>
+    <div class="cam-grade"></div>
+    <div id="haloRest"></div>
 
-    <div class="scene">
-      <div id="haloRest"></div>
-      <svg class="font-svg" viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <radialGradient id="wallG" cx="50%" cy="42%" r="55%">
-            <stop offset="0%" stop-color="#1e1814"/><stop offset="100%" stop-color="#080605"/>
-          </radialGradient>
-          <radialGradient id="rimHalo" cx="50%" cy="48%" r="50%">
-            <stop offset="74%" stop-color="rgba(255,210,140,0)"/>
-            <stop offset="90%" stop-color="rgba(255,200,120,.14)"/>
-            <stop offset="100%" stop-color="rgba(255,200,100,0)"/>
-          </radialGradient>
-          <linearGradient id="brassMain" x1="28%" y1="12%" x2="72%" y2="88%">
-            <stop offset="0%" stop-color="#e8d098"/>
-            <stop offset="30%" stop-color="#b89050"/>
-            <stop offset="100%" stop-color="#3a2c18"/>
-          </linearGradient>
-          <linearGradient id="brassEdge" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#fff2d8" stop-opacity=".45"/>
-            <stop offset="100%" stop-color="#5a4020" stop-opacity=".35"/>
-          </linearGradient>
-          <radialGradient id="bowlIn" cx="50%" cy="55%" r="45%">
-            <stop offset="0%" stop-color="#0e0a06"/>
-            <stop offset="55%" stop-color="#2a1e10"/>
-            <stop offset="100%" stop-color="#5a4224"/>
-          </radialGradient>
-          <linearGradient id="crossDim" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#2a1e10"/>
-            <stop offset="100%" stop-color="#1a1208"/>
-          </linearGradient>
-          <linearGradient id="crossGold" x1="30%" y1="0%" x2="70%" y2="100%">
-            <stop offset="0%" stop-color="#fffce8"/>
-            <stop offset="35%" stop-color="#f0d890"/>
-            <stop offset="100%" stop-color="#c89848"/>
-          </linearGradient>
-          <radialGradient id="crossAuraGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="rgba(255,230,180,.55)"/>
-            <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
-          </radialGradient>
-          <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
-            <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity=".5"/>
-          </filter>
-          <filter id="crossLitGlow" x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
-            <feFlood flood-color="#ffe8b0" flood-opacity=".85" result="color"/>
-            <feComposite in="color" in2="blur" operator="in" result="glow"/>
-            <feMerge>
-              <feMergeNode in="glow"/>
-              <feMergeNode in="glow"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          <filter id="crossLitBurst" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur"/>
-            <feFlood flood-color="#fff8e0" flood-opacity="1" result="color"/>
-            <feComposite in="color" in2="blur" operator="in" result="glow"/>
-            <feMerge>
-              <feMergeNode in="glow"/>
-              <feMergeNode in="glow"/>
-              <feMergeNode in="glow"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          <filter id="brassGrain" x="0" y="0" width="100%" height="100%">
-            <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" result="noise"/>
-            <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
-            <feBlend in="SourceGraphic" in2="gray" mode="multiply" result="blend"/>
-            <feComponentTransfer in="gray" result="subtle">
-              <feFuncA type="linear" slope=".04"/>
-            </feComponentTransfer>
-            <feBlend in="blend" in2="subtle" mode="overlay"/>
-          </filter>
-        </defs>
-        <rect width="400" height="480" fill="url(#wallG)"/>
-        <ellipse cx="200" cy="228" rx="168" ry="168" fill="url(#rimHalo)"/>
-        <!-- Float shadow -->
-        <ellipse cx="200" cy="234" rx="148" ry="148" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="8"/>
-        <circle cx="200" cy="228" r="138" fill="url(#brassMain)" filter="url(#softShadow)"/>
-        <circle cx="200" cy="228" r="138" fill="none" stroke="url(#brassEdge)" stroke-width="2.5" opacity=".7"/>
-        <!-- Concentric plate rings -->
-        <circle cx="200" cy="228" r="118" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="1"/>
-        <circle cx="200" cy="228" r="98" fill="none" stroke="rgba(255,230,190,.06)" stroke-width=".8"/>
-        <ellipse cx="162" cy="186" rx="54" ry="38" fill="rgba(255,248,230,.2)" transform="rotate(-20 162 186)"/>
-        <!-- Bowl -->
-        <ellipse cx="200" cy="272" rx="76" ry="50" fill="url(#bowlIn)"/>
-        <ellipse cx="200" cy="264" rx="62" ry="38" fill="none" stroke="rgba(255,235,200,.08)" stroke-width="1"/>
-        <ellipse cx="200" cy="268" rx="48" ry="28" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
-        <path d="M128 252 Q106 262 108 282 Q118 272 128 266 Z" fill="#4a3820"/>
-        <!-- Cross recess + ceremonial patée cross -->
-        <circle id="crossAura" cx="200" cy="242" r="72" fill="url(#crossAuraGrad)"/>
-        <ellipse cx="200" cy="242" rx="58" ry="62" fill="rgba(0,0,0,.22)" stroke="rgba(0,0,0,.15)" stroke-width="1"/>
-        <g id="ritualCross">
-          <!-- Dim full cross silhouette (carved recess) -->
-          <path fill="rgba(0,0,0,.35)" opacity=".6"
-            d="M194 248 L194 208 Q194 172 200 162 Q206 172 206 208 L206 248
-               M194 248 L194 292 Q194 322 200 330 Q206 322 206 292 L206 248
-               M200 236 L158 236 Q128 242 118 242 Q128 252 158 252 L200 252
-               M200 236 L242 236 Q272 242 282 242 Q272 252 242 252 L200 252 Z"/>
-          <!-- Lit segments — patée arms -->
-          <path id="segHeaven" class="cross-arm" fill="url(#crossDim)"
-            d="M194 248 L194 208 Q194 172 200 162 Q206 172 206 208 L206 248 Z"/>
-          <path id="segEarth" class="cross-arm" fill="url(#crossDim)"
-            d="M194 248 L194 292 Q194 322 200 330 Q206 322 206 292 L206 248 Z"/>
-          <path id="segLeft" class="cross-arm" fill="url(#crossDim)"
-            d="M200 236 L158 236 Q128 242 118 242 Q128 252 158 252 L200 252 Z"/>
-          <path id="segRight" class="cross-arm" fill="url(#crossDim)"
-            d="M200 236 L242 236 Q272 242 282 242 Q272 252 242 252 L200 252 Z"/>
-          <!-- Centre boss -->
-          <circle cx="200" cy="242" r="10" fill="url(#crossDim)" stroke="rgba(0,0,0,.3)" stroke-width=".8"/>
-          <circle id="crossBoss" cx="200" cy="242" r="6" fill="url(#crossDim)" opacity=".8"/>
-        </g>
-      </svg>
-      <div id="halo"></div>
-    </div>
+    <!-- Cross in normalized 0–1 coords = same grid as MediaPipe zones -->
+    <svg class="cross-layer" viewBox="0 0 1 1" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="goldFill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fffef0"/>
+          <stop offset="40%" stop-color="#f0d080"/>
+          <stop offset="100%" stop-color="#b87828"/>
+        </linearGradient>
+        <linearGradient id="grooveFill" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#1a140c"/>
+          <stop offset="100%" stop-color="#0a0806"/>
+        </linearGradient>
+        <radialGradient id="auraGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(255,220,150,.7)"/>
+          <stop offset="100%" stop-color="rgba(255,180,80,0)"/>
+        </radialGradient>
+        <filter id="armGlow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="0.008" result="b"/>
+          <feFlood flood-color="#ffe8a0" flood-opacity=".9" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="g"/>
+          <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="armBurst" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="0.015" result="b"/>
+          <feFlood flood-color="#fff8e0" flood-opacity="1" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="g"/>
+          <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
 
-    <div class="vignette"></div>
+      <!-- Aura behind cross centre (zone 8 / intersection) -->
+      <circle id="crossAura" cx="0.5" cy="0.5" r="0.22" fill="url(#auraGrad)"/>
+
+      <!-- Full cross groove silhouette -->
+      <g class="cross-groove" fill="url(#grooveFill)" stroke="rgba(0,0,0,.4)" stroke-width="0.002">
+        <!-- Heaven — zone 2 -->
+        <path d="M 0.46 0.50 L 0.46 0.34 Q 0.46 0.12 0.50 0.04 Q 0.54 0.12 0.54 0.34 L 0.54 0.50 Z"/>
+        <!-- Earth — zone 0 -->
+        <path d="M 0.46 0.50 L 0.46 0.66 Q 0.46 0.88 0.50 0.96 Q 0.54 0.88 0.54 0.66 L 0.54 0.50 Z"/>
+        <!-- Left — zone 4 -->
+        <path d="M 0.50 0.46 L 0.34 0.46 Q 0.12 0.50 0.04 0.50 Q 0.12 0.54 0.34 0.54 L 0.50 0.54 Z"/>
+        <!-- Right — zone 6 -->
+        <path d="M 0.50 0.46 L 0.66 0.46 Q 0.88 0.50 0.96 0.50 Q 0.88 0.54 0.66 0.54 L 0.50 0.54 Z"/>
+        <!-- Centre boss -->
+        <circle cx="0.5" cy="0.5" r="0.045" fill="url(#grooveFill)"/>
+        <circle cx="0.5" cy="0.5" r="0.028" fill="#2a2010"/>
+      </g>
+
+      <!-- Lit segments (same paths, gold) -->
+      <path id="segHeaven" class="cross-arm" fill="url(#grooveFill)"
+        d="M 0.46 0.50 L 0.46 0.34 Q 0.46 0.12 0.50 0.04 Q 0.54 0.12 0.54 0.34 L 0.54 0.50 Z"/>
+      <path id="segEarth" class="cross-arm" fill="url(#grooveFill)"
+        d="M 0.46 0.50 L 0.46 0.66 Q 0.46 0.88 0.50 0.96 Q 0.54 0.88 0.54 0.66 L 0.54 0.50 Z"/>
+      <path id="segLeft" class="cross-arm" fill="url(#grooveFill)"
+        d="M 0.50 0.46 L 0.34 0.46 Q 0.12 0.50 0.04 0.50 Q 0.12 0.54 0.34 0.54 L 0.50 0.54 Z"/>
+      <path id="segRight" class="cross-arm" fill="url(#grooveFill)"
+        d="M 0.50 0.46 L 0.66 0.46 Q 0.88 0.50 0.96 0.50 Q 0.88 0.54 0.66 0.54 L 0.50 0.54 Z"/>
+      <circle id="crossBoss" class="cross-arm" cx="0.5" cy="0.5" r="0.032" fill="url(#grooveFill)"/>
+    </svg>
+
+    <div id="halo"></div>
     <p id="miracleWord">The font is awake.</p>
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>Allow camera access. Trace the sign in front of you — the cross on the brass completes as each movement registers.</p>
+        <p>Allow the camera. The cross matches your frame — trace above, below, left, right. Each arm lights as you pass through it.</p>
         <button class="btn" id="startBtn">Start</button>
       </div>
     </div>
@@ -310,9 +243,9 @@ const ZONES = {
 };
 const SEQUENCE = ["2","0","4","6"];
 const SEGMENTS = ["segHeaven","segEarth","segLeft","segRight"];
-const WINDOW_MS = 5500;
+const WINDOW_MS = 6000;
 const PALM = [0,5,9,17];
-const ZONE_PAD = 0.06;
+const ZONE_PAD = 0.05;
 
 function zoneAt(x,y){
   for (const [name,z] of Object.entries(ZONES)){
@@ -326,19 +259,17 @@ class StateMachine {
   reset(){ this.step=0; this.startedAt=null; this.lastZone=null; this.state="IDLE"; }
   get expected(){ return this.step < SEQUENCE.length ? SEQUENCE[this.step] : null; }
   update(zone, now){
-    if (this.state==="IN_PROGRESS" && this.startedAt!==null && now-this.startedAt>WINDOW_MS){
+    if (this.state==="IN_PROGRESS" && this.startedAt!=null && now-this.startedAt>WINDOW_MS){
       this.reset();
       return { completed:false, advanced:false, reset:true };
     }
     const entered = zone!==this.lastZone ? zone : null;
     this.lastZone = zone;
-    if (entered===null) return { completed:false, advanced:false, reset:false };
+    if (!entered) return { completed:false, advanced:false, reset:false };
     if (entered===this.expected){
       if (this.step===0){ this.startedAt=now; this.state="IN_PROGRESS"; }
       this.step++;
-      const completed = this.step >= SEQUENCE.length;
-      if (completed) this.state="COMPLETE";
-      return { completed, advanced:true, reset:false };
+      return { completed:this.step>=SEQUENCE.length, advanced:true, reset:false };
     }
     return { completed:false, advanced:false, reset:false };
   }
@@ -360,38 +291,38 @@ let landmarker = null;
 let running = false;
 let celebrating = false;
 let lastVideoTime = -1;
+let detectTs = 0;
 
 function resetCross(){
-  for (const id of SEGMENTS){
+  for (const id of [...SEGMENTS, "crossBoss"]){
     const el = document.getElementById(id);
+    if (!el) continue;
     el.classList.remove("lit","flash");
-    el.setAttribute("fill", "url(#crossDim)");
+    el.setAttribute("fill", "url(#grooveFill)");
   }
-  const boss = document.getElementById("crossBoss");
-  boss.setAttribute("fill", "url(#crossDim)");
-  boss.classList.remove("lit");
-  const aura = document.getElementById("crossAura");
-  aura.className = "";
+  document.getElementById("crossAura").classList.remove("s1","s2","s3","s4");
+  document.getElementById("crossAura").style.opacity = "";
 }
 
-function lightSegment(stepIndex){
-  const id = SEGMENTS[stepIndex - 1];
-  if (!id) return;
+function lightSegment(n){
+  const id = SEGMENTS[n-1];
   const el = document.getElementById(id);
-  el.setAttribute("fill", "url(#crossGold)");
+  if (!el) return;
+  el.setAttribute("fill", "url(#goldFill)");
   el.classList.add("lit","flash");
-  el.addEventListener("animationend", ()=> el.classList.remove("flash"), { once:true });
+  el.addEventListener("animationend", ()=> el.classList.remove("flash"), {once:true});
   const aura = document.getElementById("crossAura");
-  aura.className = "s" + stepIndex;
-  if (stepIndex >= 2){
+  aura.classList.remove("s1","s2","s3","s4");
+  aura.classList.add("s"+n);
+  if (n>=2){
     const boss = document.getElementById("crossBoss");
-    boss.setAttribute("fill", "url(#crossGold)");
+    boss.setAttribute("fill", "url(#goldFill)");
     boss.classList.add("lit");
   }
 }
 
 async function loadModel(){
-  coverContent.innerHTML = '<div class="spinner"></div><p style="color:var(--mute);font-size:13px">Loading model</p>';
+  coverContent.innerHTML = '<div class="spinner"></div><p style="color:var(--mute);font-size:12px">Loading</p>';
   const vision = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
   );
@@ -402,9 +333,9 @@ async function loadModel(){
     },
     runningMode: "VIDEO",
     numHands: 1,
-    minHandDetectionConfidence: 0.45,
-    minHandPresenceConfidence: 0.45,
-    minTrackingConfidence: 0.4,
+    minHandDetectionConfidence: 0.4,
+    minHandPresenceConfidence: 0.4,
+    minTrackingConfidence: 0.35,
   });
 }
 
@@ -412,7 +343,8 @@ async function start(){
   try {
     if (!landmarker) await loadModel();
     const stream = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:"user", width:{ideal:1280}, height:{ideal:960} }, audio:false
+      video: { facingMode:"user", width:{ideal:1280}, height:{ideal:720} },
+      audio: false,
     });
     video.srcObject = stream;
     await video.play();
@@ -420,73 +352,74 @@ async function start(){
     running = true;
     sm.reset();
     resetCross();
-    requestAnimationFrame(loop);
+    lastVideoTime = -1;
+    detectTs = 0;
+    requestAnimationFrame(tick);
   } catch (e){
     cover.classList.remove("hidden");
-    coverContent.innerHTML = '<p class="err">Camera unavailable.</p><button class="btn" id="retryBtn">Retry</button>';
-    document.getElementById("retryBtn")?.addEventListener("click", () => location.reload());
+    coverContent.innerHTML = `<p class="err">Camera blocked: ${e.message||e}</p><button class="btn" id="retryBtn">Retry</button>`;
+    document.getElementById("retryBtn")?.addEventListener("click", ()=> location.reload());
   }
 }
 
 function celebrate(){
   celebrating = true;
-  const aura = document.getElementById("crossAura");
-  aura.className = "s4";
-  aura.style.opacity = ".7";
-  document.getElementById("crossBoss").setAttribute("fill", "url(#crossGold)");
-  haloRest.style.transition = "opacity 1s ease";
-  haloRest.style.opacity = "0.2";
+  document.getElementById("crossAura").style.opacity = "0.65";
+  document.getElementById("crossBoss").setAttribute("fill","url(#goldFill)");
   halo.classList.add("miracle");
   miracleWord.classList.add("show");
-  const sctx = shot.getContext("2d");
-  shot.width = video.videoWidth; shot.height = video.videoHeight;
-  sctx.translate(shot.width,0); sctx.scale(-1,1);
-  sctx.drawImage(video,0,0,shot.width,shot.height);
-  setTimeout(()=> portrait.classList.add("show"), 2600);
+  haloRest.style.opacity = "0.15";
+  const ctx = shot.getContext("2d");
+  shot.width = video.videoWidth;
+  shot.height = video.videoHeight;
+  ctx.save();
+  ctx.translate(shot.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0);
+  ctx.restore();
+  setTimeout(()=> portrait.classList.add("show"), 2400);
 }
 
 function resetAll(){
   portrait.classList.remove("show");
   miracleWord.classList.remove("show");
   halo.classList.remove("miracle");
-  halo.style.opacity = "0";
+  halo.style.opacity = "";
   haloRest.style.opacity = "";
-  haloRest.style.transition = "";
-  const aura = document.getElementById("crossAura");
-  aura.className = "";
-  aura.style.opacity = "";
-  const sctx = shot.getContext("2d");
-  sctx.setTransform(1,0,0,1,0,0);
-  sctx.clearRect(0,0,shot.width,shot.height);
   celebrating = false;
   sm.reset();
   resetCross();
+  lastVideoTime = -1;
 }
 
-function loop(){
+function tick(){
   if (!running) return;
 
-  if (!celebrating && landmarker && video.readyState >= 2
-      && video.currentTime !== lastVideoTime){
-    lastVideoTime = video.currentTime;
-    const res = landmarker.detectForVideo(video, performance.now());
-    const now = performance.now();
-    if (res.landmarks?.length){
-      const lm = res.landmarks[0];
-      let sx=0, sy=0;
-      for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
-      const cx = Math.min(Math.max(1-(sx/PALM.length),0),1);
-      const cy = Math.min(Math.max(sy/PALM.length,0),1);
-      const result = sm.update(zoneAt(cx,cy), now);
+  if (!celebrating && landmarker && video.readyState >= 2){
+    if (video.currentTime !== lastVideoTime){
+      lastVideoTime = video.currentTime;
+      detectTs = performance.now();
+      const res = landmarker.detectForVideo(video, detectTs);
+      const now = performance.now();
+      let result = { completed:false, advanced:false, reset:false };
+
+      if (res.landmarks?.length){
+        const lm = res.landmarks[0];
+        let sx=0, sy=0;
+        for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
+        const cx = Math.min(Math.max(1 - sx/PALM.length, 0), 1);
+        const cy = Math.min(Math.max(sy/PALM.length, 0), 1);
+        result = sm.update(zoneAt(cx, cy), now);
+      } else {
+        result = sm.update(null, now);
+      }
+
       if (result.reset) resetCross();
       if (result.advanced) lightSegment(sm.step);
       if (result.completed) celebrate();
-    } else {
-      const result = sm.update(null, now);
-      if (result.reset) resetCross();
     }
   }
-  requestAnimationFrame(loop);
+  requestAnimationFrame(tick);
 }
 
 startBtn.addEventListener("click", start);
