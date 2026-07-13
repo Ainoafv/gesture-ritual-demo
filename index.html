@@ -41,7 +41,7 @@
 
   /* Cinematic: no HUD, no “REC”, no technical copy. */
   #miracleWord {
-    position:absolute; left:0; right:0; bottom:20%; z-index:20;
+    position:absolute; left:0; right:0; top:12%; z-index:20;
     text-align:center; pointer-events:none; opacity:0;
     font-family:"Cormorant Garamond",serif;
     font-size:clamp(38px,10vw,56px);
@@ -245,10 +245,11 @@ import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@m
 const ZONES = { "2":{x:.3333,y:0,w:.3333,h:.3333}, "0":{x:.3333,y:.6666,w:.3333,h:.3334}, "4":{x:0,y:.3333,w:.3333,h:.3333}, "6":{x:.6666,y:.3333,w:.3334,h:.3333} };
 const SEQUENCE = ["2","0","4","6"];
 const SEGMENTS = ["segHeaven","segEarth","segLeft","segRight"];
-const WINDOW_MS = 7500;
+const WINDOW_MS = 9000;
 const PALM = [0,5,9,17];
-const PAD = .08;
+const PAD = .10;
 const SMOOTH = 0.35;
+const STEP_MIN_MS = 180;
 
 function zoneAt(x,y){
   for (const [n,z] of Object.entries(ZONES))
@@ -260,6 +261,7 @@ class SM {
   reset(){
     this.step=0; this.t0=null; this.lz=null; this.st="IDLE";
     this.cz=null; this.cc=0; // candidate zone + stability counter
+    this.lastStepAt = 0;
   }
   constructor(){ this.reset(); }
   get exp(){ return this.step<4 ? SEQUENCE[this.step] : null; }
@@ -268,17 +270,19 @@ class SM {
       this.reset(); return {d:0,a:0,r:1};
     }
 
-    // Require the same zone for 2 consecutive frames to avoid jitter.
+    // Stabilise zone lightly (avoid jitter) + minimum step interval (avoid double-triggers).
     if (z && z===this.cz) this.cc += 1;
     else { this.cz = z; this.cc = z ? 1 : 0; }
-    const stable = (this.cc >= 2) ? z : null;
+    const stable = (this.cc >= 1) ? z : null;
     const e = stable && stable !== this.lz ? stable : null;
     if (stable) this.lz = stable;
     if (!e) return {d:0,a:0,r:0};
 
     if (e===this.exp){
+      if (now - this.lastStepAt < STEP_MIN_MS) return {d:0,a:0,r:0};
       if(!this.step){ this.t0=now; this.st="IN_PROGRESS"; }
       this.step++;
+      this.lastStepAt = now;
       return {d:this.step>=4,a:1,r:0};
     }
     return {d:0,a:0,r:0};
