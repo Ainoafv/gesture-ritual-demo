@@ -340,10 +340,12 @@ class SM {
     this.step=0; this.t0=null; this.lz=null; this.st="IDLE";
     this.cz=null; this.cc=0; // candidate zone + stability counter
     this.lastStepAt = 0;
+    this.sweepX0 = null;
+    this.sweepY0 = null;
   }
   constructor(){ this.reset(); }
   get exp(){ return this.step<4 ? SEQUENCE[this.step] : null; }
-  upd(z,now){
+  upd(z, now, x, y){
     if (this.st==="IN_PROGRESS" && this.t0 && now-this.t0>WINDOW_MS){
       this.reset(); return {d:0,a:0,r:1};
     }
@@ -356,11 +358,38 @@ class SM {
     if (stable) this.lz = stable;
     if (!e) return {d:0,a:0,r:0};
 
+    // Special case: horizontal strokes are best detected by direction + distance,
+    // not by hitting an arbitrary rectangle. After Earth, require a clear sweep.
+    if ((this.exp === "4" || this.exp === "6") && typeof x === "number" && typeof y === "number") {
+      // Mid band only (guest sweeps across chest height).
+      if (y > 0.18 - PAD && y < 0.78 + PAD) {
+        if (this.sweepX0 == null) { this.sweepX0 = x; this.sweepY0 = y; }
+        const dx = x - this.sweepX0;
+        // Require a decisive sweep distance.
+        const TH = 0.18;
+        const dirOk = (this.exp === "4" && dx < -TH) || (this.exp === "6" && dx > TH);
+        if (dirOk && now - this.lastStepAt >= STEP_MIN_MS) {
+          if(!this.step){ this.t0=now; this.st="IN_PROGRESS"; }
+          this.step++;
+          this.lastStepAt = now;
+          this.sweepX0 = null;
+          this.sweepY0 = null;
+          return {d:this.step>=4,a:1,r:0};
+        }
+      } else {
+        // If they leave the band, reset sweep start so it doesn't carry over.
+        this.sweepX0 = null;
+        this.sweepY0 = null;
+      }
+    }
+
     if (e===this.exp){
       if (now - this.lastStepAt < STEP_MIN_MS) return {d:0,a:0,r:0};
       if(!this.step){ this.t0=now; this.st="IN_PROGRESS"; }
       this.step++;
       this.lastStepAt = now;
+      this.sweepX0 = null;
+      this.sweepY0 = null;
       return {d:this.step>=4,a:1,r:0};
     }
     return {d:0,a:0,r:0};
@@ -505,8 +534,8 @@ function tick(){
       sx = sx*(1-SMOOTH) + tx*SMOOTH;
       sy = sy*(1-SMOOTH) + ty*SMOOTH;
       zone = zoneAt(sx, sy, sm.exp);
-      r=sm.upd(zone,now);
-    } else { hasS=false; r=sm.upd(null,now); }
+      r=sm.upd(zone, now, sx, sy);
+    } else { hasS=false; r=sm.upd(null, now, null, null); }
     if(r.r) resetVis();
     if(r.a) lightStep(sm.step);
     if(r.d) celebrate();
