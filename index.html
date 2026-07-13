@@ -8,33 +8,42 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg:#0d0b12; --bg2:#151019; --ink:#efe7d8; --mute:#9a8f7d;
+    --bg:#0d0b12; --ink:#efe7d8; --mute:#9a8f7d;
     --brass:#c9a86a; --brass-soft:#e8d5a8; --line:rgba(201,168,106,.22);
-    --ok:#7ec98f;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   html,body { height:100%; }
   body {
-    font-family:Inter,system-ui,sans-serif; background:radial-gradient(120% 90% at 50% -10%, #1d1626 0%, var(--bg) 60%);
+    font-family:Inter,system-ui,sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%, #1d1626 0%, var(--bg) 60%);
     color:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center;
     padding:24px 16px 40px; overflow-x:hidden;
   }
   h1 { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:clamp(30px,5vw,46px); letter-spacing:.5px; }
   h1 .em { color:var(--brass-soft); font-style:italic; }
-  .tag { color:var(--mute); font-size:14px; margin-top:6px; letter-spacing:.3px; text-align:center; max-width:620px; }
+  .tag { color:var(--mute); font-size:14px; margin-top:6px; letter-spacing:.3px; text-align:center; max-width:560px; line-height:1.55; }
   .stage {
     position:relative; width:min(92vw,760px); aspect-ratio:4/3; margin-top:22px;
-    border-radius:16px; overflow:hidden; background:#000;
-    border:1px solid var(--line); box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.02);
+    border-radius:16px; overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.02);
+    background:radial-gradient(ellipse 80% 70% at 50% 45%, #2a2218 0%, #120e10 55%, #080608 100%);
   }
-  #video { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; transform:scaleX(-1); }
+  /* Camera runs hidden — guest signs blind, like on-site */
+  #video { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
   #canvas { position:absolute; inset:0; width:100%; height:100%; }
-  /* Miracle halo */
+  #haloRest {
+    position:absolute; left:50%; top:50%; width:55%; aspect-ratio:1;
+    transform:translate(-50%,-50%) scale(.85); border-radius:50%; pointer-events:none;
+    opacity:.22;
+    background:radial-gradient(circle, rgba(255,224,168,.55) 0%, rgba(240,200,130,.2) 40%, transparent 70%);
+    filter:blur(8px);
+  }
   #halo {
-    position:absolute; left:50%; top:50%; width:60%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.6);
-    border-radius:50%; pointer-events:none; opacity:0;
-    background:radial-gradient(circle, rgba(255,224,168,.9) 0%, rgba(240,200,130,.5) 35%, rgba(240,200,130,0) 70%);
-    filter:blur(6px); transition:opacity .2s ease;
+    position:absolute; left:50%; top:50%; width:60%; aspect-ratio:1;
+    transform:translate(-50%,-50%) scale(.6); border-radius:50%; pointer-events:none; opacity:0;
+    background:radial-gradient(circle, rgba(255,224,168,.9) 0%, rgba(240,200,130,.5) 35%, transparent 70%);
+    filter:blur(6px);
   }
   #halo.breathe { animation:breathe 3.8s ease-in-out forwards; opacity:1; }
   @keyframes breathe {
@@ -49,13 +58,12 @@
     color:#fff6e2; text-shadow:0 2px 30px rgba(255,220,150,.8); opacity:0; transition:opacity .4s ease;
   }
   #miracleWord.show { opacity:1; }
-  /* Overlay panels */
   .cover {
     position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:16px; background:rgba(10,8,14,.72); backdrop-filter:blur(4px); text-align:center; padding:24px; z-index:6;
   }
   .cover.hidden { display:none; }
-  .cover p { color:var(--mute); max-width:440px; font-size:14px; line-height:1.6; }
+  .cover p { color:var(--mute); max-width:420px; font-size:14px; line-height:1.65; }
   .btn {
     font:600 15px Inter,sans-serif; color:#20180c; background:linear-gradient(180deg,var(--brass-soft),var(--brass));
     border:none; border-radius:999px; padding:13px 26px; cursor:pointer; letter-spacing:.3px;
@@ -65,21 +73,7 @@
   .btn.ghost { background:transparent; color:var(--brass-soft); border:1px solid var(--line); box-shadow:none; }
   .spinner { width:34px; height:34px; border:3px solid var(--line); border-top-color:var(--brass); border-radius:50%; animation:spin 1s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
-  /* Steps */
-  .steps { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; justify-content:center; }
-  .step {
-    display:flex; align-items:center; gap:9px; padding:9px 15px; border-radius:12px;
-    border:1px solid var(--line); background:var(--bg2); color:var(--mute); font-size:13px; transition:.25s;
-  }
-  .step .n { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:600;
-    background:rgba(201,168,106,.12); color:var(--brass-soft); }
-  .step.active { border-color:var(--brass); color:var(--ink); box-shadow:0 0 0 1px var(--brass) inset; }
-  .step.done { color:var(--ok); border-color:rgba(126,201,143,.4); }
-  .step.done .n { background:rgba(126,201,143,.18); color:var(--ok); }
-  .status { margin-top:14px; font-size:12.5px; color:var(--mute); min-height:18px; letter-spacing:.2px; }
-  .status .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#555; margin-right:7px; vertical-align:middle; }
-  .status .dot.live { background:var(--ok); box-shadow:0 0 8px var(--ok); }
-  /* Portrait card */
+  .status { margin-top:18px; font-size:13px; color:var(--mute); min-height:20px; letter-spacing:.25px; text-align:center; font-family:"Cormorant Garamond",serif; font-style:italic; font-size:17px; }
   .portrait {
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:7;
     background:rgba(8,6,11,.78); backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity .5s ease;
@@ -100,17 +94,18 @@
 </head>
 <body>
   <h1>The <span class="em">Sign of the Cross</span></h1>
-  <div class="tag">A live gesture-recognition demo. Trace the sign of the cross in the air and the moment comes alive. Everything runs privately in your browser — nothing is uploaded.</div>
+  <div class="tag">Trace the sign in the air — the moment comes alive. No on-screen guides; the camera works silently behind the brass. Everything runs privately in your browser.</div>
 
   <div class="stage">
     <video id="video" playsinline muted></video>
     <canvas id="canvas"></canvas>
+    <div id="haloRest"></div>
     <div id="halo"></div>
     <div id="miracleWord">it is done</div>
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>This uses your camera to track your hand. Grant access, then trace the four points in order — the panel below guides you.</p>
+        <p>Grant camera access, then make the sign of the cross naturally — above, below, left, right. Nothing on screen will tell you where to move.</p>
         <button class="btn" id="startBtn">Begin the ritual</button>
       </div>
     </div>
@@ -124,20 +119,12 @@
     </div>
   </div>
 
-  <div class="steps" id="steps">
-    <div class="step" data-zone="2"><span class="n">1</span> Above &nbsp;·&nbsp; the sky</div>
-    <div class="step" data-zone="0"><span class="n">2</span> Below &nbsp;·&nbsp; the earth</div>
-    <div class="step" data-zone="4"><span class="n">3</span> Left</div>
-    <div class="step" data-zone="6"><span class="n">4</span> Right</div>
-  </div>
-  <div class="status" id="status"><span class="dot" id="liveDot"></span><span id="statusText">Camera not started</span></div>
-
+  <div class="status" id="status">Camera not started</div>
   <div class="footer">Computer-vision gesture engine · MediaPipe hand tracking · runs entirely on-device</div>
 
 <script type="module">
 import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
-// ---- Config (mirrors the prototype's zones.json + state machine) ----
 const ZONES = {
   "1": { x:0.0,    y:0.0,    w:0.3333, h:0.3333 },
   "2": { x:0.3333, y:0.0,    w:0.3333, h:0.3333 },
@@ -150,14 +137,8 @@ const ZONES = {
   "5": { x:0.6666, y:0.6666, w:0.3334, h:0.3334 },
 };
 const SEQUENCE = ["2","0","4","6"];
-const WINDOW_MS = 4000;  // generous for a demo; the on-site value is tighter
+const WINDOW_MS = 4000;
 const PALM = [0,5,9,17];
-const MESSAGES = {
-  "2":"Raise your hand to the heavens",
-  "0":"Now draw down to the earth",
-  "4":"Move across to the left",
-  "6":"And finally, to the right",
-};
 
 function zoneAt(x,y){
   for (const [name,z] of Object.entries(ZONES)){
@@ -166,7 +147,6 @@ function zoneAt(x,y){
   return null;
 }
 
-// ---- State machine (port of state_machine.py) ----
 class StateMachine {
   constructor(){ this.reset(); }
   reset(){ this.step=0; this.startedAt=null; this.lastZone=null; this.state="IDLE"; }
@@ -185,17 +165,15 @@ class StateMachine {
   }
 }
 
-// ---- Elements ----
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const cover = document.getElementById("cover");
 const coverContent = document.getElementById("coverContent");
 const startBtn = document.getElementById("startBtn");
-const steps = [...document.querySelectorAll(".step")];
-const statusText = document.getElementById("statusText");
-const liveDot = document.getElementById("liveDot");
+const statusEl = document.getElementById("status");
 const halo = document.getElementById("halo");
+const haloRest = document.getElementById("haloRest");
 const miracleWord = document.getElementById("miracleWord");
 const portrait = document.getElementById("portrait");
 const againBtn = document.getElementById("againBtn");
@@ -207,13 +185,28 @@ let running = false;
 let lastVideoTime = -1;
 let celebrating = false;
 
-function setStatus(t, live=false){ statusText.textContent=t; liveDot.classList.toggle("live", live); }
+const STATUS = {
+  idle: "The font is awake",
+  hand: "…",
+  active: "…",
+};
 
-function renderSteps(){
-  steps.forEach((el,i)=>{
-    el.classList.toggle("done", i<sm.step);
-    el.classList.toggle("active", i===sm.step && !celebrating);
-  });
+function setStatus(t){ statusEl.textContent = t; }
+
+function drawBrassPlate(){
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const g = ctx.createRadialGradient(w*.5, h*.48, w*.08, w*.5, h*.5, w*.55);
+  g.addColorStop(0, "#3d3428");
+  g.addColorStop(.45, "#1a1510");
+  g.addColorStop(1, "#0a0808");
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = "rgba(201,168,106,.12)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(w*.5, h*.52, w*.28, h*.32, 0, 0, Math.PI*2);
+  ctx.stroke();
 }
 
 async function loadModel(){
@@ -238,72 +231,50 @@ async function start(){
   try {
     if (!landmarker) await loadModel();
     coverContent.innerHTML = '<div class="spinner"></div><p>Starting camera…</p>';
-    const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:1280}, height:{ideal:960} }, audio:false });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:"user", width:{ideal:1280}, height:{ideal:960} }, audio:false
+    });
     video.srcObject = stream;
     await video.play();
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.width = 960; canvas.height = 720;
     cover.classList.add("hidden");
     running = true;
-    setStatus("Trace the sign of the cross", true);
-    sm.reset(); renderSteps();
+    setStatus(STATUS.idle);
+    sm.reset();
+    drawBrassPlate();
     requestAnimationFrame(loop);
   } catch (e){
-    coverContent.innerHTML = '<p class="err">Could not start the camera: '+ (e && e.message ? e.message : e) +'<br><br>Check the browser has camera permission and you\'re on https.</p>';
-  }
-}
-
-function drawOverlay(centroid){
-  const w = canvas.width, h = canvas.height;
-  ctx.clearRect(0,0,w,h);
-  const expected = celebrating ? null : sm.expected;
-  for (const [name,z] of Object.entries(ZONES)){
-    const inSeq = SEQUENCE.includes(name);
-    const isExp = name===expected;
-    ctx.lineWidth = isExp ? 4 : 1;
-    ctx.strokeStyle = isExp ? "rgba(126,201,143,.95)" : "rgba(201,168,106,.16)";
-    if (isExp){
-      ctx.fillStyle = "rgba(126,201,143,.14)";
-      ctx.fillRect(z.x*w, z.y*h, z.w*w, z.h*h);
-    }
-    if (isExp || inSeq) ctx.strokeRect(z.x*w, z.y*h, z.w*w, z.h*h);
-    if (inSeq){
-      ctx.fillStyle = isExp ? "rgba(190,255,205,.9)" : "rgba(201,168,106,.35)";
-      ctx.font = "600 20px Inter, sans-serif";
-      ctx.fillText("step "+(SEQUENCE.indexOf(name)+1), z.x*w+10, z.y*h+26);
-    }
-  }
-  if (centroid){
-    ctx.beginPath();
-    ctx.arc(centroid.x*w, centroid.y*h, 11, 0, Math.PI*2);
-    ctx.fillStyle = "rgba(233,213,168,.95)";
-    ctx.fill();
-    ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255,255,255,.6)"; ctx.stroke();
+    coverContent.innerHTML = '<p class="err">Could not start the camera: '+ (e?.message || e) +'<br><br>Check camera permission and https.</p>';
   }
 }
 
 function celebrate(){
   celebrating = true;
-  setStatus("The miracle", true);
-  renderSteps();
-  // freeze the current frame into the polaroid (mirrored to match display)
+  setStatus("The miracle");
   const sctx = shot.getContext("2d");
   shot.width = video.videoWidth; shot.height = video.videoHeight;
   sctx.translate(shot.width,0); sctx.scale(-1,1);
   sctx.drawImage(video,0,0,shot.width,shot.height);
-  // halo + word
+  haloRest.style.opacity = "0";
   halo.classList.add("breathe");
   miracleWord.classList.add("show");
   setTimeout(()=>{ portrait.classList.add("show"); }, 2400);
-  setTimeout(()=>{ miracleWord.classList.remove("show"); halo.classList.remove("breathe"); }, 3800);
+  setTimeout(()=>{
+    miracleWord.classList.remove("show");
+    halo.classList.remove("breathe");
+    haloRest.style.opacity = "";
+  }, 3800);
 }
 
 function resetAll(){
   portrait.classList.remove("show");
   const sctx = shot.getContext("2d");
+  sctx.setTransform(1,0,0,1,0,0);
   sctx.clearRect(0,0,shot.width,shot.height);
   celebrating = false;
-  sm.reset(); renderSteps();
-  setStatus("Trace the sign of the cross", true);
+  sm.reset();
+  setStatus(STATUS.idle);
+  drawBrassPlate();
 }
 
 function loop(){
@@ -311,30 +282,28 @@ function loop(){
   if (video.currentTime !== lastVideoTime && !celebrating){
     lastVideoTime = video.currentTime;
     const res = landmarker.detectForVideo(video, performance.now());
-    let centroid = null;
+    let hasHand = false;
     if (res.landmarks && res.landmarks.length){
+      hasHand = true;
       const lm = res.landmarks[0];
       let sx=0, sy=0;
       for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
-      // mirror x to match the flipped (selfie) video
       const cx = Math.min(Math.max(1-(sx/PALM.length),0),1);
       const cy = Math.min(Math.max(sy/PALM.length,0),1);
-      centroid = { x:cx, y:cy };
       const zone = zoneAt(cx,cy);
-      if (sm.update(zone, performance.now())){ drawOverlay(centroid); celebrate(); requestAnimationFrame(loop); return; }
+      if (sm.update(zone, performance.now())){
+        drawBrassPlate();
+        celebrate();
+        requestAnimationFrame(loop);
+        return;
+      }
     } else {
       sm.update(null, performance.now());
     }
-    drawOverlay(centroid);
-    renderSteps();
-    if (!celebrating){
-      if (!centroid){
-        setStatus("Show your open hand to begin", false);
-      } else {
-        const exp = sm.expected;
-        setStatus(exp ? MESSAGES[exp] : "…", true);
-      }
-    }
+    drawBrassPlate();
+    if (sm.state === "IN_PROGRESS") setStatus(STATUS.active);
+    else if (hasHand) setStatus(STATUS.hand);
+    else setStatus(STATUS.idle);
   }
   requestAnimationFrame(loop);
 }
