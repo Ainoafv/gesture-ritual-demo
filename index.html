@@ -51,6 +51,15 @@
     text-shadow:0 0 70px rgba(255,210,140,.9), 0 6px 34px rgba(0,0,0,.9);
     transition:opacity .9s ease .35s;
   }
+  #miracleWord .pill {
+    display:inline-block;
+    padding:10px 16px 12px;
+    border-radius:999px;
+    background:rgba(0,0,0,.28);
+    border:1px solid rgba(255,235,200,.08);
+    box-shadow:0 10px 40px rgba(0,0,0,.35);
+    backdrop-filter:blur(6px);
+  }
   #miracleWord.show { opacity:1; }
 
   .cover {
@@ -237,7 +246,7 @@
       </g>
     </svg>
 
-    <p id="miracleWord">The font is awake.</p>
+    <p id="miracleWord"><span class="pill">The font is awake.</span></p>
     <div id="debugHud"></div>
 
     <div class="cover" id="cover">
@@ -328,6 +337,31 @@ const sm = new SM();
 let lm, run=false, celeb=false, lvt=-1;
 let sx=0.5, sy=0.5, hasS=false;
 
+function captureSceneToPolaroid() {
+  const canvas = document.getElementById("shot");
+  const ctx = canvas.getContext("2d");
+  const stageEl = document.getElementById("stage");
+  const w = stageEl.clientWidth;
+  const h = stageEl.clientHeight;
+  canvas.width = Math.max(320, Math.floor(w * 2));
+  canvas.height = Math.max(320, Math.floor(h * 2));
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = "#060508";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Render the current SVG scene (no guest face) into the polaroid.
+  const svg = document.querySelector("svg.scene");
+  const data = new XMLSerializer().serializeToString(svg);
+  const blob = new Blob([data], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+
 function resetVis(){
   SEGMENTS.forEach(id=>{
     const el=document.getElementById(id);
@@ -387,7 +421,8 @@ function celebrate(){
   stage.classList.add("miracle");
   document.querySelectorAll(".led-bead").forEach(b=>b.classList.add("on"));
   miracleWord.classList.add("show");
-  setTimeout(()=>document.getElementById("portrait").classList.add("show"),2800);
+  captureSceneToPolaroid();
+  setTimeout(()=>document.getElementById("portrait").classList.add("show"),2200);
 }
 
 function resetAll(){
