@@ -188,8 +188,9 @@
         <circle cx="200" cy="360" r="125"/>
       </clipPath>
 
-      <!-- Cross: engraved (dim) + gold fill per step (no black slab). -->
-      <g id="ritualCross" clip-path="url(#plateClip)" transform="translate(0,60) scale(0.86)">
+      <!-- Cross: engraved (dim) + gold fill per step (no black slab).
+           IMPORTANT: scale around the cross centre (200,340) and align it to the plate centre (200,360). -->
+      <g id="ritualCross" clip-path="url(#plateClip)" transform="translate(200 360) scale(0.86) translate(-200 -340)">
         <!-- Dim engraving silhouette: always visible as a recess -->
         <g opacity=".55" fill="url(#crossDim)">
           <path d="M192 340 L192 252 Q192 214 200 204 Q208 214 208 252 L208 340
