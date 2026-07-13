@@ -272,7 +272,7 @@
 
     <div class="portrait" id="portrait">
       <div class="polaroid"><canvas id="shot"></canvas><div class="cap">Blessed &#10007;</div></div>
-      <button class="btn ghost again" id="againBtn">Reset</button>
+      <button class="btn ghost again" id="againBtn">Again</button>
     </div>
   </div>
 
@@ -290,10 +290,10 @@ const ZONES = {
 };
 const SEQUENCE = ["2","0","4","6"];
 const SEGMENTS = ["segHeaven","segEarth","segLeft","segRight"];
-const WINDOW_MS = 9000;
+const WINDOW_MS = 9500;
 const PALM = [0,5,9,17];
-const PAD = .12;
-const SMOOTH = 0.55;
+const PAD = .13;
+const SMOOTH = 0.62;
 const STEP_MIN_MS = 140;
 const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
 const debugHud = document.getElementById("debugHud");
@@ -415,7 +415,7 @@ async function loadModel(){
   const v=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
   lm=await HandLandmarker.createFromOptions(v,{
     baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:"GPU"},
-    runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.35,minHandPresenceConfidence:.35,minTrackingConfidence:.3,
+    runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.25,minHandPresenceConfidence:.25,minTrackingConfidence:.25,
   });
 }
 
@@ -445,12 +445,17 @@ function celebrate(){
   miracleWord.classList.add("show");
   captureSceneToPolaroid();
   setTimeout(()=>document.getElementById("portrait").classList.add("show"),2200);
+  // Freeze the vision loop during the celebration to avoid any visual “reset” flicker.
+  run = false;
 }
 
 function resetAll(){
   document.getElementById("portrait").classList.remove("show");
   miracleWord.classList.remove("show");
   celeb=false; sm.reset(); resetVis(); lvt=-1;
+  hasS = false;
+  run = true;
+  requestAnimationFrame(tick);
 }
 
 function tick(){
