@@ -295,6 +295,8 @@ const WINDOW_MS = 9500;
 const PALM = [0,5,9,17];
 const PAD = .13;
 const SMOOTH = 0.62;
+const SMOOTH_H = 0.32;   // horizontal strokes need responsiveness
+const SWEEP_TH = 0.12;   // minimum x travel for left/right
 const STEP_MIN_MS = 140;
 const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
 const debugHud = document.getElementById("debugHud");
@@ -341,7 +343,8 @@ class SM {
     this.cz=null; this.cc=0; // candidate zone + stability counter
     this.lastStepAt = 0;
     this.sweepX0 = null;
-    this.sweepY0 = null;
+    this.sweepMinX = null;
+    this.sweepMaxX = null;
   }
   constructor(){ this.reset(); }
   get exp(){ return this.step<4 ? SEQUENCE[this.step] : null; }
@@ -363,23 +366,30 @@ class SM {
     if ((this.exp === "4" || this.exp === "6") && typeof x === "number" && typeof y === "number") {
       // Mid band only (guest sweeps across chest height).
       if (y > 0.18 - PAD && y < 0.78 + PAD) {
-        if (this.sweepX0 == null) { this.sweepX0 = x; this.sweepY0 = y; }
-        const dx = x - this.sweepX0;
-        // Require a decisive sweep distance.
-        const TH = 0.18;
-        const dirOk = (this.exp === "4" && dx < -TH) || (this.exp === "6" && dx > TH);
-        if (dirOk && now - this.lastStepAt >= STEP_MIN_MS) {
+        if (this.sweepX0 == null) {
+          this.sweepX0 = x;
+          this.sweepMinX = x;
+          this.sweepMaxX = x;
+        }
+        this.sweepMinX = Math.min(this.sweepMinX ?? x, x);
+        this.sweepMaxX = Math.max(this.sweepMaxX ?? x, x);
+        const dx = x - (this.sweepX0 ?? x);
+        const span = (this.sweepMaxX ?? x) - (this.sweepMinX ?? x);
+        const dirOk = (this.exp === "4" && dx < -SWEEP_TH) || (this.exp === "6" && dx > SWEEP_TH);
+        const spanOk = span > SWEEP_TH;
+        if ((dirOk || spanOk) && now - this.lastStepAt >= STEP_MIN_MS) {
           if(!this.step){ this.t0=now; this.st="IN_PROGRESS"; }
           this.step++;
           this.lastStepAt = now;
           this.sweepX0 = null;
-          this.sweepY0 = null;
+          this.sweepMinX = null;
+          this.sweepMaxX = null;
           return {d:this.step>=4,a:1,r:0};
         }
       } else {
-        // If they leave the band, reset sweep start so it doesn't carry over.
         this.sweepX0 = null;
-        this.sweepY0 = null;
+        this.sweepMinX = null;
+        this.sweepMaxX = null;
       }
     }
 
@@ -389,7 +399,8 @@ class SM {
       this.step++;
       this.lastStepAt = now;
       this.sweepX0 = null;
-      this.sweepY0 = null;
+      this.sweepMinX = null;
+      this.sweepMaxX = null;
       return {d:this.step>=4,a:1,r:0};
     }
     return {d:0,a:0,r:0};
@@ -531,7 +542,8 @@ function tick(){
       tx = Math.min(Math.max(1-tx/4,0),1);
       ty = Math.min(Math.max(ty/4,0),1);
       if (!hasS){ sx=tx; sy=ty; hasS=true; }
-      sx = sx*(1-SMOOTH) + tx*SMOOTH;
+      const s = (sm.exp === "4" || sm.exp === "6") ? SMOOTH_H : SMOOTH;
+      sx = sx*(1-s) + tx*s;
       sy = sy*(1-SMOOTH) + ty*SMOOTH;
       zone = zoneAt(sx, sy, sm.exp);
       r=sm.upd(zone, now, sx, sy);
