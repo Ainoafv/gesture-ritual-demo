@@ -188,8 +188,8 @@
         <circle cx="200" cy="360" r="125"/>
       </clipPath>
 
-      <!-- Ornate cross — trefoil terminals, centred on plate (200,360) -->
-      <g id="ritualCross" clip-path="url(#plateClip)" transform="translate(0,20) scale(0.92)">
+      <!-- Ornate cross — NOT lens-aligned; smaller, comfortably inside plate -->
+      <g id="ritualCross" clip-path="url(#plateClip)" transform="translate(0,95) scale(0.78)">
         <g fill="url(#crossDim)" opacity=".7">
           <!-- groove silhouette -->
           <path d="M192 340 L192 248 Q192 218 200 208 Q208 218 208 248 L208 340
@@ -250,6 +250,7 @@ const SEGMENTS = ["segHeaven","segEarth","segLeft","segRight"];
 const WINDOW_MS = 7500;
 const PALM = [0,5,9,17];
 const PAD = .08;
+const SMOOTH = 0.35;
 
 function zoneAt(x,y){
   for (const [n,z] of Object.entries(ZONES))
@@ -258,14 +259,30 @@ function zoneAt(x,y){
 }
 
 class SM {
-  reset(){ this.step=0; this.t0=null; this.lz=null; this.st="IDLE"; }
+  reset(){
+    this.step=0; this.t0=null; this.lz=null; this.st="IDLE";
+    this.cz=null; this.cc=0; // candidate zone + stability counter
+  }
   constructor(){ this.reset(); }
   get exp(){ return this.step<4 ? SEQUENCE[this.step] : null; }
   upd(z,now){
-    if (this.st==="IN_PROGRESS" && this.t0 && now-this.t0>WINDOW_MS){ this.reset(); return {d:0,a:0,r:1}; }
-    const e = z!==this.lz ? z : null; this.lz=z;
+    if (this.st==="IN_PROGRESS" && this.t0 && now-this.t0>WINDOW_MS){
+      this.reset(); return {d:0,a:0,r:1};
+    }
+
+    // Require the same zone for 2 consecutive frames to avoid jitter.
+    if (z && z===this.cz) this.cc += 1;
+    else { this.cz = z; this.cc = z ? 1 : 0; }
+    const stable = (this.cc >= 2) ? z : null;
+    const e = stable && stable !== this.lz ? stable : null;
+    if (stable) this.lz = stable;
     if (!e) return {d:0,a:0,r:0};
-    if (e===this.exp){ if(!this.step){this.t0=now;this.st="IN_PROGRESS";} this.step++; return {d:this.step>=4,a:1,r:0}; }
+
+    if (e===this.exp){
+      if(!this.step){ this.t0=now; this.st="IN_PROGRESS"; }
+      this.step++;
+      return {d:this.step>=4,a:1,r:0};
+    }
     return {d:0,a:0,r:0};
   }
 }
@@ -290,6 +307,7 @@ const coverContent = document.getElementById("coverContent");
 const miracleWord = document.getElementById("miracleWord");
 const sm = new SM();
 let lm, run=false, celeb=false, lvt=-1;
+let sx=0.5, sy=0.5, hasS=false;
 
 function resetVis(){
   SEGMENTS.forEach(id=>{
@@ -367,10 +385,15 @@ function tick(){
     const now=performance.now();
     let r={d:0,a:0,r:0};
     if(res.landmarks?.length){
-      const L=res.landmarks[0]; let sx=0,sy=0;
-      for(const i of PALM){sx+=L[i].x;sy+=L[i].y;}
-      r=sm.upd(zoneAt(Math.min(Math.max(1-sx/4,0),1),Math.min(Math.max(sy/4,0),1)),now);
-    } else r=sm.upd(null,now);
+      const L=res.landmarks[0]; let tx=0,ty=0;
+      for(const i of PALM){ tx+=L[i].x; ty+=L[i].y; }
+      tx = Math.min(Math.max(1-tx/4,0),1);
+      ty = Math.min(Math.max(ty/4,0),1);
+      if (!hasS){ sx=tx; sy=ty; hasS=true; }
+      sx = sx*(1-SMOOTH) + tx*SMOOTH;
+      sy = sy*(1-SMOOTH) + ty*SMOOTH;
+      r=sm.upd(zoneAt(sx,sy),now);
+    } else { hasS=false; r=sm.upd(null,now); }
     if(r.r) resetVis();
     if(r.a) lightStep(sm.step);
     if(r.d) celebrate();
