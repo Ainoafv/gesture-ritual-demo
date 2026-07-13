@@ -483,10 +483,20 @@ function lightStep(n){
 async function loadModel(){
   coverContent.innerHTML='<div class="spinner"></div>';
   const v=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
-  lm=await HandLandmarker.createFromOptions(v,{
-    baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:"GPU"},
-    runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.25,minHandPresenceConfidence:.25,minTrackingConfidence:.25,
-  });
+  const baseOptions = {
+    modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+  };
+  try {
+    lm=await HandLandmarker.createFromOptions(v,{
+      baseOptions:{...baseOptions, delegate:"GPU"},
+      runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.25,minHandPresenceConfidence:.25,minTrackingConfidence:.25,
+    });
+  } catch (e) {
+    lm=await HandLandmarker.createFromOptions(v,{
+      baseOptions:{...baseOptions, delegate:"CPU"},
+      runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.25,minHandPresenceConfidence:.25,minTrackingConfidence:.25,
+    });
+  }
 }
 
 async function start(){
