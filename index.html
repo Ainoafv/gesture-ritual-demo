@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Gesture Ritual — Live Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
@@ -10,126 +10,136 @@
   :root {
     --bg:#08070a; --ink:#efe7d8; --mute:#8a8072;
     --brass:#c9a86a; --brass-soft:#e8d5a8; --line:rgba(201,168,106,.18);
+    --glow:0.32;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   html,body { height:100%; }
   body {
     font-family:Inter,system-ui,sans-serif;
     background:radial-gradient(140% 100% at 50% 0%, #16121c 0%, var(--bg) 55%);
-    color:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center;
-    padding:28px 16px 36px;
+    color:var(--ink); min-height:100dvh; display:flex; flex-direction:column; align-items:center;
+    padding:max(16px, env(safe-area-inset-top)) 12px max(20px, env(safe-area-inset-bottom));
   }
-  h1 { font-family:"Cormorant Garamond",serif; font-weight:500; font-size:clamp(28px,4.5vw,42px); letter-spacing:.4px; font-weight:600; }
+  h1 { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:clamp(24px,5vw,38px); letter-spacing:.4px; }
   h1 .em { color:var(--brass-soft); font-style:italic; }
   .tag {
-    color:var(--mute); font-size:13.5px; margin-top:8px; text-align:center; max-width:480px;
-    line-height:1.65; letter-spacing:.2px;
+    color:var(--mute); font-size:clamp(12px,3.2vw,13.5px); margin-top:6px; text-align:center;
+    max-width:min(480px, 92vw); line-height:1.6;
   }
   .stage {
-    position:relative; width:min(92vw,680px); aspect-ratio:3/4; max-height:78vh; margin-top:24px;
-    border-radius:20px; overflow:hidden;
-    box-shadow:
-      0 40px 100px rgba(0,0,0,.75),
-      0 0 0 1px rgba(201,168,106,.08),
-      inset 0 1px 0 rgba(255,255,255,.04);
+    position:relative; flex:1; width:min(96vw, 520px); min-height:min(72dvh, 680px);
+    max-height:78dvh; margin-top:16px;
+    border-radius:clamp(14px, 3vw, 22px); overflow:hidden;
+    box-shadow:0 40px 100px rgba(0,0,0,.75), 0 0 0 1px rgba(201,168,106,.1);
     background:#050406;
   }
   #video { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
-  #canvas { position:absolute; inset:0; width:100%; height:100%; }
+  #canvas { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
   .vignette {
     position:absolute; inset:0; pointer-events:none; z-index:2;
-    background:radial-gradient(ellipse 85% 75% at 50% 48%, transparent 40%, rgba(0,0,0,.55) 100%);
+    background:radial-gradient(ellipse 88% 78% at 50% 46%, transparent 35%, rgba(0,0,0,.5) 100%);
   }
+  /* Living halo — always on once ritual starts (= font is warm, not "awake" text) */
   #haloRest {
-    position:absolute; left:50%; top:46%; width:72%; aspect-ratio:1;
+    position:absolute; left:50%; top:44%; width:88%; aspect-ratio:1;
     transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; z-index:1;
-    opacity:.18;
-    background:radial-gradient(circle, rgba(255,230,180,.7) 0%, rgba(220,180,120,.25) 38%, transparent 68%);
-    filter:blur(14px);
-    animation:restGlow 6s ease-in-out infinite;
+    opacity:calc(var(--glow) * 1.1);
+    background:radial-gradient(circle,
+      rgba(255,238,200,.95) 0%,
+      rgba(255,210,140,.55) 28%,
+      rgba(220,170,90,.22) 48%,
+      transparent 68%);
+    filter:blur(16px) brightness(calc(0.85 + var(--glow) * 0.5));
+    transition:opacity .12s ease, filter .12s ease, transform .12s ease;
+    animation:liveBreath 5.5s ease-in-out infinite;
   }
-  #haloRest.attentive {
-    animation:attentiveGlow 2.8s ease-in-out infinite;
-    opacity:.32;
+  #haloRest.hand-near {
+    animation:readyBreath 2.2s ease-in-out infinite;
+    filter:blur(14px) brightness(calc(1 + var(--glow) * 0.6));
   }
-  @keyframes restGlow {
-    0%, 100% { opacity:.14; transform:translate(-50%,-50%) scale(.96); }
-    50% { opacity:.22; transform:translate(-50%,-50%) scale(1.02); }
+  #haloRest.in-ritual {
+    animation:none;
+    transition:opacity .08s ease, filter .08s ease, transform .08s ease;
   }
-  @keyframes attentiveGlow {
-    0%, 100% { opacity:.22; transform:translate(-50%,-50%) scale(.98); }
-    50% { opacity:.42; transform:translate(-50%,-50%) scale(1.06); }
+  #haloRest.step-flash {
+    transform:translate(-50%,-50%) scale(1.08);
+    filter:blur(12px) brightness(1.45);
+  }
+  @keyframes liveBreath {
+    0%, 100% { transform:translate(-50%,-50%) scale(.94); opacity:calc(var(--glow) * 0.85); }
+    50% { transform:translate(-50%,-50%) scale(1.03); opacity:calc(var(--glow) * 1.25); }
+  }
+  @keyframes readyBreath {
+    0%, 100% { transform:translate(-50%,-50%) scale(.98); opacity:calc(var(--glow) * 1.1); }
+    50% { transform:translate(-50%,-50%) scale(1.08); opacity:calc(var(--glow) * 1.55); }
   }
   #halo {
-    position:absolute; left:50%; top:46%; width:78%; aspect-ratio:1;
-    transform:translate(-50%,-50%) scale(.55); border-radius:50%; pointer-events:none; z-index:3;
+    position:absolute; left:50%; top:44%; width:92%; aspect-ratio:1;
+    transform:translate(-50%,-50%) scale(.5); border-radius:50%; pointer-events:none; z-index:3;
     opacity:0;
-    background:radial-gradient(circle, rgba(255,235,195,.95) 0%, rgba(240,200,130,.55) 32%, transparent 66%);
-    filter:blur(8px);
+    background:radial-gradient(circle, rgba(255,245,220,1) 0%, rgba(255,220,150,.75) 30%, transparent 62%);
+    filter:blur(10px);
   }
-  #halo.breathe { animation:miracleBreathe 4.2s ease-in-out forwards; opacity:1; }
+  #halo.breathe { animation:miracleBreathe 4s ease-in-out forwards; opacity:1; }
   @keyframes miracleBreathe {
-    0% { transform:translate(-50%,-50%) scale(.55); opacity:.2; }
-    28% { transform:translate(-50%,-50%) scale(1.12); opacity:1; }
-    45% { transform:translate(-50%,-50%) scale(1.12); opacity:1; }
-    100% { transform:translate(-50%,-50%) scale(.75); opacity:.2; }
+    0% { transform:translate(-50%,-50%) scale(.5); opacity:.15; filter:blur(12px) brightness(.9); }
+    22% { transform:translate(-50%,-50%) scale(1.18); opacity:1; filter:blur(8px) brightness(1.35); }
+    48% { transform:translate(-50%,-50%) scale(1.22); opacity:1; filter:blur(6px) brightness(1.5); }
+    100% { transform:translate(-50%,-50%) scale(.78); opacity:.25; filter:blur(14px) brightness(.95); }
   }
   #miracleWord {
-    position:absolute; left:0; right:0; top:18%; text-align:center; pointer-events:none; z-index:4;
-    font-family:"Cormorant Garamond",serif; font-style:italic; font-size:clamp(28px,5.5vw,52px);
-    color:#fff8ea; text-shadow:0 0 40px rgba(255,220,150,.9); opacity:0; transition:opacity .6s ease;
-    letter-spacing:.5px;
+    position:absolute; left:0; right:0; top:16%; text-align:center; pointer-events:none; z-index:4;
+    font-family:"Cormorant Garamond",serif; font-style:italic; font-size:clamp(26px,6vw,48px);
+    color:#fff8ea; text-shadow:0 0 50px rgba(255,220,150,1); opacity:0; transition:opacity .5s ease;
   }
   #miracleWord.show { opacity:1; }
   .cover {
     position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
-    gap:18px; padding:0 28px 48px; z-index:8; text-align:center;
-    background:linear-gradient(180deg, rgba(8,6,10,.15) 0%, rgba(8,6,10,.55) 55%, rgba(8,6,10,.88) 100%);
+    gap:16px; padding:0 24px max(40px, env(safe-area-inset-bottom)); z-index:8; text-align:center;
+    background:linear-gradient(180deg, rgba(8,6,10,.1) 0%, rgba(8,6,10,.75) 100%);
   }
   .cover.hidden { display:none; }
-  .cover p { color:var(--mute); max-width:380px; font-size:13.5px; line-height:1.7; }
+  .cover p { color:var(--mute); max-width:340px; font-size:13px; line-height:1.65; }
   .btn {
-    font:500 14px Inter,sans-serif; color:#1a1408; background:linear-gradient(180deg,#f0e0bc,var(--brass));
-    border:none; border-radius:999px; padding:14px 32px; cursor:pointer; letter-spacing:.4px;
-    box-shadow:0 10px 32px rgba(201,168,106,.28);
-    transition:transform .15s ease, box-shadow .15s ease;
+    font:500 14px Inter,sans-serif; color:#1a1408;
+    background:linear-gradient(180deg,#f0e0bc,var(--brass));
+    border:none; border-radius:999px; padding:14px 36px; cursor:pointer;
+    box-shadow:0 10px 32px rgba(201,168,106,.35);
   }
-  .btn:hover { transform:translateY(-1px); box-shadow:0 14px 36px rgba(201,168,106,.4); }
   .btn.ghost {
     background:transparent; color:var(--brass-soft); border:1px solid var(--line);
-    box-shadow:none; font-size:13px; padding:11px 22px;
+    font-size:13px; padding:11px 24px; box-shadow:none;
   }
   .spinner {
     width:32px; height:32px; border:2px solid var(--line); border-top-color:var(--brass);
-    border-radius:50%; animation:spin 1s linear infinite; margin-bottom:8px;
+    border-radius:50%; animation:spin .8s linear infinite;
   }
   @keyframes spin { to { transform:rotate(360deg); } }
   .portrait {
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:9;
-    background:rgba(4,3,6,.82); backdrop-filter:blur(8px); opacity:0; pointer-events:none;
-    transition:opacity .7s ease;
+    background:rgba(4,3,6,.85); backdrop-filter:blur(10px); opacity:0; pointer-events:none;
+    transition:opacity .6s ease;
   }
   .portrait.show { opacity:1; pointer-events:auto; }
   .polaroid {
-    background:#f4efe4; padding:10px 10px 40px; border-radius:4px;
-    box-shadow:0 24px 60px rgba(0,0,0,.65), 0 0 0 1px rgba(0,0,0,.06);
-    transform:translateY(24px) rotate(-1.5deg) scale(.94);
-    transition:transform .7s cubic-bezier(.2,.85,.25,1);
-    width:min(68%,280px);
+    background:#f4efe4; padding:10px 10px 38px; border-radius:4px;
+    box-shadow:0 24px 60px rgba(0,0,0,.65);
+    transform:translateY(20px) scale(.94); transition:transform .65s cubic-bezier(.2,.85,.25,1);
+    width:min(72%,260px);
   }
-  .portrait.show .polaroid { transform:translateY(0) rotate(-1.5deg) scale(1); }
-  .polaroid canvas { width:100%; border-radius:2px; display:block; filter:contrast(1.04) saturate(.88) sepia(.08); }
+  .portrait.show .polaroid { transform:translateY(0) scale(1); }
+  .polaroid canvas { width:100%; border-radius:2px; display:block; filter:contrast(1.04) sepia(.06); }
   .polaroid .cap {
-    font-family:"Cormorant Garamond",serif; font-style:italic; font-size:20px;
-    color:#2a2118; text-align:center; margin-top:10px; letter-spacing:.3px;
+    font-family:"Cormorant Garamond",serif; font-style:italic; font-size:19px;
+    color:#2a2118; text-align:center; margin-top:10px;
   }
-  .portrait .again { position:absolute; bottom:28px; }
-  .err { color:#d4a0a0; font-size:13px; max-width:400px; line-height:1.6; }
+  .portrait .again { position:absolute; bottom:max(24px, env(safe-area-inset-bottom)); }
+  .err { color:#d4a0a0; font-size:13px; line-height:1.6; }
 </style>
 </head>
 <body>
   <h1>The <span class="em">Sign of the Cross</span></h1>
-  <div class="tag">Trace the sign in the air. The brass responds. Nothing on screen guides you — as it will be on the rooftop.</div>
+  <div class="tag">The brass holds a quiet warmth. Trace the sign — it answers in light.</div>
 
   <div class="stage">
     <video id="video" playsinline muted></video>
@@ -141,7 +151,7 @@
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>Allow the camera, then make the sign naturally — above, below, left, right.</p>
+        <p>Allow the camera. Make the sign — above, below, left, right.</p>
         <button class="btn" id="startBtn">Begin</button>
       </div>
     </div>
@@ -172,6 +182,7 @@ const ZONES = {
 const SEQUENCE = ["2","0","4","6"];
 const WINDOW_MS = 4000;
 const PALM = [0,5,9,17];
+const BASE_GLOW = 0.34;
 
 function zoneAt(x,y){
   for (const [name,z] of Object.entries(ZONES)){
@@ -188,13 +199,14 @@ class StateMachine {
     if (this.state==="IN_PROGRESS" && this.startedAt!==null && now-this.startedAt>WINDOW_MS) this.reset();
     const entered = zone!==this.lastZone ? zone : null;
     this.lastZone = zone;
-    if (entered===null) return false;
+    if (entered===null) return { completed:false, advanced:false };
     if (entered===this.expected){
       if (this.step===0){ this.startedAt=now; this.state="IN_PROGRESS"; }
       this.step++;
-      if (this.step>=SEQUENCE.length){ this.state="COMPLETE"; return true; }
+      if (this.step>=SEQUENCE.length){ this.state="COMPLETE"; return { completed:true, advanced:true }; }
+      return { completed:false, advanced:true };
     }
-    return false;
+    return { completed:false, advanced:false };
   }
 }
 
@@ -210,98 +222,132 @@ const miracleWord = document.getElementById("miracleWord");
 const portrait = document.getElementById("portrait");
 const againBtn = document.getElementById("againBtn");
 const shot = document.getElementById("shot");
+const stage = document.querySelector(".stage");
 
 const sm = new StateMachine();
 let landmarker = null;
 let running = false;
-let lastVideoTime = -1;
 let celebrating = false;
 let handPresent = false;
+let mpTs = 0;
+let pulseUntil = 0;
+let brassCache = null;
 
-function drawBrassPlate(){
-  const w = canvas.width, h = canvas.height;
-  const cx = w * 0.5, cy = h * 0.46;
-
-  ctx.clearRect(0,0,w,h);
-
-  // Wall — deep shadow behind the font
-  const wall = ctx.createRadialGradient(cx, cy, w*0.05, cx, cy, w*0.75);
-  wall.addColorStop(0, "#1c1612");
-  wall.addColorStop(0.45, "#0e0c0a");
-  wall.addColorStop(1, "#050404");
-  ctx.fillStyle = wall;
-  ctx.fillRect(0,0,w,h);
-
-  // Backplate halo ring (physical brass plate)
-  ctx.save();
-  ctx.translate(cx, cy);
-  const plateR = w * 0.34;
-  const ring = ctx.createRadialGradient(0, 0, plateR*0.72, 0, 0, plateR*1.08);
-  ring.addColorStop(0, "rgba(180,140,80,0)");
-  ring.addColorStop(0.55, "rgba(200,160,90,0.35)");
-  ring.addColorStop(0.78, "rgba(160,120,70,0.55)");
-  ring.addColorStop(1, "rgba(80,60,35,0.2)");
-  ctx.fillStyle = ring;
-  ctx.beginPath();
-  ctx.arc(0, 0, plateR*1.05, 0, Math.PI*2);
-  ctx.fill();
-
-  // Main brass disc
-  const brass = ctx.createRadialGradient(-plateR*0.15, -plateR*0.2, plateR*0.1, 0, 0, plateR);
-  brass.addColorStop(0, "#d4b87a");
-  brass.addColorStop(0.35, "#a8844a");
-  brass.addColorStop(0.7, "#6b5230");
-  brass.addColorStop(1, "#3d2e1a");
-  ctx.fillStyle = brass;
-  ctx.beginPath();
-  ctx.arc(0, 0, plateR*0.88, 0, Math.PI*2);
-  ctx.fill();
-
-  // Specular highlight
-  ctx.globalAlpha = 0.35;
-  const spec = ctx.createRadialGradient(-plateR*0.25, -plateR*0.35, 0, -plateR*0.1, -plateR*0.15, plateR*0.5);
-  spec.addColorStop(0, "#fff6dc");
-  spec.addColorStop(1, "rgba(255,240,200,0)");
-  ctx.fillStyle = spec;
-  ctx.beginPath();
-  ctx.arc(-plateR*0.08, -plateR*0.12, plateR*0.45, 0, Math.PI*2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-
-  // Bowl depression
-  const bowl = ctx.createRadialGradient(0, plateR*0.12, 0, 0, plateR*0.08, plateR*0.38);
-  bowl.addColorStop(0, "#2a1f12");
-  bowl.addColorStop(0.5, "#4a3820");
-  bowl.addColorStop(1, "#7a5c34");
-  ctx.fillStyle = bowl;
-  ctx.beginPath();
-  ctx.ellipse(0, plateR*0.15, plateR*0.32, plateR*0.22, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // Inner bowl rim
-  ctx.strokeStyle = "rgba(255,220,160,0.15)";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.ellipse(0, plateR*0.15, plateR*0.28, plateR*0.19, 0, 0, Math.PI*2);
-  ctx.stroke();
-
-  ctx.restore();
-
-  // Film grain (subtle)
-  ctx.globalAlpha = 0.04;
-  for (let i = 0; i < 120; i++) {
-    ctx.fillStyle = i % 2 ? "#fff" : "#000";
-    ctx.fillRect(Math.random()*w, Math.random()*h, 1, 1);
-  }
-  ctx.globalAlpha = 1;
+function resizeCanvas(){
+  const r = stage.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(r.width * dpr);
+  canvas.height = Math.round(r.height * dpr);
+  brassCache = null;
 }
 
-function setHaloMode(mode){
-  haloRest.classList.toggle("attentive", mode === "attentive");
+function glowForProgress(step, now){
+  const progressBoost = step * 0.14;
+  const pulse = now < pulseUntil ? 0.28 : 0;
+  return BASE_GLOW + progressBoost + pulse;
+}
+
+function applyGlow(step, now){
+  const g = glowForProgress(step, now);
+  document.documentElement.style.setProperty("--glow", g.toFixed(3));
+}
+
+function flashStep(){
+  pulseUntil = performance.now() + 220;
+  haloRest.classList.add("step-flash");
+  setTimeout(()=> haloRest.classList.remove("step-flash"), 220);
+}
+
+function setPresence(mode){
+  haloRest.classList.toggle("hand-near", mode === "hand");
+  haloRest.classList.toggle("in-ritual", mode === "ritual");
+}
+
+function buildBrassCache(){
+  const w = canvas.width, h = canvas.height;
+  const off = document.createElement("canvas");
+  off.width = w; off.height = h;
+  const c = off.getContext("2d");
+  const cx = w * 0.5, cy = h * 0.44;
+  c.clearRect(0,0,w,h);
+  const wall = c.createRadialGradient(cx, cy, w*0.04, cx, cy, w*0.8);
+  wall.addColorStop(0, "#1e1814");
+  wall.addColorStop(0.5, "#0c0a08");
+  wall.addColorStop(1, "#030303");
+  c.fillStyle = wall;
+  c.fillRect(0,0,w,h);
+  c.save();
+  c.translate(cx, cy);
+  const plateR = w * 0.36;
+  const brass = c.createRadialGradient(-plateR*0.12, -plateR*0.18, plateR*0.08, 0, 0, plateR);
+  brass.addColorStop(0, "#e0c888");
+  brass.addColorStop(0.3, "#b89250");
+  brass.addColorStop(0.65, "#705830");
+  brass.addColorStop(1, "#3a2a16");
+  c.fillStyle = brass;
+  c.beginPath();
+  c.arc(0, 0, plateR*0.9, 0, Math.PI*2);
+  c.fill();
+  c.globalAlpha = 0.4;
+  const spec = c.createRadialGradient(-plateR*0.22, -plateR*0.3, 0, 0, 0, plateR*0.55);
+  spec.addColorStop(0, "#fff8e8");
+  spec.addColorStop(1, "rgba(255,240,200,0)");
+  c.fillStyle = spec;
+  c.beginPath();
+  c.arc(-plateR*0.06, -plateR*0.1, plateR*0.48, 0, Math.PI*2);
+  c.fill();
+  c.globalAlpha = 1;
+  const bowl = c.createRadialGradient(0, plateR*0.1, 0, 0, plateR*0.06, plateR*0.36);
+  bowl.addColorStop(0, "#241a0e");
+  bowl.addColorStop(0.55, "#503820");
+  bowl.addColorStop(1, "#8a6838");
+  c.fillStyle = bowl;
+  c.beginPath();
+  c.ellipse(0, plateR*0.14, plateR*0.3, plateR*0.2, 0, 0, Math.PI*2);
+  c.fill();
+  c.strokeStyle = "rgba(255,230,180,0.2)";
+  c.lineWidth = 2;
+  c.beginPath();
+  c.ellipse(0, plateR*0.14, plateR*0.26, plateR*0.17, 0, 0, Math.PI*2);
+  c.stroke();
+  c.restore();
+  brassCache = off;
+}
+
+function drawBrassPlate(step, now){
+  if (!brassCache || brassCache.width !== canvas.width) buildBrassCache();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(brassCache, 0, 0);
+
+  const w = canvas.width, h = canvas.height;
+  const cx = w * 0.5, cy = h * 0.44;
+  const warm = glowForProgress(step, now);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const wash = ctx.createRadialGradient(cx, cy, w*0.05, cx, cy, w*0.42);
+  wash.addColorStop(0, `rgba(255,220,160,${0.08 + warm * 0.22})`);
+  wash.addColorStop(0.6, `rgba(255,180,100,${0.04 + step * 0.04})`);
+  wash.addColorStop(1, "rgba(255,160,80,0)");
+  ctx.fillStyle = wash;
+  ctx.fillRect(0,0,w,h);
+
+  if (now < pulseUntil){
+    const t = 1 - (pulseUntil - now) / 220;
+    ctx.globalAlpha = (1 - t) * 0.55;
+    const flash = ctx.createRadialGradient(cx, cy, 0, cx, cy, w*0.38);
+    flash.addColorStop(0, "#fff0c8");
+    flash.addColorStop(1, "rgba(255,200,120,0)");
+    ctx.fillStyle = flash;
+    ctx.beginPath();
+    ctx.arc(cx, cy, w*0.38, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 async function loadModel(){
-  coverContent.innerHTML = '<div class="spinner"></div><p style="color:var(--mute);font-size:13px">One moment…</p>';
+  coverContent.innerHTML = '<div class="spinner"></div>';
   const vision = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
   );
@@ -312,38 +358,38 @@ async function loadModel(){
     },
     runningMode: "VIDEO",
     numHands: 1,
-    minHandDetectionConfidence: 0.6,
-    minHandPresenceConfidence: 0.6,
-    minTrackingConfidence: 0.5,
+    minHandDetectionConfidence: 0.55,
+    minHandPresenceConfidence: 0.55,
+    minTrackingConfidence: 0.45,
   });
 }
 
 async function start(){
   try {
     if (!landmarker) await loadModel();
-    coverContent.innerHTML = '<div class="spinner"></div>';
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
     const stream = await navigator.mediaDevices.getUserMedia({
       video:{ facingMode:"user", width:{ideal:1280}, height:{ideal:960} }, audio:false
     });
     video.srcObject = stream;
     await video.play();
-    canvas.width = 720; canvas.height = 960;
     cover.classList.add("hidden");
     running = true;
     sm.reset();
-    setHaloMode("rest");
-    drawBrassPlate();
+    setPresence("idle");
+    applyGlow(0, performance.now());
     requestAnimationFrame(loop);
   } catch (e){
     cover.classList.remove("hidden");
-    coverContent.innerHTML = '<p class="err">Camera unavailable. Check permission and try again.</p><button class="btn" id="retryBtn">Retry</button>';
+    coverContent.innerHTML = '<p class="err">Camera unavailable.</p><button class="btn" id="retryBtn">Retry</button>';
     document.getElementById("retryBtn")?.addEventListener("click", () => location.reload());
   }
 }
 
 function celebrate(){
   celebrating = true;
-  setHaloMode("rest");
+  setPresence("idle");
   const sctx = shot.getContext("2d");
   shot.width = video.videoWidth; shot.height = video.videoHeight;
   sctx.translate(shot.width,0); sctx.scale(-1,1);
@@ -351,12 +397,12 @@ function celebrate(){
   haloRest.style.opacity = "0";
   halo.classList.add("breathe");
   miracleWord.classList.add("show");
-  setTimeout(()=>{ portrait.classList.add("show"); }, 2600);
+  setTimeout(()=> portrait.classList.add("show"), 2400);
   setTimeout(()=>{
     miracleWord.classList.remove("show");
     halo.classList.remove("breathe");
     haloRest.style.opacity = "";
-  }, 4200);
+  }, 4000);
 }
 
 function resetAll(){
@@ -366,40 +412,55 @@ function resetAll(){
   sctx.clearRect(0,0,shot.width,shot.height);
   celebrating = false;
   sm.reset();
-  setHaloMode("rest");
-  drawBrassPlate();
+  setPresence("idle");
+  applyGlow(0, performance.now());
 }
 
-function loop(){
+function loop(now){
   if (!running) return;
-  drawBrassPlate();
-  if (video.currentTime !== lastVideoTime && !celebrating){
-    lastVideoTime = video.currentTime;
-    const res = landmarker.detectForVideo(video, performance.now());
-    if (res.landmarks && res.landmarks.length){
-      const lm = res.landmarks[0];
-      let sx=0, sy=0;
-      for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
-      const cx = Math.min(Math.max(1-(sx/PALM.length),0),1);
-      const cy = Math.min(Math.max(sy/PALM.length,0),1);
-      const zone = zoneAt(cx,cy);
-      if (!handPresent){ handPresent = true; setHaloMode("attentive"); }
-      if (sm.update(zone, performance.now())){
-        celebrate();
-        requestAnimationFrame(loop);
-        return;
+
+  if (!celebrating){
+    applyGlow(sm.step, now);
+    drawBrassPlate(sm.step, now);
+
+    if (landmarker && video.readyState >= 2){
+      mpTs += 16;
+      const res = landmarker.detectForVideo(video, mpTs);
+      if (res.landmarks?.length){
+        const lm = res.landmarks[0];
+        let sx=0, sy=0;
+        for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
+        const cx = Math.min(Math.max(1-(sx/PALM.length),0),1);
+        const cy = Math.min(Math.max(sy/PALM.length,0),1);
+        const zone = zoneAt(cx,cy);
+        const { completed, advanced } = sm.update(zone, now);
+
+        if (advanced) flashStep();
+
+        if (sm.state === "IN_PROGRESS") setPresence("ritual");
+        else if (!handPresent) { handPresent = true; setPresence("hand"); }
+        else setPresence("hand");
+
+        if (completed){
+          celebrate();
+          requestAnimationFrame(loop);
+          return;
+        }
+      } else {
+        sm.update(null, now);
+        if (handPresent){ handPresent = false; setPresence("idle"); }
       }
-    } else {
-      sm.update(null, performance.now());
-      if (handPresent){ handPresent = false; setHaloMode("rest"); }
     }
   }
+
   requestAnimationFrame(loop);
 }
 
 startBtn.addEventListener("click", start);
 againBtn.addEventListener("click", resetAll);
-drawBrassPlate();
+resizeCanvas();
+buildBrassCache();
+drawBrassPlate(0, 0);
 </script>
 </body>
 </html>
