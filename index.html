@@ -188,37 +188,34 @@
         <circle cx="200" cy="360" r="125"/>
       </clipPath>
 
-      <!-- Ornate cross — NOT lens-aligned; smaller, comfortably inside plate -->
-      <g id="ritualCross" clip-path="url(#plateClip)" transform="translate(0,95) scale(0.78)">
-        <g fill="url(#crossDim)" opacity=".7">
-          <!-- groove silhouette -->
-          <path d="M192 340 L192 248 Q192 218 200 208 Q208 218 208 248 L208 340
-                   M192 340 L192 428 Q192 458 200 468 Q208 458 208 428 L208 340
-                   M340 332 L208 332 L208 348 L340 348 Q358 340 368 340 Q358 348 340 348 L340 332
-                   M192 332 L60 332 L60 348 L192 348 L192 332 L60 348 Q42 340 32 340 Q42 332 60 332 L192 332 Z"/>
+      <!-- Cross: engraved (dim) + gold fill per step (no black slab). -->
+      <g id="ritualCross" clip-path="url(#plateClip)" transform="translate(0,60) scale(0.86)">
+        <!-- Dim engraving silhouette: always visible as a recess -->
+        <g opacity=".55" fill="url(#crossDim)">
+          <path d="M192 340 L192 252 Q192 214 200 204 Q208 214 208 252 L208 340
+                   M192 340 L192 428 Q192 466 200 476 Q208 466 208 428 L208 340
+                   M340 332 L208 332 L208 348 L340 348 Q362 340 374 340 Q362 348 340 348 L340 332
+                   M192 332 L60 332 L60 348 L192 348 L192 332 L60 348 Q38 340 26 340 Q38 332 60 332 L192 332 Z"/>
+          <circle cx="200" cy="340" r="15" opacity=".85"/>
         </g>
-        <!-- Heaven — trefoil top -->
+
+        <!-- Gold fills (these are what we light) -->
         <path id="segHeaven" class="cross-arm" fill="url(#crossDim)"
-          d="M193 340 L193 252 Q193 222 200 210 Q207 222 207 252 L207 340
-             M196 340 L196 258 Q196 232 200 222 Q204 232 204 258 L204 340
-             M200 210 Q188 200 182 195 Q188 205 200 215 Q212 205 218 195 Q212 200 200 210 Z"/>
-        <!-- Earth — trefoil bottom + bowl zone -->
+          d="M193 340 L193 256 Q193 220 200 208 Q207 220 207 256 L207 340
+             M200 208 Q186 196 178 190 Q186 202 200 214 Q214 202 222 190 Q214 196 200 208 Z"/>
         <path id="segEarth" class="cross-arm" fill="url(#crossDim)"
-          d="M193 340 L193 420 Q193 450 200 462 Q207 450 207 420 L207 340
-             M196 340 L196 414 Q196 440 200 452 Q204 440 204 414 L204 340
-             M200 462 Q188 472 182 477 Q188 467 200 457 Q212 467 218 477 Q212 472 200 462 Z"/>
-        <!-- Left trefoil -->
+          d="M193 340 L193 424 Q193 460 200 472 Q207 460 207 424 L207 340
+             M200 472 Q186 484 178 490 Q186 478 200 466 Q214 478 222 490 Q214 484 200 472 Z"/>
         <path id="segLeft" class="cross-arm" fill="url(#crossDim)"
-          d="M200 333 L108 333 Q78 340 68 340 Q78 347 108 347 L200 347
-             M200 336 L115 336 Q88 340 78 340 Q88 344 115 344 L200 344
-             M68 340 Q58 328 52 322 Q62 332 68 340 Q62 348 52 358 Q58 352 68 340 Z"/>
-        <!-- Right trefoil -->
+          d="M200 333 L116 333 Q78 340 66 340 Q78 347 116 347 L200 347
+             M66 340 Q54 326 46 318 Q58 332 66 340 Q58 348 46 362 Q54 354 66 340 Z"/>
         <path id="segRight" class="cross-arm" fill="url(#crossDim)"
-          d="M200 333 L292 333 Q322 340 332 340 Q322 347 292 347 L200 347
-             M200 336 L285 336 Q312 340 322 340 Q312 344 285 344 L200 344
-             M332 340 Q342 328 348 322 Q338 332 332 340 Q338 348 348 358 Q342 352 332 340 Z"/>
-        <circle id="crossBoss" class="cross-arm" cx="200" cy="340" r="13" fill="url(#crossDim)" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
-        <circle cx="200" cy="340" r="7" fill="none" stroke="rgba(255,230,190,.1)" stroke-width=".8"/>
+          d="M200 333 L284 333 Q322 340 334 340 Q322 347 284 347 L200 347
+             M334 340 Q346 326 354 318 Q342 332 334 340 Q342 348 354 362 Q346 354 334 340 Z"/>
+
+        <circle id="crossBoss" class="cross-arm" cx="200" cy="340" r="12"
+          fill="url(#crossDim)" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
+        <circle cx="200" cy="340" r="6.5" fill="none" stroke="rgba(255,230,190,.1)" stroke-width=".8"/>
       </g>
 
       <!-- Bowl — integrated below cross centre -->
