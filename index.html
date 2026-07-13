@@ -4,276 +4,247 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Gesture Ritual — Live Demo</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-  :root { --ink:#ebe3d4; --mute:#7a746a; --gold:#e4c070; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
-    font-family:Inter,system-ui,sans-serif; background:#040304; color:var(--ink);
-    min-height:100dvh; display:flex; flex-direction:column; align-items:center;
-    padding:max(10px, env(safe-area-inset-top)) 0 max(10px, env(safe-area-inset-bottom));
+    background:#030304; min-height:100dvh;
+    display:flex; align-items:center; justify-content:center;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
   }
-  .header { text-align:center; padding:0 16px 6px; }
-  h1 { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:clamp(22px,5vw,30px); }
-  .tag { color:var(--mute); font-size:11px; margin-top:3px; letter-spacing:.04em; }
+  #video { position:fixed; opacity:0; width:1px; height:1px; pointer-events:none; left:-9999px; }
   .stage {
-    position:relative; flex:1; width:100%; max-width:500px;
-    min-height:min(80dvh, 820px); margin-top:6px;
-    overflow:hidden; background:#020202;
-    box-shadow:0 0 0 1px rgba(255,255,255,.04), 0 40px 100px rgba(0,0,0,.9);
+    position:relative; width:min(100vw,440px); height:min(92dvh,780px);
+    overflow:hidden; background:#050504;
+    box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 32px 80px rgba(0,0,0,.85);
   }
-  #video { position:fixed; width:1px; height:1px; opacity:0; pointer-events:none; left:-9999px; }
-  .font-cam {
-    position:absolute; inset:0; width:100%; height:100%;
+  .scene { width:100%; height:100%; display:block; }
+  /* Camera HUD — lens overlay, not page header */
+  .cam-hud {
+    position:absolute; inset:0; z-index:15; pointer-events:none;
+    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.14em;
+    color:rgba(255,240,220,.55);
   }
-  /* LED ring — Riley spec: warm white halo behind brass, 15–20mm float */
-  .led-ring {
-    position:absolute; left:50%; top:42%; width:78%; aspect-ratio:1;
-    transform:translate(-50%,-50%); border-radius:50%; pointer-events:none;
-    z-index:2;
-    box-shadow:
-      0 0 40px 8px rgba(255,210,140,.12),
-      0 0 80px 20px rgba(255,190,100,.08),
-      inset 0 0 30px 4px rgba(255,220,160,.06);
-    border:3px solid rgba(255,225,180,.0);
-    transition:box-shadow .8s ease, border-color .8s ease, opacity .8s ease;
-    animation:ledRest 5.5s ease-in-out infinite;
+  .cam-hud .rec {
+    position:absolute; top:14px; left:14px;
+    display:flex; align-items:center; gap:6px;
+    font-weight:500; color:rgba(255,200,140,.75);
   }
-  .led-ring.on {
-    border-color:rgba(255,235,200,.35);
-    box-shadow:
-      0 0 50px 12px rgba(255,215,150,.28),
-      0 0 100px 28px rgba(255,195,110,.18),
-      0 0 160px 40px rgba(255,180,90,.08),
-      inset 0 0 40px 8px rgba(255,230,180,.12);
+  .cam-hud .rec-dot {
+    width:7px; height:7px; border-radius:50%; background:#c87848;
+    box-shadow:0 0 8px rgba(255,160,80,.8);
+    animation:recBlink 2s ease-in-out infinite;
   }
-  .led-ring.miracle {
-    animation:ledMiracle 4.5s ease-in-out forwards;
-    border-color:rgba(255,245,220,.7);
+  @keyframes recBlink { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .cam-hud .meta {
+    position:absolute; top:14px; right:14px;
+    text-align:right; line-height:1.6; font-size:9px;
+    color:rgba(255,235,210,.4);
   }
-  @keyframes ledRest {
-    0%,100% {
-      box-shadow:0 0 35px 6px rgba(255,210,140,.1), 0 0 70px 16px rgba(255,190,100,.06);
-      opacity:.85;
-    }
-    50% {
-      box-shadow:0 0 55px 14px rgba(255,220,160,.22), 0 0 110px 30px rgba(255,200,120,.12);
-      opacity:1;
-    }
+  .cam-hud .frame {
+    position:absolute; inset:10px;
+    border:1px solid rgba(255,230,200,.08);
+    box-shadow:inset 0 0 60px rgba(0,0,0,.4);
   }
-  @keyframes ledMiracle {
-    0%   { box-shadow:0 0 40px 8px rgba(255,210,140,.15); opacity:.5; }
-    20%  { box-shadow:0 0 80px 24px rgba(255,235,200,.55), 0 0 140px 50px rgba(255,210,150,.35); opacity:1; }
-    45%  { box-shadow:0 0 100px 32px rgba(255,245,230,.75), 0 0 180px 60px rgba(255,220,170,.45); opacity:1; }
-    100% { box-shadow:0 0 50px 14px rgba(255,210,140,.25), 0 0 90px 24px rgba(255,190,100,.15); opacity:.7; }
+  .cam-hud .corner { position:absolute; width:18px; height:18px; border-color:rgba(255,220,170,.25); border-style:solid; }
+  .cam-hud .c-tl { top:10px; left:10px; border-width:1px 0 0 1px; }
+  .cam-hud .c-tr { top:10px; right:10px; border-width:1px 1px 0 0; }
+  .cam-hud .c-bl { bottom:10px; left:10px; border-width:0 0 1px 1px; }
+  .cam-hud .c-br { bottom:10px; right:10px; border-width:0 1px 1px 0; }
+  .led-bead {
+    fill:rgba(255,210,150,.12);
+    transition:fill .35s ease, filter .35s ease;
   }
-  .led-diffuse {
-    position:absolute; left:50%; top:42%; width:90%; aspect-ratio:1;
-    transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; z-index:1;
-    background:radial-gradient(circle, rgba(255,220,160,.2) 0%, rgba(255,190,110,.06) 45%, transparent 68%);
-    filter:blur(28px);
-    animation:ledRest 5.5s ease-in-out infinite;
+  .led-bead.on { fill:rgba(255,235,200,.55); filter:url(#ledSoft); }
+  .stage.awake .led-bead { fill:rgba(255,225,180,.35); filter:url(#ledSoft); }
+  .stage.miracle .led-bead {
+    fill:#fffef0;
+    filter:url(#ledBright);
+    animation:beadPulse 2.2s ease-in-out infinite;
   }
-  .font-svg {
-    position:absolute; left:50%; top:42%; width:72%; transform:translate(-50%,-50%);
-    z-index:4; filter:drop-shadow(0 16px 40px rgba(0,0,0,.8));
+  .stage.miracle .led-bead:nth-child(odd) { animation-delay:.3s; }
+  @keyframes beadPulse {
+    0%,100% { opacity:.75; }
+    50% { opacity:1; }
   }
-  .cross-arm { transition:opacity .4s ease, filter .4s ease; opacity:.35; }
+  .led-fill {
+    opacity:.15; transition:opacity .6s ease;
+  }
+  .stage.awake .led-fill { opacity:.35; }
+  .stage.miracle .led-fill { opacity:.85; animation:ledFillPulse 4s ease-in-out forwards; }
+  @keyframes ledFillPulse {
+    0% { opacity:.2; } 25% { opacity:.95; } 55% { opacity:1; } 100% { opacity:.45; }
+  }
+  .cross-arm { opacity:.4; transition:opacity .4s, filter .4s; }
   .cross-arm.lit { opacity:1; filter:url(#crossGlow); }
-  .cross-arm.flash { animation:crossPulse .6s ease-out; }
-  @keyframes crossPulse {
-    0%   { filter:none; }
-    40%  { filter:url(#crossBurst); }
-    100% { filter:url(#crossGlow); }
-  }
-  .vignette {
-    position:absolute; inset:0; z-index:8; pointer-events:none;
-    background:radial-gradient(ellipse 75% 65% at 50% 42%, transparent 20%, rgba(0,0,0,.7) 100%);
-  }
-  .scanline {
-    position:absolute; inset:0; z-index:9; pointer-events:none; opacity:.03;
-    background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.4) 2px, rgba(0,0,0,.4) 4px);
+  .cross-arm.flash { animation:crossFlash .55s ease-out; }
+  @keyframes crossFlash {
+    40% { filter:url(#crossBurst); opacity:1; }
   }
   #miracleWord {
-    position:absolute; left:0; right:0; top:7%; z-index:10; text-align:center;
-    pointer-events:none; opacity:0;
+    position:absolute; left:0; right:0; bottom:18%; z-index:16;
+    text-align:center; pointer-events:none; opacity:0;
     font-family:"Cormorant Garamond",serif;
-    font-size:clamp(36px,10vw,58px); font-weight:600; color:#faf4e8;
-    text-shadow:0 0 50px rgba(255,210,140,.7);
-    transition:opacity .7s ease .5s;
+    font-size:clamp(34px,9vw,50px); font-weight:600;
+    color:#faf6ec; letter-spacing:.01em;
+    text-shadow:0 0 60px rgba(255,210,140,.8), 0 4px 30px rgba(0,0,0,.9);
+    transition:opacity .8s ease .4s;
   }
   #miracleWord.show { opacity:1; }
   .cover {
-    position:absolute; inset:0; z-index:20;
+    position:absolute; inset:0; z-index:30;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
-    padding:0 20px max(32px, env(safe-area-inset-bottom));
-    background:linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.9) 100%);
+    padding:0 24px max(36px, env(safe-area-inset-bottom));
+    background:linear-gradient(180deg, transparent 50%, rgba(0,0,0,.92) 100%);
     text-align:center;
   }
   .cover.hidden { display:none; }
-  .cover p { color:var(--mute); font-size:12px; max-width:300px; line-height:1.55; margin-bottom:14px; }
+  .cover p {
+    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em;
+    color:rgba(255,235,210,.45); max-width:280px; line-height:1.7; margin-bottom:16px;
+  }
   .btn {
-    font:500 10px Inter,sans-serif; letter-spacing:.12em; text-transform:uppercase;
-    background:var(--gold); color:#100c06; border:none; padding:12px 26px; cursor:pointer;
+    font:500 10px "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase;
+    background:rgba(232,200,140,.92); color:#0c0a06; border:none;
+    padding:12px 28px; cursor:pointer;
   }
-  .btn.ghost { background:transparent; color:var(--gold); border:1px solid rgba(228,192,112,.3); font-size:10px; padding:10px 18px; }
+  .btn.ghost {
+    background:transparent; color:rgba(232,200,140,.8);
+    border:1px solid rgba(232,200,140,.25); padding:10px 20px;
+  }
   .spinner {
-    width:20px; height:20px; border:2px solid rgba(228,192,112,.2); border-top-color:var(--gold);
-    border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 8px;
+    width:18px; height:18px; border:1px solid rgba(232,200,140,.2);
+    border-top-color:rgba(232,200,140,.8); border-radius:50%;
+    animation:spin .7s linear infinite; margin:0 auto 10px;
   }
-  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes spin { to{transform:rotate(360deg)} }
   .portrait {
-    position:absolute; inset:0; z-index:21; display:flex; align-items:center; justify-content:center;
-    background:rgba(0,0,0,.92); opacity:0; pointer-events:none; transition:opacity .5s;
+    position:absolute; inset:0; z-index:31; display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.94); opacity:0; pointer-events:none; transition:opacity .5s;
   }
   .portrait.show { opacity:1; pointer-events:auto; }
-  .polaroid { background:#e8e2d6; padding:6px 6px 28px; width:min(52%,180px); box-shadow:0 12px 36px rgba(0,0,0,.8); }
-  .polaroid canvas { width:100%; display:block; filter:sepia(.12) contrast(1.05); }
-  .polaroid .cap { font-family:"Cormorant Garamond",serif; font-size:15px; text-align:center; margin-top:6px; color:#2a2218; }
-  .portrait .again { position:absolute; bottom:max(18px, env(safe-area-inset-bottom)); }
+  .polaroid { background:#e6e0d4; padding:6px 6px 26px; width:min(50%,170px); }
+  .polaroid .cap { font-family:"Cormorant Garamond",serif; font-size:16px; text-align:center; margin-top:6px; }
+  .portrait .again { position:absolute; bottom:max(20px, env(safe-area-inset-bottom)); }
 </style>
 </head>
 <body>
-  <header class="header">
-    <h1>Holy Font — Camera View</h1>
-    <p class="tag">Fixed lens · gesture engine · LED halo prototype</p>
-  </header>
-
-  <div class="stage">
+  <div class="stage" id="stage">
     <video id="video" playsinline muted></video>
 
-    <!-- What the pinhole camera sees — not the guest -->
-    <div class="font-cam">
-      <svg width="100%" height="100%" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="night" cx="50%" cy="30%" r="80%">
-            <stop offset="0%" stop-color="#1a1520"/><stop offset="60%" stop-color="#080608"/><stop offset="100%" stop-color="#020202"/>
-          </radialGradient>
-          <radialGradient id="vineShade" cx="80%" cy="90%" r="50%">
-            <stop offset="0%" stop-color="rgba(20,40,18,.5)"/><stop offset="100%" stop-color="transparent"/>
-          </radialGradient>
-          <linearGradient id="brass" x1="25%" y1="10%" x2="75%" y2="95%">
-            <stop offset="0%" stop-color="#f5e4b8"/><stop offset="25%" stop-color="#d4aa58"/>
-            <stop offset="60%" stop-color="#8a6838"/><stop offset="100%" stop-color="#3a2814"/>
-          </linearGradient>
-          <linearGradient id="goldEngrave" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#fffef5"/><stop offset="45%" stop-color="#f0d080"/>
-            <stop offset="100%" stop-color="#c08830"/>
-          </linearGradient>
-          <linearGradient id="dimEngrave" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#1e1610"/><stop offset="100%" stop-color="#0a0806"/>
-          </linearGradient>
-          <radialGradient id="bowlDeep" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="#080604"/><stop offset="100%" stop-color="#4a3820"/>
-          </radialGradient>
-          <filter id="crossGlow" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="b"/>
-            <feFlood flood-color="#ffe8a8" flood-opacity=".95" result="c"/>
-            <feComposite in="c" in2="b" operator="in" result="g"/>
-            <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="crossBurst" x="-120%" y="-120%" width="340%" height="340%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/>
-            <feFlood flood-color="#fff8e0" flood-opacity="1" result="c"/>
-            <feComposite in="c" in2="b" operator="in" result="g"/>
-            <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <rect width="400" height="700" fill="url(#night)"/>
-        <rect width="400" height="700" fill="url(#vineShade)"/>
-        <!-- Rose-window bokeh hints -->
-        <circle cx="200" cy="80" r="60" fill="rgba(80,60,100,.08)"/>
-        <circle cx="180" cy="100" r="25" fill="rgba(120,90,140,.05)"/>
-        <!-- Vines (camera sees creeping foliage beside font) -->
-        <path d="M340 700 Q360 500 320 400 Q300 320 340 250" fill="none" stroke="rgba(30,50,22,.6)" stroke-width="8" stroke-linecap="round"/>
-        <path d="M60 700 Q40 520 80 420 Q100 340 55 280" fill="none" stroke="rgba(30,50,22,.5)" stroke-width="6" stroke-linecap="round"/>
-        <ellipse cx="330" cy="380" rx="18" ry="10" fill="rgba(40,70,30,.5)" transform="rotate(-30 330 380)"/>
-        <ellipse cx="70" cy="350" rx="14" ry="8" fill="rgba(40,70,30,.4)" transform="rotate(20 70 350)"/>
-      </svg>
+    <svg class="scene" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="bgNight" cx="50%" cy="28%" r="75%">
+          <stop offset="0%" stop-color="#1c1620"/><stop offset="100%" stop-color="#030303"/>
+        </radialGradient>
+        <linearGradient id="archGold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f8ecc8"/><stop offset="40%" stop-color="#c89848"/>
+          <stop offset="100%" stop-color="#5a4018"/>
+        </linearGradient>
+        <linearGradient id="plateGold" x1="20%" y1="0%" x2="80%" y2="100%">
+          <stop offset="0%" stop-color="#f0dc98"/><stop offset="50%" stop-color="#a88040"/>
+          <stop offset="100%" stop-color="#2a1c0a"/>
+        </linearGradient>
+        <linearGradient id="goldLit" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fffff5"/><stop offset="50%" stop-color="#f0d070"/>
+          <stop offset="100%" stop-color="#b87820"/>
+        </linearGradient>
+        <linearGradient id="crossDim" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#2a2014"/><stop offset="100%" stop-color="#0c0a06"/>
+        </linearGradient>
+        <radialGradient id="ledRingFill" cx="50%" cy="50%" r="50%">
+          <stop offset="70%" stop-color="rgba(255,220,160,0)"/>
+          <stop offset="88%" stop-color="rgba(255,210,140,.35)"/>
+          <stop offset="96%" stop-color="rgba(255,235,200,.55)"/>
+          <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
+        </radialGradient>
+        <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="crossGlow"><feGaussianBlur stdDeviation="2.5" result="b"/><feFlood flood-color="#ffe8a0" flood-opacity=".9" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="crossBurst"><feGaussianBlur stdDeviation="5" result="b"/><feFlood flood-color="#fff8e8" flood-opacity="1" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
 
-      <div class="led-diffuse" id="ledDiffuse"></div>
-      <div class="led-ring" id="ledRing"></div>
+      <rect width="400" height="720" fill="url(#bgNight)"/>
+      <!-- Soft backdrop behind arch (reference: white drape → warm dark silk) -->
+      <ellipse cx="200" cy="340" rx="130" ry="160" fill="rgba(255,248,240,.04)"/>
 
-      <svg class="font-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="b2" x1="20%" y1="5%" x2="80%" y2="95%">
-            <stop offset="0%" stop-color="#f8ecc8"/><stop offset="30%" stop-color="#d4a858"/>
-            <stop offset="70%" stop-color="#7a5830"/><stop offset="100%" stop-color="#2a1c0c"/>
-          </linearGradient>
-          <linearGradient id="goldEngrave" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#fffef5"/><stop offset="45%" stop-color="#f0d080"/>
-            <stop offset="100%" stop-color="#c08830"/>
-          </linearGradient>
-          <linearGradient id="dimEngrave" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#1e1610"/><stop offset="100%" stop-color="#0a0806"/>
-          </linearGradient>
-          <radialGradient id="bowlDeep" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="#080604"/><stop offset="100%" stop-color="#4a3820"/>
-          </radialGradient>
-          <filter id="crossGlow" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="b"/>
-            <feFlood flood-color="#ffe8a8" flood-opacity=".95" result="c"/>
-            <feComposite in="c" in2="b" operator="in" result="g"/>
-            <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="crossBurst" x="-120%" y="-120%" width="340%" height="340%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/>
-            <feFlood flood-color="#fff8e0" flood-opacity="1" result="c"/>
-            <feComposite in="c" in2="b" operator="in" result="g"/>
-            <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <!-- Brass backplate -->
-        <circle cx="200" cy="200" r="155" fill="#0a0806" opacity=".6"/>
-        <circle cx="200" cy="200" r="148" fill="url(#b2)" stroke="rgba(255,230,190,.15)" stroke-width="2"/>
-        <ellipse cx="165" cy="165" rx="55" ry="40" fill="rgba(255,250,235,.15)" transform="rotate(-18 165 165)"/>
-        <circle cx="200" cy="200" r="130" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1"/>
-        <!-- Ornate cross — carved patée with flared terminals -->
-        <g id="crossGroove" fill="url(#dimEngrave)" opacity=".85">
-          <path d="M188 200 L188 118 Q188 78 200 62 Q212 78 212 118 L212 200
-                   M188 200 L188 278 Q188 318 200 334 Q212 318 212 278 L212 200
-                   M200 188 L118 188 Q78 200 62 200 Q78 212 118 212 L200 212
-                   M200 188 L282 188 Q322 200 338 200 Q322 212 282 212 L200 212 Z"/>
+      <!-- LED halo BEHIND backplate (Riley: ring behind brass, 15–20mm float) -->
+      <circle cx="200" cy="340" r="168" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
+      <g id="ledBeads"></g>
+
+      <!-- Golden arch frame (reference: chamber / niche) -->
+      <path fill="none" stroke="url(#archGold)" stroke-width="10"
+        d="M 55 520 L 55 280 Q 55 120 200 95 Q 345 120 345 280 L 345 520"/>
+      <path fill="none" stroke="rgba(255,240,210,.12)" stroke-width="2"
+        d="M 68 510 L 68 285 Q 68 135 200 112 Q 332 135 332 285 L 332 510"/>
+      <!-- Solomonic twist hint on pillars -->
+      <path fill="none" stroke="url(#archGold)" stroke-width="6" opacity=".5"
+        d="M55 520 Q48 420 55 320 Q62 220 55 120"/>
+      <path fill="none" stroke="url(#archGold)" stroke-width="6" opacity=".5"
+        d="M345 520 Q352 420 345 320 Q338 220 345 120"/>
+
+      <!-- Brass backplate — centred in arch -->
+      <circle cx="200" cy="340" r="8" fill="#080604"/>
+      <circle cx="200" cy="340" r="132" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
+      <ellipse cx="168" cy="308" rx="48" ry="34" fill="rgba(255,250,235,.12)" transform="rotate(-15 168 308)"/>
+
+      <!-- Ornate cross — trefoil terminals, centred on plate (200,340) -->
+      <g id="ritualCross" transform="translate(0,0)">
+        <g fill="url(#crossDim)" opacity=".7">
+          <!-- groove silhouette -->
+          <path d="M192 340 L192 248 Q192 218 200 208 Q208 218 208 248 L208 340
+                   M192 340 L192 428 Q192 458 200 468 Q208 458 208 428 L208 340
+                   M340 332 L208 332 L208 348 L340 348 Q358 340 368 340 Q358 348 340 348 L340 332
+                   M192 332 L60 332 L60 348 L192 348 L192 332 L60 348 Q42 340 32 340 Q42 332 60 332 L192 332 Z"/>
         </g>
-        <path id="segHeaven" class="cross-arm" fill="url(#dimEngrave)"
-          d="M189 200 L189 120 Q189 80 200 64 Q211 80 211 120 L211 200
-             M192 200 L192 125 Q192 92 200 78 Q208 92 208 125 L208 200 Z"/>
-        <path id="segEarth" class="cross-arm" fill="url(#dimEngrave)"
-          d="M189 200 L189 278 Q189 318 200 334 Q211 318 211 278 L211 200
-             M192 200 L192 273 Q192 306 200 320 Q208 306 208 273 L208 200 Z"/>
-        <path id="segLeft" class="cross-arm" fill="url(#dimEngrave)"
-          d="M200 189 L120 189 Q82 200 66 200 Q82 211 120 211 L200 211
-             M200 192 L125 192 Q90 200 76 200 Q90 208 125 208 L200 208 Z"/>
-        <path id="segRight" class="cross-arm" fill="url(#dimEngrave)"
-          d="M200 189 L280 189 Q318 200 334 200 Q318 211 280 211 L200 211
-             M200 192 L275 192 Q310 200 324 200 Q310 208 275 208 L200 208 Z"/>
-        <!-- Centre rosette -->
-        <circle id="crossBoss" class="cross-arm" cx="200" cy="200" r="14" fill="url(#dimEngrave)" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
-        <circle cx="200" cy="200" r="8" fill="none" stroke="rgba(255,230,190,.08)" stroke-width=".8"/>
-        <!-- Bowl beneath cross centre -->
-        <ellipse cx="200" cy="248" rx="68" ry="44" fill="url(#bowlDeep)"/>
-        <ellipse cx="200" cy="242" rx="54" ry="32" fill="none" stroke="rgba(255,235,200,.07)" stroke-width="1"/>
-        <ellipse cx="200" cy="246" rx="38" ry="22" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="2"/>
-      </svg>
+        <!-- Heaven — trefoil top -->
+        <path id="segHeaven" class="cross-arm" fill="url(#crossDim)"
+          d="M193 340 L193 252 Q193 222 200 210 Q207 222 207 252 L207 340
+             M196 340 L196 258 Q196 232 200 222 Q204 232 204 258 L204 340
+             M200 210 Q188 200 182 195 Q188 205 200 215 Q212 205 218 195 Q212 200 200 210 Z"/>
+        <!-- Earth — trefoil bottom + bowl zone -->
+        <path id="segEarth" class="cross-arm" fill="url(#crossDim)"
+          d="M193 340 L193 420 Q193 450 200 462 Q207 450 207 420 L207 340
+             M196 340 L196 414 Q196 440 200 452 Q204 440 204 414 L204 340
+             M200 462 Q188 472 182 477 Q188 467 200 457 Q212 467 218 477 Q212 472 200 462 Z"/>
+        <!-- Left trefoil -->
+        <path id="segLeft" class="cross-arm" fill="url(#crossDim)"
+          d="M200 333 L108 333 Q78 340 68 340 Q78 347 108 347 L200 347
+             M200 336 L115 336 Q88 340 78 340 Q88 344 115 344 L200 344
+             M68 340 Q58 328 52 322 Q62 332 68 340 Q62 348 52 358 Q58 352 68 340 Z"/>
+        <!-- Right trefoil -->
+        <path id="segRight" class="cross-arm" fill="url(#crossDim)"
+          d="M200 333 L292 333 Q322 340 332 340 Q322 347 292 347 L200 347
+             M200 336 L285 336 Q312 340 322 340 Q312 344 285 344 L200 344
+             M332 340 Q342 328 348 322 Q338 332 332 340 Q338 348 348 358 Q342 352 332 340 Z"/>
+        <circle id="crossBoss" class="cross-arm" cx="200" cy="340" r="13" fill="url(#crossDim)" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
+        <circle cx="200" cy="340" r="7" fill="none" stroke="rgba(255,230,190,.1)" stroke-width=".8"/>
+      </g>
+
+      <!-- Bowl — integrated below cross centre -->
+      <ellipse cx="200" cy="388" rx="58" ry="36" fill="#0a0806"/>
+      <ellipse cx="200" cy="382" rx="46" ry="28" fill="#1a140c" stroke="rgba(255,230,200,.06)" stroke-width="1"/>
+    </svg>
+
+    <div class="cam-hud">
+      <div class="frame"></div>
+      <span class="corner c-tl"></span><span class="corner c-tr"></span>
+      <span class="corner c-bl"></span><span class="corner c-br"></span>
+      <div class="rec"><span class="rec-dot"></span> REC</div>
+      <div class="meta">FONT CAM 01<br/>PINHOLE · 6mm<br/>720 × 1280</div>
     </div>
 
-    <div class="vignette"></div>
-    <div class="scanline"></div>
     <p id="miracleWord">The font is awake.</p>
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>This is the fixed camera view — what the font sees. Trace the sign in front of your laptop; the cross and LED ring respond.</p>
-        <button class="btn" id="startBtn">Start</button>
+        <p>Fixed lens view. Trace the sign — cross and LED ring respond. You are not on camera.</p>
+        <button class="btn" id="startBtn">Arm system</button>
       </div>
     </div>
 
     <div class="portrait" id="portrait">
-      <div class="polaroid">
-        <canvas id="shot"></canvas>
-        <div class="cap">Blessed &#10007;</div>
-      </div>
+      <div class="polaroid"><canvas id="shot"></canvas><div class="cap">Blessed &#10007;</div></div>
       <button class="btn ghost again" id="againBtn">Reset</button>
     </div>
   </div>
@@ -281,181 +252,141 @@
 <script type="module">
 import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
-const ZONES = {
-  "2": { x:0.3333, y:0.0, w:0.3333, h:0.3333 },
-  "0": { x:0.3333, y:0.6666, w:0.3333, h:0.3334 },
-  "4": { x:0.0, y:0.3333, w:0.3333, h:0.3333 },
-  "6": { x:0.6666, y:0.3333, w:0.3334, h:0.3333 },
-};
+const ZONES = { "2":{x:.3333,y:0,w:.3333,h:.3333}, "0":{x:.3333,y:.6666,w:.3333,h:.3334}, "4":{x:0,y:.3333,w:.3333,h:.3333}, "6":{x:.6666,y:.3333,w:.3334,h:.3333} };
 const SEQUENCE = ["2","0","4","6"];
 const SEGMENTS = ["segHeaven","segEarth","segLeft","segRight"];
 const WINDOW_MS = 6000;
 const PALM = [0,5,9,17];
-const PAD = 0.06;
+const PAD = .06;
 
 function zoneAt(x,y){
-  for (const [n,z] of Object.entries(ZONES)){
+  for (const [n,z] of Object.entries(ZONES))
     if (x>=z.x-PAD && x<z.x+z.w+PAD && y>=z.y-PAD && y<z.y+z.h+PAD) return n;
-  }
   return null;
 }
 
-class StateMachine {
+class SM {
+  reset(){ this.step=0; this.t0=null; this.lz=null; this.st="IDLE"; }
   constructor(){ this.reset(); }
-  reset(){ this.step=0; this.startedAt=null; this.lastZone=null; this.state="IDLE"; }
-  get expected(){ return this.step<SEQUENCE.length ? SEQUENCE[this.step] : null; }
-  update(zone, now){
-    if (this.state==="IN_PROGRESS" && this.startedAt!=null && now-this.startedAt>WINDOW_MS){
-      this.reset(); return {done:false, adv:false, reset:true};
-    }
-    const entered = zone!==this.lastZone ? zone : null;
-    this.lastZone = zone;
-    if (!entered) return {done:false, adv:false, reset:false};
-    if (entered===this.expected){
-      if (!this.step){ this.startedAt=now; this.state="IN_PROGRESS"; }
-      this.step++;
-      return {done:this.step>=SEQUENCE.length, adv:true, reset:false};
-    }
-    return {done:false, adv:false, reset:false};
+  get exp(){ return this.step<4 ? SEQUENCE[this.step] : null; }
+  upd(z,now){
+    if (this.st==="IN_PROGRESS" && this.t0 && now-this.t0>WINDOW_MS){ this.reset(); return {d:0,a:0,r:1}; }
+    const e = z!==this.lz ? z : null; this.lz=z;
+    if (!e) return {d:0,a:0,r:0};
+    if (e===this.exp){ if(!this.step){this.t0=now;this.st="IN_PROGRESS";} this.step++; return {d:this.step>=4,a:1,r:0}; }
+    return {d:0,a:0,r:0};
   }
 }
 
+// LED beads around ring — matches brass diameter
+const beads = document.getElementById("ledBeads");
+const CX=200, CY=340, R=162, N=36;
+for (let i=0;i<N;i++){
+  const a = (i/N)*Math.PI*2 - Math.PI/2;
+  const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+  c.setAttribute("class","led-bead");
+  c.setAttribute("cx", CX + R*Math.cos(a));
+  c.setAttribute("cy", CY + R*Math.sin(a));
+  c.setAttribute("r", i%3===0 ? 3.2 : 2.2);
+  beads.appendChild(c);
+}
+
+const stage = document.getElementById("stage");
 const video = document.getElementById("video");
 const cover = document.getElementById("cover");
 const coverContent = document.getElementById("coverContent");
-const ledRing = document.getElementById("ledRing");
-const ledDiffuse = document.getElementById("ledDiffuse");
 const miracleWord = document.getElementById("miracleWord");
-const portrait = document.getElementById("portrait");
-const shot = document.getElementById("shot");
+const sm = new SM();
+let lm, run=false, celeb=false, lvt=-1;
 
-const sm = new StateMachine();
-let landmarker, running=false, celebrating=false, lastVt=-1;
-
-function resetVisuals(){
-  for (const id of [...SEGMENTS,"crossBoss"]){
-    const el = document.getElementById(id);
+function resetVis(){
+  SEGMENTS.forEach(id=>{
+    const el=document.getElementById(id);
     el.classList.remove("lit","flash");
-    el.setAttribute("fill","url(#dimEngrave)");
-  }
-  ledRing.classList.remove("miracle");
-  ledRing.classList.add("on");
-  ledDiffuse.style.animation = "ledRest 5.5s ease-in-out infinite";
+    el.setAttribute("fill","url(#crossDim)");
+  });
+  document.getElementById("crossBoss").setAttribute("fill","url(#crossDim)");
+  document.getElementById("crossBoss").classList.remove("lit");
+  stage.classList.remove("miracle");
+  stage.classList.add("awake");
+  document.querySelectorAll(".led-bead").forEach(b=>b.classList.remove("on"));
 }
 
 function lightStep(n){
-  const el = document.getElementById(SEGMENTS[n-1]);
-  el.setAttribute("fill","url(#goldEngrave)");
+  const el=document.getElementById(SEGMENTS[n-1]);
+  el.setAttribute("fill","url(#goldLit)");
   el.classList.add("lit","flash");
   el.addEventListener("animationend",()=>el.classList.remove("flash"),{once:true});
-  if (n>=2){
-    const b = document.getElementById("crossBoss");
-    b.setAttribute("fill","url(#goldEngrave)");
-    b.classList.add("lit");
+  if(n>=2){
+    const b=document.getElementById("crossBoss");
+    b.setAttribute("fill","url(#goldLit)"); b.classList.add("lit");
   }
-  ledRing.style.animation = "none";
-  ledRing.offsetHeight;
-  ledRing.style.animation = "ledRest 3s ease-in-out infinite";
+  document.querySelectorAll(".led-bead").forEach((b,i)=>{ if(i<n*9) b.classList.add("on"); });
 }
 
 async function loadModel(){
-  coverContent.innerHTML = '<div class="spinner"></div>';
-  const v = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
-  landmarker = await HandLandmarker.createFromOptions(v, {
-    baseOptions:{
-      modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-      delegate:"GPU",
-    },
-    runningMode:"VIDEO", numHands:1,
-    minHandDetectionConfidence:.4, minHandPresenceConfidence:.4, minTrackingConfidence:.35,
+  coverContent.innerHTML='<div class="spinner"></div>';
+  const v=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  lm=await HandLandmarker.createFromOptions(v,{
+    baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:"GPU"},
+    runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.4,minHandPresenceConfidence:.4,minTrackingConfidence:.35,
   });
 }
 
 async function start(){
   try{
-    if (!landmarker) await loadModel();
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}}, audio:false,
-    });
-    video.srcObject = stream;
+    if(!lm) await loadModel();
+    video.srcObject=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}},audio:false});
     await video.play();
     cover.classList.add("hidden");
-    running = true;
-    sm.reset();
-    resetVisuals();
-    ledRing.classList.add("on");
-    lastVt = -1;
-    requestAnimationFrame(tick);
+    run=true; sm.reset(); resetVis(); stage.classList.add("awake");
+    lvt=-1; requestAnimationFrame(tick);
   }catch(e){
-    coverContent.innerHTML = `<p style="color:#b89090;font-size:12px">${e.message}</p><button class="btn" id="r">Retry</button>`;
+    coverContent.innerHTML=`<p style="color:#b89090;font-size:10px">${e.message}</p><button class="btn" id="r">Retry</button>`;
     document.getElementById("r")?.addEventListener("click",()=>location.reload());
   }
 }
 
-function captureFontFrame(){
-  const c = shot, ctx = c.getContext("2d");
-  const stage = document.querySelector(".stage");
-  c.width = stage.offsetWidth * 2;
-  c.height = stage.offsetHeight * 2;
-  ctx.fillStyle = "#080608";
-  ctx.fillRect(0,0,c.width,c.height);
-  ctx.scale(2,2);
-  const svg = document.querySelector(".font-cam");
-  const data = new XMLSerializer().serializeToString(svg);
-  const img = new Image();
-  const blob = new Blob([data], {type:"image/svg+xml"});
-  const url = URL.createObjectURL(blob);
-  img.onload = ()=>{ ctx.drawImage(img,0,0,stage.offsetWidth,stage.offsetHeight); URL.revokeObjectURL(url); };
-  img.src = url;
-}
-
 function celebrate(){
-  celebrating = true;
-  for (const id of [...SEGMENTS,"crossBoss"]){
-    const el = document.getElementById(id);
-    el.setAttribute("fill","url(#goldEngrave)");
-    el.classList.add("lit");
-  }
-  ledRing.classList.add("miracle");
-  ledDiffuse.style.animation = "ledMiracle 4.5s ease-in-out forwards";
+  celeb=true;
+  [...SEGMENTS,"crossBoss"].forEach(id=>{
+    const el=document.getElementById(id);
+    el.setAttribute("fill","url(#goldLit)"); el.classList.add("lit");
+  });
+  stage.classList.remove("awake");
+  stage.classList.add("miracle");
+  document.querySelectorAll(".led-bead").forEach(b=>b.classList.add("on"));
   miracleWord.classList.add("show");
-  setTimeout(()=> portrait.classList.add("show"), 2600);
-  try { captureFontFrame(); } catch(_){}
+  setTimeout(()=>document.getElementById("portrait").classList.add("show"),2800);
 }
 
 function resetAll(){
-  portrait.classList.remove("show");
+  document.getElementById("portrait").classList.remove("show");
   miracleWord.classList.remove("show");
-  celebrating = false;
-  sm.reset();
-  resetVisuals();
-  lastVt = -1;
+  celeb=false; sm.reset(); resetVis(); lvt=-1;
 }
 
 function tick(){
-  if (!running) return;
-  if (!celebrating && landmarker && video.readyState>=2 && video.currentTime!==lastVt){
-    lastVt = video.currentTime;
-    const res = landmarker.detectForVideo(video, performance.now());
-    const now = performance.now();
-    let r = {done:false,adv:false,reset:false};
-    if (res.landmarks?.length){
-      const lm = res.landmarks[0];
-      let sx=0,sy=0;
-      for (const i of PALM){ sx+=lm[i].x; sy+=lm[i].y; }
-      const cx = Math.min(Math.max(1-sx/PALM.length,0),1);
-      const cy = Math.min(Math.max(sy/PALM.length,0),1);
-      r = sm.update(zoneAt(cx,cy), now);
-    } else r = sm.update(null, now);
-    if (r.reset) resetVisuals();
-    if (r.adv) lightStep(sm.step);
-    if (r.done) celebrate();
+  if(!run) return;
+  if(!celeb && lm && video.readyState>=2 && video.currentTime!==lvt){
+    lvt=video.currentTime;
+    const res=lm.detectForVideo(video,performance.now());
+    const now=performance.now();
+    let r={d:0,a:0,r:0};
+    if(res.landmarks?.length){
+      const L=res.landmarks[0]; let sx=0,sy=0;
+      for(const i of PALM){sx+=L[i].x;sy+=L[i].y;}
+      r=sm.upd(zoneAt(Math.min(Math.max(1-sx/4,0),1),Math.min(Math.max(sy/4,0),1)),now);
+    } else r=sm.upd(null,now);
+    if(r.r) resetVis();
+    if(r.a) lightStep(sm.step);
+    if(r.d) celebrate();
   }
   requestAnimationFrame(tick);
 }
 
-document.getElementById("startBtn").addEventListener("click", start);
-document.getElementById("againBtn").addEventListener("click", resetAll);
+document.getElementById("startBtn").addEventListener("click",start);
+document.getElementById("againBtn").addEventListener("click",resetAll);
 </script>
 </body>
 </html>
