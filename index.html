@@ -265,7 +265,15 @@
 <script type="module">
 import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
-const ZONES = { "2":{x:.3333,y:0,w:.3333,h:.3333}, "0":{x:.3333,y:.6666,w:.3333,h:.3334}, "4":{x:0,y:.3333,w:.3333,h:.3333}, "6":{x:.6666,y:.3333,w:.3334,h:.3333} };
+// Detection zones tuned for human-friendly sweeping gestures:
+// - Heaven/Earth: vertical bands near top/bottom, centred horizontally (guest doesn't need perfect aim).
+// - Left/Right: wide mid-height bands (guest doesn't need to reach the screen edge).
+const ZONES = {
+  "2": { x: 0.25, y: 0.00, w: 0.50, h: 0.38 }, // Heaven
+  "0": { x: 0.25, y: 0.62, w: 0.50, h: 0.38 }, // Earth
+  "4": { x: 0.00, y: 0.22, w: 0.45, h: 0.56 }, // Left
+  "6": { x: 0.55, y: 0.22, w: 0.45, h: 0.56 }, // Right
+};
 const SEQUENCE = ["2","0","4","6"];
 const SEGMENTS = ["segHeaven","segEarth","segLeft","segRight"];
 const WINDOW_MS = 9000;
