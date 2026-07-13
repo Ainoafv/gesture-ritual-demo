@@ -129,6 +129,19 @@
   .polaroid { background:#e6e0d4; padding:6px 6px 26px; width:min(50%,170px); }
   .polaroid .cap { font-family:"Cormorant Garamond",serif; font-size:16px; text-align:center; margin-top:6px; color:#2a2218; }
   .portrait .again { position:absolute; bottom:max(20px, env(safe-area-inset-bottom)); }
+
+  /* Debug (optional): only when ?debug=1 */
+  #debugHud {
+    position:absolute; left:14px; bottom:14px; z-index:25;
+    font:500 11px Inter,system-ui,sans-serif;
+    color:rgba(241,234,220,.75);
+    background:rgba(0,0,0,.45);
+    border:1px solid rgba(255,235,200,.12);
+    padding:8px 10px;
+    backdrop-filter:blur(6px);
+    display:none;
+  }
+  #debugHud.on { display:block; }
 </style>
 </head>
 <body>
@@ -225,6 +238,7 @@
     </svg>
 
     <p id="miracleWord">The font is awake.</p>
+    <div id="debugHud"></div>
 
     <div class="cover" id="cover">
       <div id="coverContent">
@@ -247,9 +261,12 @@ const SEQUENCE = ["2","0","4","6"];
 const SEGMENTS = ["segHeaven","segEarth","segLeft","segRight"];
 const WINDOW_MS = 9000;
 const PALM = [0,5,9,17];
-const PAD = .10;
-const SMOOTH = 0.35;
-const STEP_MIN_MS = 180;
+const PAD = .12;
+const SMOOTH = 0.55;
+const STEP_MIN_MS = 140;
+const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
+const debugHud = document.getElementById("debugHud");
+if (DEBUG) debugHud.classList.add("on");
 
 function zoneAt(x,y){
   for (const [n,z] of Object.entries(ZONES))
@@ -386,6 +403,7 @@ function tick(){
     const res=lm.detectForVideo(video,performance.now());
     const now=performance.now();
     let r={d:0,a:0,r:0};
+    let zone = null;
     if(res.landmarks?.length){
       const L=res.landmarks[0]; let tx=0,ty=0;
       for(const i of PALM){ tx+=L[i].x; ty+=L[i].y; }
@@ -394,11 +412,16 @@ function tick(){
       if (!hasS){ sx=tx; sy=ty; hasS=true; }
       sx = sx*(1-SMOOTH) + tx*SMOOTH;
       sy = sy*(1-SMOOTH) + ty*SMOOTH;
-      r=sm.upd(zoneAt(sx,sy),now);
+      zone = zoneAt(sx,sy);
+      r=sm.upd(zone,now);
     } else { hasS=false; r=sm.upd(null,now); }
     if(r.r) resetVis();
     if(r.a) lightStep(sm.step);
     if(r.d) celebrate();
+    if (DEBUG) {
+      debugHud.textContent =
+        `zone=${zone ?? "—"}  step=${sm.step}/4  expected=${sm.exp ?? "—"}  stable=${sm.cc}`;
+    }
   }
   requestAnimationFrame(tick);
 }
