@@ -45,23 +45,31 @@
     background:radial-gradient(ellipse 65% 50% at 50% 44%, #181410 0%, #060505 100%);
   }
   .font-svg {
-    width:80%; max-height:74%; position:relative; z-index:2;
-    filter:drop-shadow(0 20px 40px rgba(0,0,0,.6));
+    width:88%; max-height:78%; position:relative; z-index:2;
+    filter:drop-shadow(0 24px 48px rgba(0,0,0,.7));
   }
-  .cross-seg {
-    fill:none; stroke:rgba(255,235,200,.1); stroke-width:2; stroke-linecap:round;
-    transition:stroke .4s ease, stroke-width .4s ease, opacity .4s ease;
+  .cross-arm {
+    transition:opacity .45s ease, filter .45s ease;
+    opacity:.55;
   }
-  .cross-seg.lit {
-    stroke:rgba(255,242,215,.92); stroke-width:2.6;
-    filter:drop-shadow(0 0 8px rgba(255,210,140,.65));
+  .cross-arm.lit {
+    opacity:1;
+    filter:url(#crossLitGlow);
   }
-  .cross-seg.flash { animation:crossFlash .55s ease-out; }
-  @keyframes crossFlash {
-    0% { stroke-width:2.6; filter:drop-shadow(0 0 4px rgba(255,210,140,.4)); }
-    40% { stroke-width:3.4; filter:drop-shadow(0 0 14px rgba(255,230,180,.95)); }
-    100% { stroke-width:2.6; filter:drop-shadow(0 0 8px rgba(255,210,140,.65)); }
+  .cross-arm.flash { animation:armFlash .7s ease-out; }
+  @keyframes armFlash {
+    0%   { opacity:.55; }
+    35%  { opacity:1; filter:url(#crossLitBurst); }
+    100% { opacity:1; filter:url(#crossLitGlow); }
   }
+  #crossAura {
+    transition:opacity .5s ease, r .5s ease;
+    opacity:.08;
+  }
+  #crossAura.s1 { opacity:.18; }
+  #crossAura.s2 { opacity:.28; }
+  #crossAura.s3 { opacity:.4; }
+  #crossAura.s4 { opacity:.55; }
   .vignette {
     position:absolute; inset:0; pointer-events:none; z-index:5;
     background:radial-gradient(ellipse 75% 65% at 50% 46%, transparent 35%, rgba(0,0,0,.55) 100%);
@@ -174,28 +182,94 @@
             <stop offset="100%" stop-color="#5a4020" stop-opacity=".35"/>
           </linearGradient>
           <radialGradient id="bowlIn" cx="50%" cy="55%" r="45%">
-            <stop offset="0%" stop-color="#181008"/>
-            <stop offset="100%" stop-color="#5c4528"/>
+            <stop offset="0%" stop-color="#0e0a06"/>
+            <stop offset="55%" stop-color="#2a1e10"/>
+            <stop offset="100%" stop-color="#5a4224"/>
+          </radialGradient>
+          <linearGradient id="crossDim" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#2a1e10"/>
+            <stop offset="100%" stop-color="#1a1208"/>
+          </linearGradient>
+          <linearGradient id="crossGold" x1="30%" y1="0%" x2="70%" y2="100%">
+            <stop offset="0%" stop-color="#fffce8"/>
+            <stop offset="35%" stop-color="#f0d890"/>
+            <stop offset="100%" stop-color="#c89848"/>
+          </linearGradient>
+          <radialGradient id="crossAuraGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(255,230,180,.55)"/>
+            <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
           </radialGradient>
           <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
             <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity=".5"/>
           </filter>
+          <filter id="crossLitGlow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+            <feFlood flood-color="#ffe8b0" flood-opacity=".85" result="color"/>
+            <feComposite in="color" in2="blur" operator="in" result="glow"/>
+            <feMerge>
+              <feMergeNode in="glow"/>
+              <feMergeNode in="glow"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <filter id="crossLitBurst" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur"/>
+            <feFlood flood-color="#fff8e0" flood-opacity="1" result="color"/>
+            <feComposite in="color" in2="blur" operator="in" result="glow"/>
+            <feMerge>
+              <feMergeNode in="glow"/>
+              <feMergeNode in="glow"/>
+              <feMergeNode in="glow"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <filter id="brassGrain" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" result="noise"/>
+            <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+            <feBlend in="SourceGraphic" in2="gray" mode="multiply" result="blend"/>
+            <feComponentTransfer in="gray" result="subtle">
+              <feFuncA type="linear" slope=".04"/>
+            </feComponentTransfer>
+            <feBlend in="blend" in2="subtle" mode="overlay"/>
+          </filter>
         </defs>
         <rect width="400" height="480" fill="url(#wallG)"/>
-        <ellipse cx="200" cy="230" rx="165" ry="165" fill="url(#rimHalo)"/>
-        <ellipse cx="200" cy="232" rx="152" ry="152" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="5"/>
-        <circle cx="200" cy="228" r="136" fill="url(#brassMain)" filter="url(#softShadow)"/>
-        <circle cx="200" cy="228" r="136" fill="none" stroke="url(#brassEdge)" stroke-width="2" opacity=".65"/>
-        <ellipse cx="165" cy="190" rx="48" ry="34" fill="rgba(255,245,220,.18)" transform="rotate(-22 165 190)"/>
-        <ellipse cx="200" cy="268" rx="70" ry="46" fill="url(#bowlIn)"/>
-        <ellipse cx="200" cy="262" rx="56" ry="34" fill="none" stroke="rgba(255,230,190,.1)" stroke-width="1.2"/>
-        <path d="M130 250 Q112 258 114 274 Q120 266 130 260 Z" fill="#5a4428" opacity=".9"/>
-        <!-- Ritual cross — four segments light in sequence -->
+        <ellipse cx="200" cy="228" rx="168" ry="168" fill="url(#rimHalo)"/>
+        <!-- Float shadow -->
+        <ellipse cx="200" cy="234" rx="148" ry="148" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="8"/>
+        <circle cx="200" cy="228" r="138" fill="url(#brassMain)" filter="url(#softShadow)"/>
+        <circle cx="200" cy="228" r="138" fill="none" stroke="url(#brassEdge)" stroke-width="2.5" opacity=".7"/>
+        <!-- Concentric plate rings -->
+        <circle cx="200" cy="228" r="118" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="1"/>
+        <circle cx="200" cy="228" r="98" fill="none" stroke="rgba(255,230,190,.06)" stroke-width=".8"/>
+        <ellipse cx="162" cy="186" rx="54" ry="38" fill="rgba(255,248,230,.2)" transform="rotate(-20 162 186)"/>
+        <!-- Bowl -->
+        <ellipse cx="200" cy="272" rx="76" ry="50" fill="url(#bowlIn)"/>
+        <ellipse cx="200" cy="264" rx="62" ry="38" fill="none" stroke="rgba(255,235,200,.08)" stroke-width="1"/>
+        <ellipse cx="200" cy="268" rx="48" ry="28" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+        <path d="M128 252 Q106 262 108 282 Q118 272 128 266 Z" fill="#4a3820"/>
+        <!-- Cross recess + ceremonial patée cross -->
+        <circle id="crossAura" cx="200" cy="242" r="72" fill="url(#crossAuraGrad)"/>
+        <ellipse cx="200" cy="242" rx="58" ry="62" fill="rgba(0,0,0,.22)" stroke="rgba(0,0,0,.15)" stroke-width="1"/>
         <g id="ritualCross">
-          <line id="segHeaven" class="cross-seg" x1="200" y1="192" x2="200" y2="248"/>
-          <line id="segEarth"  class="cross-seg" x1="200" y1="248" x2="200" y2="308"/>
-          <line id="segLeft"   class="cross-seg" x1="156" y1="248" x2="200" y2="248"/>
-          <line id="segRight"  class="cross-seg" x1="200" y1="248" x2="244" y2="248"/>
+          <!-- Dim full cross silhouette (carved recess) -->
+          <path fill="rgba(0,0,0,.35)" opacity=".6"
+            d="M194 248 L194 208 Q194 172 200 162 Q206 172 206 208 L206 248
+               M194 248 L194 292 Q194 322 200 330 Q206 322 206 292 L206 248
+               M200 236 L158 236 Q128 242 118 242 Q128 252 158 252 L200 252
+               M200 236 L242 236 Q272 242 282 242 Q272 252 242 252 L200 252 Z"/>
+          <!-- Lit segments — patée arms -->
+          <path id="segHeaven" class="cross-arm" fill="url(#crossDim)"
+            d="M194 248 L194 208 Q194 172 200 162 Q206 172 206 208 L206 248 Z"/>
+          <path id="segEarth" class="cross-arm" fill="url(#crossDim)"
+            d="M194 248 L194 292 Q194 322 200 330 Q206 322 206 292 L206 248 Z"/>
+          <path id="segLeft" class="cross-arm" fill="url(#crossDim)"
+            d="M200 236 L158 236 Q128 242 118 242 Q128 252 158 252 L200 252 Z"/>
+          <path id="segRight" class="cross-arm" fill="url(#crossDim)"
+            d="M200 236 L242 236 Q272 242 282 242 Q272 252 242 252 L200 252 Z"/>
+          <!-- Centre boss -->
+          <circle cx="200" cy="242" r="10" fill="url(#crossDim)" stroke="rgba(0,0,0,.3)" stroke-width=".8"/>
+          <circle id="crossBoss" cx="200" cy="242" r="6" fill="url(#crossDim)" opacity=".8"/>
         </g>
       </svg>
       <div id="halo"></div>
@@ -291,15 +365,29 @@ function resetCross(){
   for (const id of SEGMENTS){
     const el = document.getElementById(id);
     el.classList.remove("lit","flash");
+    el.setAttribute("fill", "url(#crossDim)");
   }
+  const boss = document.getElementById("crossBoss");
+  boss.setAttribute("fill", "url(#crossDim)");
+  boss.classList.remove("lit");
+  const aura = document.getElementById("crossAura");
+  aura.className = "";
 }
 
 function lightSegment(stepIndex){
   const id = SEGMENTS[stepIndex - 1];
   if (!id) return;
   const el = document.getElementById(id);
+  el.setAttribute("fill", "url(#crossGold)");
   el.classList.add("lit","flash");
   el.addEventListener("animationend", ()=> el.classList.remove("flash"), { once:true });
+  const aura = document.getElementById("crossAura");
+  aura.className = "s" + stepIndex;
+  if (stepIndex >= 2){
+    const boss = document.getElementById("crossBoss");
+    boss.setAttribute("fill", "url(#crossGold)");
+    boss.classList.add("lit");
+  }
 }
 
 async function loadModel(){
@@ -342,6 +430,10 @@ async function start(){
 
 function celebrate(){
   celebrating = true;
+  const aura = document.getElementById("crossAura");
+  aura.className = "s4";
+  aura.style.opacity = ".7";
+  document.getElementById("crossBoss").setAttribute("fill", "url(#crossGold)");
   haloRest.style.transition = "opacity 1s ease";
   haloRest.style.opacity = "0.2";
   halo.classList.add("miracle");
@@ -360,6 +452,9 @@ function resetAll(){
   halo.style.opacity = "0";
   haloRest.style.opacity = "";
   haloRest.style.transition = "";
+  const aura = document.getElementById("crossAura");
+  aura.className = "";
+  aura.style.opacity = "";
   const sctx = shot.getContext("2d");
   sctx.setTransform(1,0,0,1,0,0);
   sctx.clearRect(0,0,shot.width,shot.height);
