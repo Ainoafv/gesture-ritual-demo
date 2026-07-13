@@ -112,6 +112,13 @@
     filter:url(#ledBright);
     animation:ledPulse 4.2s ease-in-out forwards;
   }
+  .stage.miracle #miracleWord .pill {
+    border-color:rgba(255,235,200,.22);
+    box-shadow:
+      0 14px 55px rgba(0,0,0,.45),
+      0 0 28px rgba(255,210,140,.45),
+      inset 0 0 18px rgba(255,230,180,.16);
+  }
   @keyframes ledPulse {
     0% { opacity:.25; }
     25% { opacity:1; }
@@ -122,6 +129,13 @@
   .stage.awake .led-bead { fill:rgba(255,220,160,.28); filter:url(#ledSoft); opacity:.9; }
   .stage.miracle .led-bead {
     fill:#fffef0; filter:url(#ledBright); opacity:1;
+  }
+  .stage.miracle .led-bead { animation:beadSpark 1.8s ease-in-out infinite; }
+  .stage.miracle .led-bead:nth-child(3n) { animation-delay:.18s; }
+  .stage.miracle .led-bead:nth-child(3n+1) { animation-delay:.36s; }
+  @keyframes beadSpark {
+    0%, 100% { opacity:.75; }
+    50% { opacity:1; }
   }
 
   /* Cross (cinematic): no step-by-step UI. We still fill arms, but subtly. */
