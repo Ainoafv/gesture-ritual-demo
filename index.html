@@ -181,11 +181,17 @@
     animation:dotPulse 1.6s ease-in-out infinite;
   }
   .gesture-dot.lit {
-    fill:#fff8e8; stroke:#f0d070; filter:url(#dotGlow); animation:none;
+    fill:#fff8e8; stroke:#f0d070; filter:url(#dotGlow);
+    animation:dotTwinkle 2s ease-in-out infinite;
   }
-  .gesture-dot.flash { animation:dotFlash .55s ease-out; }
+  .gesture-dot.flash { animation:dotFlash .6s ease-out; }
   @keyframes dotPulse { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
-  @keyframes dotFlash { 40% { filter:url(#dotBurst); } }
+  @keyframes dotFlash {
+    0%   { filter:url(#dotBurst); transform:scale(1); transform-box:fill-box; transform-origin:center; }
+    35%  { filter:url(#dotBurst); transform:scale(1.5); transform-box:fill-box; transform-origin:center; }
+    100% { filter:url(#dotGlow); transform:scale(1); transform-box:fill-box; transform-origin:center; }
+  }
+  @keyframes dotTwinkle { 0%, 100% { opacity:.85; } 50% { opacity:1; } }
 
   #miracleWord {
     position:absolute; left:0; right:0; top:14%; z-index:20;
@@ -1249,7 +1255,8 @@ const STEP_CUES = [
 const WINDOW_MS = 10000;
 const STEP_MIN_MS = 480;
 const PALM = [0, 5, 9, 17];
-const SMOOTH = 0.52;
+const SMOOTH = 0.62;
+const REACH = 1.38;
 const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
 const debugHud = document.getElementById("debugHud");
 if (DEBUG) debugHud.classList.add("on");
@@ -1441,57 +1448,66 @@ function getSfx() {
   return sfxCtx;
 }
 
+let waterTimer = null;
+
+function playDrip() {
+  try {
+    const ctx = getSfx();
+    const t0 = ctx.currentTime;
+    // A water drop: quick downward pitch "bloop" + tiny splash
+    const o = ctx.createOscillator();
+    o.type = "sine";
+    const f0 = 620 + Math.random() * 1100;
+    o.frequency.setValueAtTime(f0, t0);
+    o.frequency.exponentialRampToValueAtTime(f0 * 0.42, t0 + 0.085);
+    const g = ctx.createGain();
+    const vol = 0.045 + Math.random() * 0.05;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(vol, t0 + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0008, t0 + 0.13);
+    o.connect(g).connect(ctx.destination);
+    o.start(t0);
+    o.stop(t0 + 0.15);
+  } catch (_) {}
+}
+
 function playWaterAmbience() {
   try {
     stopWaterAmbience();
     const ctx = getSfx();
-    const t0 = ctx.currentTime;
     waterNodes = [];
 
-    const len = ctx.sampleRate * 3;
+    // Gentle burbling bed with tremolo (moves, so it doesn't read as wind)
+    const len = ctx.sampleRate * 2;
     const buf = ctx.createBuffer(1, len, ctx.sampleRate);
     const d = buf.getChannelData(0);
-    let brown = 0;
-    for (let i = 0; i < len; i++) {
-      brown = (brown + 0.018 * (Math.random() * 2 - 1)) * 0.998;
-      d[i] = brown;
-    }
-    const stream = ctx.createBufferSource();
-    stream.buffer = buf;
-    stream.loop = true;
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const bed = ctx.createBufferSource();
+    bed.buffer = buf; bed.loop = true;
     const bp = ctx.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.frequency.value = 420;
-    bp.Q.value = 0.65;
-    const lp = ctx.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 900;
-    const g = ctx.createGain();
-    g.gain.value = 0.11;
-    stream.connect(bp).connect(lp).connect(g).connect(ctx.destination);
-    stream.start(t0);
-    waterNodes.push(stream);
+    bp.type = "bandpass"; bp.frequency.value = 640; bp.Q.value = 3.5;
+    const bedGain = ctx.createGain();
+    bedGain.gain.value = 0.03;
+    const trem = ctx.createOscillator();
+    trem.type = "sine"; trem.frequency.value = 4.2;
+    const tremGain = ctx.createGain(); tremGain.gain.value = 0.022;
+    trem.connect(tremGain).connect(bedGain.gain);
+    bed.connect(bp).connect(bedGain).connect(ctx.destination);
+    bed.start(); trem.start();
+    waterNodes.push(bed, trem);
 
-    const trickle = ctx.createOscillator();
-    const trickleGain = ctx.createGain();
-    trickle.type = "sine";
-    trickle.frequency.setValueAtTime(280, t0);
-    const lfo = ctx.createOscillator();
-    lfo.type = "sine";
-    lfo.frequency.value = 0.35;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 40;
-    lfo.connect(lfoGain).connect(trickle.frequency);
-    trickleGain.gain.value = 0.012;
-    trickle.connect(trickleGain).connect(ctx.destination);
-    trickle.start(t0);
-    lfo.start(t0);
-    waterNodes.push(trickle, lfo);
+    // Randomized drips — the recognisable "water" character
+    const schedule = () => {
+      playDrip();
+      waterTimer = setTimeout(schedule, 150 + Math.random() * 480);
+    };
+    schedule();
   } catch (_) {}
 }
 
 function stopWaterAmbience() {
   try {
+    if (waterTimer) { clearTimeout(waterTimer); waterTimer = null; }
     waterNodes?.forEach(n => { try { n.stop(); n.disconnect(); } catch (_) {} });
     waterNodes = null;
   } catch (_) {}
@@ -1738,6 +1754,7 @@ async function start() {
     sm.reset();
     resetVis();
     stage.classList.add("awake");
+    playWaterAmbience();
     frameTs = -1;
     requestAnimationFrame(tick);
   } catch (e) {
@@ -1805,8 +1822,11 @@ function tick() {
         const L = res.landmarks[0];
         let tx = 0, ty = 0;
         for (const i of PALM) { tx += L[i].x; ty += L[i].y; }
-        tx = Math.min(Math.max(1 - tx / 4, 0), 1);
-        ty = Math.min(Math.max(ty / 4, 0), 1);
+        tx = 1 - tx / 4;
+        ty = ty / 4;
+        // Amplify around centre so guests reach the corners with natural motion
+        tx = Math.min(Math.max(0.5 + (tx - 0.5) * REACH, 0), 1);
+        ty = Math.min(Math.max(0.5 + (ty - 0.5) * REACH, 0), 1);
         if (!hasSmooth) { sx = tx; sy = ty; hasSmooth = true; }
         sx = sx * (1 - SMOOTH) + tx * SMOOTH;
         sy = sy * (1 - SMOOTH) + ty * SMOOTH;
