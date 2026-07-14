@@ -46,10 +46,10 @@
     box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 42px 110px rgba(0,0,0,.9);
   }
 
-  /* Top — cross guide only. No selfie feed. */
+  /* Top — cross guide + golden backdrop. No selfie feed. */
   .camera-pane {
     position:relative;
-    flex:1 1 58%;
+    flex:1 1 54%;
     min-height:0;
     overflow:hidden;
     background:#0a0806;
@@ -59,6 +59,25 @@
   .stage.awake .camera-pane,
   .stage.miracle .camera-pane { opacity:1; }
 
+  .cross-bg {
+    position:absolute; inset:0; z-index:1;
+    width:100%; height:100%;
+    pointer-events:none;
+    opacity:.32;
+    transition:opacity .6s ease;
+  }
+  .stage.awake .cross-bg { opacity:.42; }
+  .stage.miracle .cross-bg { opacity:.55; }
+
+  .gold-lens-mount {
+    position:absolute; left:50%; top:7%;
+    transform:translateX(-50%);
+    width:min(28%, 108px);
+    z-index:4; pointer-events:none;
+    filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));
+  }
+  .gold-lens-mount svg { display:block; width:100%; height:auto; }
+
   .camera-vignette {
     position:absolute; inset:0; z-index:2; pointer-events:none;
     background:
@@ -66,28 +85,21 @@
       linear-gradient(180deg, rgba(0,0,0,.25) 0%, transparent 20%, transparent 75%, rgba(5,5,4,.7) 100%);
   }
 
-  .lens-badge {
-    position:absolute; left:50%; top:10%;
-    transform:translateX(-50%);
-    width:44px; height:34px;
-    z-index:4; pointer-events:none;
-    opacity:.55;
-  }
-  .lens-badge svg { display:block; width:100%; height:100%; }
+  .lens-badge { display:none; }
 
   .cross-overlay {
-    position:absolute; inset:0; z-index:3;
+    position:absolute; inset:0; z-index:5;
     width:100%; height:100%;
     pointer-events:none;
   }
 
-  /* Bottom — stone church font */
+  /* Bottom — Holy Font hardware (vertical arch + gold + stone base) */
   .font-pane {
     position:relative;
-    flex:0 0 36%;
-    min-height:220px;
-    background:linear-gradient(180deg, #0a0908 0%, #030302 100%);
-    border-top:1px solid rgba(180,170,155,.12);
+    flex:0 0 42%;
+    min-height:280px;
+    background:linear-gradient(180deg, #080706 0%, #030302 100%);
+    border-top:1px solid rgba(255,220,160,.1);
     box-shadow:inset 0 12px 28px rgba(0,0,0,.55);
     overflow:hidden;
     opacity:0;
@@ -95,8 +107,11 @@
   }
   .stage.awake .font-pane,
   .stage.miracle .font-pane { opacity:1; }
+  .stage.awake .font-pane {
+    box-shadow:inset 0 8px 24px rgba(0,0,0,.45), 0 -4px 20px rgba(80,180,220,.06);
+  }
   .stage.miracle .font-pane {
-    box-shadow:inset 0 12px 28px rgba(0,0,0,.55), 0 -8px 32px rgba(100,200,255,.1);
+    box-shadow:inset 0 8px 24px rgba(0,0,0,.45), 0 -8px 36px rgba(100,200,255,.18);
   }
   .font-scene {
     display:block;
@@ -451,6 +466,32 @@
       inset 0 0 18px rgba(255,230,180,.16);
   }
 
+  .led-fill { opacity:.22; transition:opacity .8s ease, filter .8s ease; }
+  .stage.awake .led-fill { opacity:.42; }
+  .stage.miracle .led-fill {
+    opacity:1; filter:url(#ledBright);
+    animation:ledPulse 4.2s ease-in-out forwards;
+  }
+  @keyframes ledPulse {
+    0% { opacity:.25; } 25% { opacity:1; } 55% { opacity:1; } 100% { opacity:.5; }
+  }
+  .led-bead {
+    fill:rgba(255,215,150,.12);
+    transition:fill .6s ease, filter .6s ease, opacity .6s ease;
+    opacity:.75;
+  }
+  .stage.awake .led-bead { fill:rgba(255,220,160,.22); filter:url(#ledSoft); opacity:.85; }
+  .led-bead.on {
+    fill:rgba(255,235,200,.72); filter:url(#ledSoft); opacity:1;
+  }
+  .stage.miracle .led-bead {
+    fill:#fffef0; filter:url(#ledBright); opacity:1;
+    animation:beadSpark 1.8s ease-in-out infinite;
+  }
+  .stage.miracle .led-bead:nth-child(3n) { animation-delay:.18s; }
+  .stage.miracle .led-bead:nth-child(3n+1) { animation-delay:.36s; }
+  @keyframes beadSpark { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
+
   /* Holy Font — animated water basin */
   #fontBasin { filter:url(#waterGlow); }
   .water-surface {
@@ -520,11 +561,12 @@
   .stage.miracle .ripple { stroke:rgba(160,240,255,.65); animation-duration:1.6s; }
   .install-preview.miracle .water-fall,
   .stage.miracle .water-fall { opacity:1; }
-  .stone-rim {
+  .font-rim {
     fill:none;
-    stroke:rgba(180,170,155,.35);
+    stroke:rgba(200,170,120,.35);
     stroke-width:2;
   }
+  .stone-pedestal { filter:url(#stoneGrain); }
 
   /* Bible finale — lid opens, Polaroid rises gently from the slot */
   .bible-finale {
@@ -806,14 +848,48 @@
     <video id="video" playsinline muted></video>
 
     <div class="camera-pane">
-      <div class="lens-badge" aria-hidden="true">
-        <svg viewBox="0 0 48 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="8" y="10" width="32" height="22" rx="4" stroke="rgba(200,185,160,.45)" stroke-width="1.5"/>
-          <circle cx="24" cy="21" r="7" stroke="rgba(200,185,160,.35)" stroke-width="1.2"/>
-          <circle cx="24" cy="21" r="3" fill="rgba(200,185,160,.25)"/>
-          <path d="M24 4v6" stroke="rgba(200,185,160,.3)" stroke-width="1.2" stroke-linecap="round"/>
+      <svg class="cross-bg" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="bgArchGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#c89848"/><stop offset="100%" stop-color="#3a2810"/>
+          </linearGradient>
+          <radialGradient id="bgHalo" cx="50%" cy="42%" r="45%">
+            <stop offset="0%" stop-color="rgba(255,210,140,.12)"/>
+            <stop offset="100%" stop-color="rgba(255,210,140,0)"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="200" cy="310" rx="150" ry="190" fill="url(#bgHalo)"/>
+        <path fill="none" stroke="url(#bgArchGold)" stroke-width="6" opacity=".55"
+          d="M 72 620 L 72 260 Q 72 120 200 88 Q 328 120 328 260 L 328 620"/>
+        <path fill="none" stroke="rgba(255,240,210,.08)" stroke-width="1.5"
+          d="M 84 610 L 84 268 Q 84 132 200 102 Q 316 132 316 268 L 316 610"/>
+        <g opacity=".38" stroke="url(#bgArchGold)" stroke-width="5" fill="none" stroke-linecap="round">
+          <line x1="200" y1="170" x2="200" y2="520"/>
+          <line x1="108" y1="340" x2="292" y2="340"/>
+        </g>
+        <circle cx="200" cy="340" r="52" fill="none" stroke="rgba(255,220,160,.08)" stroke-width="1"/>
+      </svg>
+      <div class="gold-lens-mount" aria-hidden="true">
+        <svg viewBox="0 0 140 108" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lensPlateGold" x1="20%" y1="0%" x2="80%" y2="100%">
+              <stop offset="0%" stop-color="#f0dc98"/><stop offset="50%" stop-color="#a88040"/>
+              <stop offset="100%" stop-color="#2a1c0a"/>
+            </linearGradient>
+            <radialGradient id="lensLedRing" cx="50%" cy="50%" r="50%">
+              <stop offset="75%" stop-color="rgba(255,220,160,0)"/>
+              <stop offset="92%" stop-color="rgba(255,210,140,.4)"/>
+              <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
+            </radialGradient>
+          </defs>
+          <circle cx="70" cy="54" r="48" fill="url(#lensLedRing)" opacity=".85"/>
+          <circle cx="70" cy="54" r="38" fill="url(#lensPlateGold)" stroke="rgba(255,235,200,.18)" stroke-width="1.5"/>
+          <ellipse cx="58" cy="46" rx="18" ry="12" fill="rgba(255,250,235,.12)" transform="rotate(-12 58 46)"/>
+          <circle cx="70" cy="54" r="14" fill="#0a0806" stroke="rgba(100,200,255,.35)" stroke-width="1"/>
+          <circle cx="70" cy="54" r="6" fill="rgba(80,160,200,.25)"/>
         </svg>
       </div>
+      <div class="camera-vignette" aria-hidden="true"></div>
       <svg class="cross-overlay" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <filter id="dotGlow">
@@ -842,60 +918,95 @@
     </div>
 
     <div class="font-pane">
-      <svg class="font-scene" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg class="font-scene" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
+          <linearGradient id="archGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f8ecc8"/><stop offset="40%" stop-color="#c89848"/>
+            <stop offset="100%" stop-color="#5a4018"/>
+          </linearGradient>
+          <linearGradient id="plateGold" x1="20%" y1="0%" x2="80%" y2="100%">
+            <stop offset="0%" stop-color="#f0dc98"/><stop offset="50%" stop-color="#a88040"/>
+            <stop offset="100%" stop-color="#2a1c0a"/>
+          </linearGradient>
           <linearGradient id="stoneLight" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#9a9590"/><stop offset="50%" stop-color="#6e6962"/>
-            <stop offset="100%" stop-color="#4a4540"/>
+            <stop offset="0%" stop-color="#9a9590"/><stop offset="100%" stop-color="#5a5550"/>
           </linearGradient>
           <linearGradient id="stoneDark" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#5a5550"/><stop offset="100%" stop-color="#2e2b28"/>
+            <stop offset="0%" stop-color="#6a6560"/><stop offset="100%" stop-color="#2e2b28"/>
           </linearGradient>
-          <linearGradient id="stoneRim" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#b8b2aa"/><stop offset="100%" stop-color="#6a6560"/>
-          </linearGradient>
+          <radialGradient id="ledRingFill" cx="50%" cy="50%" r="50%">
+            <stop offset="70%" stop-color="rgba(255,220,160,0)"/>
+            <stop offset="88%" stop-color="rgba(255,210,140,.35)"/>
+            <stop offset="96%" stop-color="rgba(255,235,200,.55)"/>
+            <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
+          </radialGradient>
+          <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           <filter id="waterGlow">
             <feGaussianBlur stdDeviation="2.5" result="b"/>
             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
+          <filter id="stoneGrain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/>
+            <feColorMatrix type="saturate" values="0" in="n" result="g"/>
+            <feBlend in="SourceGraphic" in2="g" mode="multiply"/>
+          </filter>
           <radialGradient id="waterPool" cx="42%" cy="32%" r="70%">
-            <stop offset="0%" stop-color="#4a8a9a"/>
-            <stop offset="45%" stop-color="#1e4858"/>
-            <stop offset="100%" stop-color="#0a1418"/>
+            <stop offset="0%" stop-color="#4a9ab8"/>
+            <stop offset="45%" stop-color="#1e5068"/>
+            <stop offset="100%" stop-color="#0a1824"/>
           </radialGradient>
           <radialGradient id="waterHighlight" cx="36%" cy="24%" r="60%">
             <stop offset="0%" stop-color="rgba(180,245,255,.75)"/>
             <stop offset="100%" stop-color="rgba(180,245,255,0)"/>
           </radialGradient>
+          <linearGradient id="spoutDark" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#2a1810"/>
+            <stop offset="100%" stop-color="#0a0806"/>
+          </linearGradient>
         </defs>
-        <rect width="400" height="280" fill="#060504"/>
-        <path fill="url(#stoneDark)" d="M110 268 L128 210 L272 210 L290 268 Z"/>
-        <path fill="url(#stoneLight)" d="M95 210 L125 130 L275 130 L305 210 Z"/>
-        <path fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.5"
-          d="M95 210 L125 130 L275 130 L305 210 L290 268 L110 268 Z"/>
-        <ellipse cx="200" cy="198" rx="96" ry="54" fill="url(#stoneRim)"/>
-        <ellipse cx="200" cy="194" rx="86" ry="48" fill="url(#stoneDark)"/>
-        <ellipse cx="200" cy="188" rx="78" ry="42" fill="#1a1816"/>
-        <ellipse class="stone-rim" cx="200" cy="182" rx="72" ry="38"/>
+        <rect width="400" height="320" fill="#060504"/>
+        <!-- Stone pedestal base -->
+        <g class="stone-pedestal">
+          <path fill="url(#stoneDark)" d="M108 310 L128 268 L272 268 L292 310 Z"/>
+          <path fill="url(#stoneLight)" d="M88 268 L118 248 L282 248 L312 268 L292 310 L108 310 Z"/>
+          <path fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.2"
+            d="M88 268 L118 248 L282 248 L312 268"/>
+          <ellipse cx="200" cy="312" rx="118" ry="10" fill="rgba(0,0,0,.35)"/>
+        </g>
+        <!-- Original vertical Holy Font -->
+        <path fill="none" stroke="url(#archGold)" stroke-width="8"
+          d="M 48 268 L 48 70 Q 48 18 200 6 Q 352 18 352 70 L 352 268"/>
+        <path fill="none" stroke="rgba(255,240,210,.1)" stroke-width="1.5"
+          d="M 58 263 L 58 78 Q 58 28 200 18 Q 342 28 342 78 L 342 263"/>
+        <circle cx="200" cy="92" r="88" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
+        <g id="ledBeads"></g>
+        <circle cx="200" cy="92" r="6" fill="#080604"/>
+        <circle cx="200" cy="92" r="68" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
+        <ellipse cx="172" cy="78" rx="36" ry="24" fill="rgba(255,250,235,.1)" transform="rotate(-15 172 78)"/>
+        <ellipse cx="200" cy="108" rx="8" ry="5" fill="url(#spoutDark)" stroke="rgba(100,200,255,.4)" stroke-width="1"/>
+        <g class="water-fall">
+          <path class="fall-strand" d="M196 108 Q197 168 198 198"/>
+          <path class="fall-strand" d="M200 106 L200 200"/>
+          <path class="fall-strand" d="M204 108 Q203 168 202 198"/>
+          <path class="fall-strand" d="M198 112 Q200 172 201 201"/>
+        </g>
         <g id="fontBasin" filter="url(#waterGlow)">
-          <ellipse cx="200" cy="178" rx="66" ry="36" fill="url(#waterPool)"/>
-          <ellipse class="water-surface" cx="200" cy="172" rx="58" ry="28" fill="url(#waterHighlight)" opacity=".92"/>
-          <path class="water-wave" d="M142 172 Q170 166 200 172 T258 172"/>
+          <ellipse cx="200" cy="238" rx="88" ry="54" fill="#0a0c10"/>
+          <ellipse class="font-rim" cx="200" cy="232" rx="82" ry="50"/>
+          <ellipse cx="200" cy="222" rx="74" ry="44" fill="url(#waterPool)"/>
+          <ellipse class="water-surface" cx="200" cy="214" rx="64" ry="30" fill="url(#waterHighlight)" opacity=".92"/>
+          <path class="water-wave" d="M136 214 Q168 206 200 214 T264 214"/>
           <g class="water-ripples">
-            <ellipse class="ripple r1" cx="200" cy="174" rx="24" ry="12"/>
-            <ellipse class="ripple r2" cx="200" cy="174" rx="24" ry="12"/>
-            <ellipse class="ripple r3" cx="200" cy="174" rx="24" ry="12"/>
+            <ellipse class="ripple r1" cx="200" cy="216" rx="28" ry="14"/>
+            <ellipse class="ripple r2" cx="200" cy="216" rx="28" ry="14"/>
+            <ellipse class="ripple r3" cx="200" cy="216" rx="28" ry="14"/>
           </g>
           <g class="water-mist">
-            <circle cx="188" cy="168" r="3"/>
-            <circle cx="200" cy="164" r="2.6"/>
-            <circle cx="212" cy="169" r="2.8"/>
+            <circle cx="186" cy="210" r="3.2"/>
+            <circle cx="200" cy="206" r="2.8"/>
+            <circle cx="214" cy="211" r="3"/>
           </g>
-        </g>
-        <g class="water-fall" opacity=".5">
-          <path class="fall-strand" d="M196 132 Q197 152 198 168"/>
-          <path class="fall-strand" d="M200 130 L200 170"/>
-          <path class="fall-strand" d="M204 132 Q203 152 202 168"/>
         </g>
       </svg>
     </div>
@@ -1172,6 +1283,20 @@ nextBtn.addEventListener("click", () => {
 });
 dots.forEach(d => d.addEventListener("click", () => goSlide(Number(d.dataset.dot))));
 
+const beads = document.getElementById("ledBeads");
+if (beads) {
+  const PLATE = { cx: 200, cy: 92, r: 76 };
+  for (let i = 0; i < 36; i++) {
+    const a = (i / 36) * Math.PI * 2 - Math.PI / 2;
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("class", "led-bead");
+    c.setAttribute("cx", PLATE.cx + PLATE.r * Math.cos(a));
+    c.setAttribute("cy", PLATE.cy + PLATE.r * Math.sin(a) * 0.82);
+    c.setAttribute("r", i % 3 === 0 ? 3.2 : 2.2);
+    beads.appendChild(c);
+  }
+}
+
 const stage = document.getElementById("stage");
 stage.classList.add("intro-open");
 const video = document.getElementById("video");
@@ -1272,7 +1397,7 @@ function captureGuestPolaroid() {
 }
 
 let sfxCtx = null;
-let waterLoop = null;
+let waterNodes = null;
 
 function getSfx() {
   if (!sfxCtx) sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1283,35 +1408,101 @@ function playWaterAmbience() {
   try {
     stopWaterAmbience();
     const ctx = getSfx();
-    const len = ctx.sampleRate * 2;
-    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = buf.getChannelData(ch);
-      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * 0.18;
+    const t0 = ctx.currentTime;
+    waterNodes = [];
+
+    const len = ctx.sampleRate * 3;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    let brown = 0;
+    for (let i = 0; i < len; i++) {
+      brown = (brown + 0.018 * (Math.random() * 2 - 1)) * 0.998;
+      d[i] = brown;
     }
-    waterLoop = ctx.createBufferSource();
-    waterLoop.buffer = buf;
-    waterLoop.loop = true;
+    const stream = ctx.createBufferSource();
+    stream.buffer = buf;
+    stream.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 420;
+    bp.Q.value = 0.65;
     const lp = ctx.createBiquadFilter();
     lp.type = "lowpass";
-    lp.frequency.value = 520;
-    const hp = ctx.createBiquadFilter();
-    hp.type = "highpass";
-    hp.frequency.value = 120;
+    lp.frequency.value = 900;
     const g = ctx.createGain();
-    g.gain.value = 0.045;
-    waterLoop.connect(hp).connect(lp).connect(g).connect(ctx.destination);
-    waterLoop.start();
+    g.gain.value = 0.11;
+    stream.connect(bp).connect(lp).connect(g).connect(ctx.destination);
+    stream.start(t0);
+    waterNodes.push(stream);
+
+    const trickle = ctx.createOscillator();
+    const trickleGain = ctx.createGain();
+    trickle.type = "sine";
+    trickle.frequency.setValueAtTime(280, t0);
+    const lfo = ctx.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.value = 0.35;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 40;
+    lfo.connect(lfoGain).connect(trickle.frequency);
+    trickleGain.gain.value = 0.012;
+    trickle.connect(trickleGain).connect(ctx.destination);
+    trickle.start(t0);
+    lfo.start(t0);
+    waterNodes.push(trickle, lfo);
   } catch (_) {}
 }
 
 function stopWaterAmbience() {
   try {
-    if (waterLoop) {
-      waterLoop.stop();
-      waterLoop.disconnect();
-      waterLoop = null;
-    }
+    waterNodes?.forEach(n => { try { n.stop(); n.disconnect(); } catch (_) {} });
+    waterNodes = null;
+  } catch (_) {}
+}
+
+function playLedTick(step) {
+  try {
+    const ctx = getSfx();
+    const t0 = ctx.currentTime;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(520 + step * 90, t0);
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.04, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+    o.connect(g).connect(ctx.destination);
+    o.start(t0);
+    o.stop(t0 + 0.2);
+  } catch (_) {}
+}
+
+function playMiracleAwakeSound() {
+  try {
+    const ctx = getSfx();
+    const t0 = ctx.currentTime;
+    [660, 880, 1100].forEach((freq, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(freq, t0 + i * 0.09);
+      g.gain.setValueAtTime(0, t0 + i * 0.09);
+      g.gain.linearRampToValueAtTime(0.07, t0 + i * 0.09 + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + i * 0.09 + 0.55);
+      o.connect(g).connect(ctx.destination);
+      o.start(t0 + i * 0.09);
+      o.stop(t0 + i * 0.09 + 0.6);
+    });
+    const hum = ctx.createOscillator();
+    const humGain = ctx.createGain();
+    hum.type = "triangle";
+    hum.frequency.setValueAtTime(140, t0 + 0.15);
+    humGain.gain.setValueAtTime(0, t0 + 0.15);
+    humGain.gain.linearRampToValueAtTime(0.05, t0 + 0.35);
+    humGain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.4);
+    hum.connect(humGain).connect(ctx.destination);
+    hum.start(t0 + 0.15);
+    hum.stop(t0 + 1.5);
   } catch (_) {}
 }
 
@@ -1448,6 +1639,7 @@ function resetVis() {
   DOTS.forEach(id => document.getElementById(id).classList.remove("lit", "flash"));
   stage.classList.remove("miracle");
   stage.classList.add("awake");
+  document.querySelectorAll(".led-bead").forEach(b => b.classList.remove("on"));
   updateDotHints();
 }
 
@@ -1456,6 +1648,8 @@ function lightStep(n) {
   el.classList.remove("next");
   el.classList.add("lit", "flash");
   el.addEventListener("animationend", () => el.classList.remove("flash"), { once: true });
+  document.querySelectorAll(".led-bead").forEach((b, i) => { if (i < n * 9) b.classList.add("on"); });
+  playLedTick(n);
   updateDotHints();
 }
 
@@ -1525,8 +1719,10 @@ function celebrate() {
   stepCue.classList.remove("show");
   stage.classList.remove("awake");
   stage.classList.add("miracle");
+  document.querySelectorAll(".led-bead").forEach(b => b.classList.add("on"));
 
   miracleWord.classList.add("show");
+  playMiracleAwakeSound();
   playCameraShutter();
   silentCapture();
 
