@@ -887,26 +887,15 @@
     </div>
 
     <div class="camera-pane">
-      <svg class="cross-bg" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg class="cross-bg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
-          <linearGradient id="bgArchGold" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#c89848"/><stop offset="100%" stop-color="#3a2810"/>
-          </linearGradient>
-          <radialGradient id="bgHalo" cx="50%" cy="42%" r="45%">
-            <stop offset="0%" stop-color="rgba(255,210,140,.12)"/>
+          <radialGradient id="bgHalo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(255,210,140,.14)"/>
             <stop offset="100%" stop-color="rgba(255,210,140,0)"/>
           </radialGradient>
         </defs>
-        <ellipse cx="200" cy="310" rx="185" ry="220" fill="url(#bgHalo)"/>
-        <path fill="none" stroke="url(#bgArchGold)" stroke-width="9" opacity=".6"
-          d="M 24 680 L 24 180 Q 24 40 200 12 Q 376 40 376 180 L 376 680"/>
-        <path fill="none" stroke="rgba(255,240,210,.1)" stroke-width="2"
-          d="M 38 670 L 38 192 Q 38 58 200 28 Q 362 58 362 192 L 362 670"/>
-        <g opacity=".42" stroke="url(#bgArchGold)" stroke-width="6" fill="none" stroke-linecap="round">
-          <line x1="200" y1="150" x2="200" y2="560"/>
-          <line x1="72" y1="355" x2="328" y2="355"/>
-        </g>
-        <circle cx="200" cy="355" r="68" fill="none" stroke="rgba(255,220,160,.1)" stroke-width="1.5"/>
+        <ellipse cx="200" cy="200" rx="180" ry="180" fill="url(#bgHalo)"/>
+        <circle cx="200" cy="200" r="150" fill="none" stroke="rgba(255,220,160,.12)" stroke-width="1.5"/>
       </svg>
       <div class="gold-lens-mount" aria-hidden="true">
         <svg viewBox="0 0 140 108" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -929,7 +918,7 @@
         </svg>
       </div>
       <div class="camera-vignette" aria-hidden="true"></div>
-      <svg class="cross-overlay" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg class="cross-overlay" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <filter id="dotGlow">
             <feGaussianBlur stdDeviation="3" result="b"/>
@@ -945,13 +934,13 @@
           </filter>
         </defs>
         <g id="crossGuide">
-          <line class="cross-stem" x1="200" y1="228" x2="200" y2="492"/>
-          <line class="cross-stem" x1="118" y1="360" x2="282" y2="360"/>
-          <circle id="dotHeaven" class="gesture-dot next" cx="200" cy="228" r="13"/>
-          <circle id="dotEarth"  class="gesture-dot"       cx="200" cy="492" r="13"/>
-          <circle id="dotLeft"   class="gesture-dot"       cx="118" cy="360" r="13"/>
-          <circle id="dotRight"  class="gesture-dot"       cx="282" cy="360" r="13"/>
-          <circle cx="200" cy="360" r="7" fill="rgba(255,230,190,.18)" stroke="rgba(255,235,200,.2)" stroke-width="1"/>
+          <line class="cross-stem" x1="200" y1="70" x2="200" y2="330"/>
+          <line class="cross-stem" x1="80" y1="200" x2="320" y2="200"/>
+          <circle id="dotHeaven" class="gesture-dot next" cx="200" cy="70" r="18"/>
+          <circle id="dotEarth"  class="gesture-dot"       cx="200" cy="330" r="18"/>
+          <circle id="dotLeft"   class="gesture-dot"       cx="80" cy="200" r="18"/>
+          <circle id="dotRight"  class="gesture-dot"       cx="320" cy="200" r="18"/>
+          <circle cx="200" cy="200" r="9" fill="rgba(255,230,190,.2)" stroke="rgba(255,235,200,.25)" stroke-width="1"/>
         </g>
       </svg>
     </div>
@@ -1006,41 +995,52 @@
           <clipPath id="fallClip"><rect x="150" y="84" width="100" height="100"/></clipPath>
         </defs>
         <rect width="400" height="300" fill="transparent"/>
-        <!-- Stone pedestal base -->
+        <!-- Ground shadow -->
+        <ellipse cx="200" cy="290" rx="150" ry="11" fill="rgba(0,0,0,.5)"/>
+
+        <!-- Carved stone baptismal font: plinth + fluted column + bowl -->
         <g class="stone-pedestal">
-          <path fill="url(#stoneDark)" d="M72 288 L96 238 L304 238 L328 288 Z"/>
-          <path fill="url(#stoneLight)" d="M48 238 L88 212 L312 212 L352 238 L328 288 L72 288 Z"/>
-          <path fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.4"
-            d="M48 238 L88 212 L312 212 L352 238"/>
-          <ellipse cx="200" cy="292" rx="148" ry="10" fill="rgba(0,0,0,.4)"/>
+          <!-- Base plinth -->
+          <path fill="url(#stoneDark)" d="M104 288 L120 258 L280 258 L296 288 Z"/>
+          <rect x="120" y="246" width="160" height="16" rx="3" fill="url(#stoneLight)"/>
+          <rect x="120" y="246" width="160" height="16" rx="3" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1"/>
+          <!-- Fluted column shaft -->
+          <path fill="url(#stoneLight)" d="M150 250 L162 178 L238 178 L250 250 Z"/>
+          <path fill="url(#stoneDark)" d="M150 250 L162 178 L172 178 L164 250 Z"/>
+          <g stroke="rgba(0,0,0,.22)" stroke-width="1.4">
+            <line x1="182" y1="182" x2="178" y2="246"/>
+            <line x1="200" y1="182" x2="200" y2="246"/>
+            <line x1="218" y1="182" x2="222" y2="246"/>
+          </g>
+          <!-- Bowl underside -->
+          <path fill="url(#stoneDark)" d="M96 122 Q96 196 200 200 Q304 196 304 122 Z"/>
+          <path fill="none" stroke="rgba(0,0,0,.25)" stroke-width="1.4"
+            d="M120 150 Q160 178 200 180 Q240 178 280 150"/>
+          <!-- Bowl rim (thick carved stone) -->
+          <ellipse cx="200" cy="118" rx="128" ry="44" fill="url(#stoneLight)"/>
+          <ellipse cx="200" cy="118" rx="128" ry="44" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="2"/>
+          <ellipse cx="200" cy="116" rx="116" ry="38" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="2"/>
         </g>
-        <!-- Gold plate + LEDs + water (arch is on stage-monument) -->
-        <circle cx="200" cy="72" r="92" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
+
+        <!-- Gold LED ring around the rim -->
+        <ellipse cx="200" cy="112" rx="118" ry="40" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
+        <ellipse cx="200" cy="112" rx="108" ry="34" fill="#0a0c10"/>
         <g id="ledBeads"></g>
-        <circle cx="200" cy="72" r="6" fill="#080604"/>
-        <circle cx="200" cy="72" r="72" fill="url(#plateGold)" stroke="rgba(255,235,200,.14)" stroke-width="2"/>
-        <ellipse cx="170" cy="58" rx="38" ry="26" fill="rgba(255,250,235,.12)" transform="rotate(-15 170 58)"/>
-        <ellipse cx="200" cy="88" rx="9" ry="6" fill="url(#spoutDark)" stroke="rgba(100,200,255,.45)" stroke-width="1"/>
-        <g class="water-fall" clip-path="url(#fallClip)">
-          <path class="fall-strand" d="M196 88 Q197 130 198 168"/>
-          <path class="fall-strand" d="M200 86 L200 172"/>
-          <path class="fall-strand" d="M204 88 Q203 130 202 168"/>
-        </g>
+
+        <!-- Water inside the bowl -->
         <g id="fontBasin" filter="url(#waterGlow)">
-          <ellipse cx="200" cy="218" rx="108" ry="66" fill="#0a0c10"/>
-          <ellipse class="font-rim" cx="200" cy="210" rx="100" ry="60"/>
-          <ellipse cx="200" cy="198" rx="90" ry="52" fill="url(#waterPool)"/>
-          <ellipse class="water-surface" cx="200" cy="188" rx="78" ry="36" fill="url(#waterHighlight)" opacity=".92"/>
-          <path class="water-wave" d="M122 188 Q160 178 200 188 T278 188"/>
+          <ellipse cx="200" cy="112" rx="100" ry="30" fill="url(#waterPool)"/>
+          <ellipse class="water-surface" cx="200" cy="108" rx="88" ry="24" fill="url(#waterHighlight)" opacity=".9"/>
+          <path class="water-wave" d="M128 110 Q164 102 200 110 T272 110"/>
           <g class="water-ripples">
-            <ellipse class="ripple r1" cx="200" cy="190" rx="34" ry="16"/>
-            <ellipse class="ripple r2" cx="200" cy="190" rx="34" ry="16"/>
-            <ellipse class="ripple r3" cx="200" cy="190" rx="34" ry="16"/>
+            <ellipse class="ripple r1" cx="200" cy="111" rx="38" ry="12"/>
+            <ellipse class="ripple r2" cx="200" cy="111" rx="38" ry="12"/>
+            <ellipse class="ripple r3" cx="200" cy="111" rx="38" ry="12"/>
           </g>
           <g class="water-mist">
-            <circle cx="182" cy="184" r="3.6"/>
-            <circle cx="200" cy="178" r="3.2"/>
-            <circle cx="218" cy="185" r="3.4"/>
+            <circle cx="180" cy="106" r="3.4"/>
+            <circle cx="200" cy="102" r="3"/>
+            <circle cx="220" cy="107" r="3.2"/>
           </g>
         </g>
       </svg>
@@ -1320,14 +1320,14 @@ dots.forEach(d => d.addEventListener("click", () => goSlide(Number(d.dataset.dot
 
 const beads = document.getElementById("ledBeads");
 if (beads) {
-  const PLATE = { cx: 200, cy: 72, r: 80 };
-  for (let i = 0; i < 36; i++) {
-    const a = (i / 36) * Math.PI * 2 - Math.PI / 2;
+  const RIM = { cx: 200, cy: 112, rx: 112, ry: 37 };
+  for (let i = 0; i < 40; i++) {
+    const a = (i / 40) * Math.PI * 2;
     const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     c.setAttribute("class", "led-bead");
-    c.setAttribute("cx", PLATE.cx + PLATE.r * Math.cos(a));
-    c.setAttribute("cy", PLATE.cy + PLATE.r * Math.sin(a) * 0.82);
-    c.setAttribute("r", i % 3 === 0 ? 3.2 : 2.2);
+    c.setAttribute("cx", RIM.cx + RIM.rx * Math.cos(a));
+    c.setAttribute("cy", RIM.cy + RIM.ry * Math.sin(a));
+    c.setAttribute("r", i % 2 === 0 ? 3.4 : 2.4);
     beads.appendChild(c);
   }
 }
