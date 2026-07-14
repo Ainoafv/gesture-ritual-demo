@@ -18,10 +18,17 @@
     background:radial-gradient(120% 90% at 50% -10%, #131019 0%, var(--bg) 55%);
     min-height:100dvh;
     display:flex; align-items:center; justify-content:center;
-    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
     color:var(--ink);
     font-family:Inter,system-ui,sans-serif;
   }
+
+  .install-preview {
+    display:flex; flex-direction:column; align-items:stretch;
+    width:min(100vw,440px);
+    gap:16px;
+  }
+
   #video {
     position:absolute; inset:0; width:100%; height:100%;
     object-fit:cover; transform:scaleX(-1);
@@ -29,18 +36,17 @@
     z-index:1;
   }
   .stage {
-    position:relative; width:min(100vw,440px); height:min(92dvh,780px);
+    position:relative;
+    width:100%;
+    height:min(72dvh,640px);
     overflow:hidden;
-    display:flex; flex-direction:column;
-    background:#050504;
+    background:#0a0806;
     box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 42px 110px rgba(0,0,0,.9);
   }
 
-  /* Top — guest / webcam + gesture cross (no font art here) */
+  /* Camera fills the entire card — nothing else inside this frame */
   .camera-pane {
-    position:relative;
-    flex:1 1 58%;
-    min-height:0;
+    position:absolute; inset:0;
     overflow:hidden;
     background:#0a0806;
   }
@@ -48,33 +54,39 @@
   .stage.miracle .camera-pane #video { opacity:1; }
   .camera-vignette {
     position:absolute; inset:0; z-index:2; pointer-events:none;
-    background:
-      radial-gradient(ellipse 90% 80% at 50% 42%, transparent 40%, rgba(0,0,0,.45) 100%),
-      linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 18%, transparent 72%, rgba(5,5,4,.85) 100%);
+    background:radial-gradient(ellipse 88% 78% at 50% 44%, transparent 42%, rgba(0,0,0,.5) 100%);
   }
   .cross-overlay {
     position:absolute; inset:0; z-index:3; pointer-events:none;
     width:100%; height:100%;
   }
 
-  /* Bottom — illustrated Holy Font (below camera, like on-site) */
-  .font-pane {
+  /* Holy Font — separate hardware unit OUTSIDE the camera card */
+  .font-install {
     position:relative;
-    flex:0 0 34%;
-    min-height:210px;
-    background:linear-gradient(180deg, #080706 0%, #030302 100%);
-    border-top:1px solid rgba(255,220,160,.1);
-    box-shadow:inset 0 12px 28px rgba(0,0,0,.55);
+    width:100%;
+    height:152px;
+    border-radius:14px;
     overflow:hidden;
+    background:linear-gradient(180deg, #0a0908 0%, #040302 100%);
+    border:1px solid rgba(255,220,160,.1);
+    box-shadow:0 16px 48px rgba(0,0,0,.65);
+    opacity:0;
+    transform:translateY(6px);
+    transition:opacity .6s ease, transform .6s ease, box-shadow .6s ease;
   }
-  .font-pane-label {
-    position:absolute; top:8px; left:0; right:0; z-index:2;
-    text-align:center;
-    font:500 8px Inter,sans-serif;
-    letter-spacing:.32em;
-    text-transform:uppercase;
-    color:rgba(255,220,160,.35);
-    pointer-events:none;
+  .install-preview.awake .font-install,
+  .install-preview.miracle .font-install {
+    opacity:1;
+    transform:translateY(0);
+  }
+  .install-preview.miracle .font-install {
+    box-shadow:0 16px 48px rgba(0,0,0,.65), 0 0 40px rgba(80,180,220,.12);
+  }
+  .install-preview.finale .font-install {
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(8px);
   }
   .font-scene {
     display:block;
@@ -139,8 +151,7 @@
     transition:opacity .9s ease .35s;
   }
   #stepCue {
-    position:absolute; left:20px; right:20px;
-    bottom:calc(34% + 12px);
+    position:absolute; left:20px; right:20px; bottom:max(18px, env(safe-area-inset-bottom));
     z-index:16; pointer-events:none; opacity:0;
     transition:opacity .4s ease;
     text-align:center;
@@ -183,8 +194,7 @@
   }
 
   #progressRail {
-    position:absolute; left:50%;
-    bottom:calc(34% + 56px);
+    position:absolute; left:50%; bottom:max(62px, calc(env(safe-area-inset-bottom) + 44px));
     transform:translateX(-50%);
     z-index:16; display:flex; gap:8px; pointer-events:none; opacity:0;
     transition:opacity .4s ease;
@@ -423,6 +433,11 @@
     opacity:1; filter:url(#ledBright);
     animation:ledPulse 4.2s ease-in-out forwards;
   }
+  .install-preview.awake .led-fill { opacity:.42; }
+  .install-preview.miracle .led-fill {
+    opacity:1; filter:url(#ledBright);
+    animation:ledPulse 4.2s ease-in-out forwards;
+  }
   .stage.miracle #miracleWord .pill {
     border-color:rgba(255,235,200,.22);
     box-shadow:0 14px 55px rgba(0,0,0,.45), 0 0 28px rgba(255,210,140,.45),
@@ -434,8 +449,10 @@
   .led-bead { fill:rgba(255,215,150,.12); transition:fill .6s ease, filter .6s ease, opacity .6s ease; opacity:.75; }
   .stage.awake .led-bead { fill:rgba(255,220,160,.28); filter:url(#ledSoft); opacity:.9; }
   .stage.miracle .led-bead { fill:#fffef0; filter:url(#ledBright); opacity:1; animation:beadSpark 1.8s ease-in-out infinite; }
-  .stage.miracle .led-bead:nth-child(3n) { animation-delay:.18s; }
-  .stage.miracle .led-bead:nth-child(3n+1) { animation-delay:.36s; }
+  .install-preview.awake .led-bead { fill:rgba(255,220,160,.28); filter:url(#ledSoft); opacity:.9; }
+  .install-preview.miracle .led-bead { fill:#fffef0; filter:url(#ledBright); opacity:1; animation:beadSpark 1.8s ease-in-out infinite; }
+  .install-preview.miracle .led-bead:nth-child(3n) { animation-delay:.18s; }
+  .install-preview.miracle .led-bead:nth-child(3n+1) { animation-delay:.36s; }
   @keyframes beadSpark { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
 
   /* Holy Font — animated water basin below the plate */
@@ -444,10 +461,8 @@
     animation:waterShimmer 2.4s ease-in-out infinite;
     transform-origin:center;
   }
-  .stage.awake .water-surface,
-  .stage.miracle .water-surface { opacity:1 !important; animation-duration:1.6s; }
-  .stage.awake .font-pane { box-shadow:inset 0 8px 24px rgba(0,0,0,.45), 0 -4px 20px rgba(80,180,220,.06); }
-  .stage.miracle .font-pane { box-shadow:inset 0 8px 24px rgba(0,0,0,.45), 0 -8px 32px rgba(100,200,255,.12); }
+  .install-preview.awake .water-surface,
+  .install-preview.miracle .water-surface { opacity:1 !important; animation-duration:1.6s; }
   .water-fall { opacity:.88; }
   .fall-strand {
     fill:none;
@@ -503,8 +518,8 @@
     0%, 100% { opacity:.78; }
     50%      { opacity:1; }
   }
-  .stage.miracle .ripple { stroke:rgba(160,240,255,.65); animation-duration:1.6s; }
-  .stage.miracle .water-fall { opacity:1; }
+  .install-preview.miracle .ripple { stroke:rgba(160,240,255,.65); animation-duration:1.6s; }
+  .install-preview.miracle .water-fall { opacity:1; }
   .font-rim {
     fill:none;
     stroke:rgba(200,170,120,.35);
@@ -755,7 +770,6 @@
 
   /* Hide ritual panes once the Bible finale takes over */
   .stage.finale .camera-pane,
-  .stage.finale .font-pane,
   .stage.finale .cross-overlay,
   .stage.finale #miracleWord,
   .stage.finale .brand-bar,
@@ -781,6 +795,7 @@
 </style>
 </head>
 <body>
+  <div class="install-preview" id="installPreview">
   <div class="stage" id="stage">
     <div class="brand-bar" id="brandBar">
       <div class="org">The QU4RTER</div>
@@ -790,7 +805,7 @@
     <div class="camera-pane">
       <video id="video" playsinline muted></video>
       <div class="camera-vignette" aria-hidden="true"></div>
-      <svg class="cross-overlay" viewBox="0 0 400 480" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg class="cross-overlay" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <filter id="dotGlow">
             <feGaussianBlur stdDeviation="3" result="b"/>
@@ -806,88 +821,13 @@
           </filter>
         </defs>
         <g id="crossGuide">
-          <line class="cross-stem" x1="200" y1="118" x2="200" y2="362"/>
-          <line class="cross-stem" x1="118" y1="240" x2="282" y2="240"/>
-          <circle id="dotHeaven" class="gesture-dot next" cx="200" cy="118" r="13"/>
-          <circle id="dotEarth"  class="gesture-dot"       cx="200" cy="362" r="13"/>
-          <circle id="dotLeft"   class="gesture-dot"       cx="118" cy="240" r="13"/>
-          <circle id="dotRight"  class="gesture-dot"       cx="282" cy="240" r="13"/>
-          <circle cx="200" cy="240" r="7" fill="rgba(255,230,190,.18)" stroke="rgba(255,235,200,.2)" stroke-width="1"/>
-        </g>
-      </svg>
-    </div>
-
-    <div class="font-pane">
-      <div class="font-pane-label">The Font · below the lens</div>
-      <svg class="font-scene" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <linearGradient id="archGold" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#f8ecc8"/><stop offset="40%" stop-color="#c89848"/>
-            <stop offset="100%" stop-color="#5a4018"/>
-          </linearGradient>
-          <linearGradient id="plateGold" x1="20%" y1="0%" x2="80%" y2="100%">
-            <stop offset="0%" stop-color="#f0dc98"/><stop offset="50%" stop-color="#a88040"/>
-            <stop offset="100%" stop-color="#2a1c0a"/>
-          </linearGradient>
-          <radialGradient id="ledRingFill" cx="50%" cy="50%" r="50%">
-            <stop offset="70%" stop-color="rgba(255,220,160,0)"/>
-            <stop offset="88%" stop-color="rgba(255,210,140,.35)"/>
-            <stop offset="96%" stop-color="rgba(255,235,200,.55)"/>
-            <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
-          </radialGradient>
-          <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          <filter id="waterGlow">
-            <feGaussianBlur stdDeviation="2.5" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <radialGradient id="waterPool" cx="42%" cy="32%" r="70%">
-            <stop offset="0%" stop-color="#4a9ab8"/>
-            <stop offset="45%" stop-color="#1e5068"/>
-            <stop offset="100%" stop-color="#0a1824"/>
-          </radialGradient>
-          <radialGradient id="waterHighlight" cx="36%" cy="24%" r="60%">
-            <stop offset="0%" stop-color="rgba(180,245,255,.75)"/>
-            <stop offset="100%" stop-color="rgba(180,245,255,0)"/>
-          </radialGradient>
-          <linearGradient id="spoutDark" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#2a1810"/>
-            <stop offset="100%" stop-color="#0a0806"/>
-          </linearGradient>
-        </defs>
-        <rect width="400" height="280" fill="#060504"/>
-        <path fill="none" stroke="url(#archGold)" stroke-width="8"
-          d="M 48 250 L 48 70 Q 48 18 200 6 Q 352 18 352 70 L 352 250"/>
-        <path fill="none" stroke="rgba(255,240,210,.1)" stroke-width="1.5"
-          d="M 58 245 L 58 78 Q 58 28 200 18 Q 342 28 342 78 L 342 245"/>
-        <circle cx="200" cy="92" r="88" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
-        <g id="ledBeads"></g>
-        <circle cx="200" cy="92" r="6" fill="#080604"/>
-        <circle cx="200" cy="92" r="68" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
-        <ellipse cx="172" cy="78" rx="36" ry="24" fill="rgba(255,250,235,.1)" transform="rotate(-15 172 78)"/>
-        <ellipse cx="200" cy="108" rx="8" ry="5" fill="url(#spoutDark)" stroke="rgba(100,200,255,.4)" stroke-width="1"/>
-        <g class="water-fall">
-          <path class="fall-strand" d="M196 108 Q197 168 198 198"/>
-          <path class="fall-strand" d="M200 106 L200 200"/>
-          <path class="fall-strand" d="M204 108 Q203 168 202 198"/>
-          <path class="fall-strand" d="M198 112 Q200 172 201 201"/>
-        </g>
-        <g id="fontBasin">
-          <ellipse cx="200" cy="238" rx="88" ry="54" fill="#0a0c10"/>
-          <ellipse class="font-rim" cx="200" cy="232" rx="82" ry="50"/>
-          <ellipse cx="200" cy="222" rx="74" ry="44" fill="url(#waterPool)"/>
-          <ellipse class="water-surface" cx="200" cy="214" rx="64" ry="30" fill="url(#waterHighlight)" opacity=".92"/>
-          <path class="water-wave" d="M136 214 Q168 206 200 214 T264 214"/>
-          <g class="water-ripples">
-            <ellipse class="ripple r1" cx="200" cy="216" rx="28" ry="14"/>
-            <ellipse class="ripple r2" cx="200" cy="216" rx="28" ry="14"/>
-            <ellipse class="ripple r3" cx="200" cy="216" rx="28" ry="14"/>
-          </g>
-          <g class="water-mist">
-            <circle cx="186" cy="210" r="3.2"/>
-            <circle cx="200" cy="206" r="2.8"/>
-            <circle cx="214" cy="211" r="3"/>
-          </g>
+          <line class="cross-stem" x1="200" y1="228" x2="200" y2="492"/>
+          <line class="cross-stem" x1="118" y1="360" x2="282" y2="360"/>
+          <circle id="dotHeaven" class="gesture-dot next" cx="200" cy="228" r="13"/>
+          <circle id="dotEarth"  class="gesture-dot"       cx="200" cy="492" r="13"/>
+          <circle id="dotLeft"   class="gesture-dot"       cx="118" cy="360" r="13"/>
+          <circle id="dotRight"  class="gesture-dot"       cx="282" cy="360" r="13"/>
+          <circle cx="200" cy="360" r="7" fill="rgba(255,230,190,.18)" stroke="rgba(255,235,200,.2)" stroke-width="1"/>
         </g>
       </svg>
     </div>
@@ -1072,6 +1012,81 @@
     </div>
   </div>
 
+  <div class="font-install" id="fontInstall" aria-hidden="true">
+    <svg class="font-scene" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="archGold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f8ecc8"/><stop offset="40%" stop-color="#c89848"/>
+          <stop offset="100%" stop-color="#5a4018"/>
+        </linearGradient>
+        <linearGradient id="plateGold" x1="20%" y1="0%" x2="80%" y2="100%">
+          <stop offset="0%" stop-color="#f0dc98"/><stop offset="50%" stop-color="#a88040"/>
+          <stop offset="100%" stop-color="#2a1c0a"/>
+        </linearGradient>
+        <radialGradient id="ledRingFill" cx="50%" cy="50%" r="50%">
+          <stop offset="70%" stop-color="rgba(255,220,160,0)"/>
+          <stop offset="88%" stop-color="rgba(255,210,140,.35)"/>
+          <stop offset="96%" stop-color="rgba(255,235,200,.55)"/>
+          <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
+        </radialGradient>
+        <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="waterGlow">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <radialGradient id="waterPool" cx="42%" cy="32%" r="70%">
+          <stop offset="0%" stop-color="#4a9ab8"/>
+          <stop offset="45%" stop-color="#1e5068"/>
+          <stop offset="100%" stop-color="#0a1824"/>
+        </radialGradient>
+        <radialGradient id="waterHighlight" cx="36%" cy="24%" r="60%">
+          <stop offset="0%" stop-color="rgba(180,245,255,.75)"/>
+          <stop offset="100%" stop-color="rgba(180,245,255,0)"/>
+        </radialGradient>
+        <linearGradient id="spoutDark" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#2a1810"/>
+          <stop offset="100%" stop-color="#0a0806"/>
+        </linearGradient>
+      </defs>
+      <rect width="400" height="280" fill="#060504"/>
+      <path fill="none" stroke="url(#archGold)" stroke-width="8"
+        d="M 48 250 L 48 70 Q 48 18 200 6 Q 352 18 352 70 L 352 250"/>
+      <path fill="none" stroke="rgba(255,240,210,.1)" stroke-width="1.5"
+        d="M 58 245 L 58 78 Q 58 28 200 18 Q 342 28 342 78 L 342 245"/>
+      <circle cx="200" cy="92" r="88" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
+      <g id="ledBeads"></g>
+      <circle cx="200" cy="92" r="6" fill="#080604"/>
+      <circle cx="200" cy="92" r="68" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
+      <ellipse cx="172" cy="78" rx="36" ry="24" fill="rgba(255,250,235,.1)" transform="rotate(-15 172 78)"/>
+      <ellipse cx="200" cy="108" rx="8" ry="5" fill="url(#spoutDark)" stroke="rgba(100,200,255,.4)" stroke-width="1"/>
+      <g class="water-fall">
+        <path class="fall-strand" d="M196 108 Q197 168 198 198"/>
+        <path class="fall-strand" d="M200 106 L200 200"/>
+        <path class="fall-strand" d="M204 108 Q203 168 202 198"/>
+        <path class="fall-strand" d="M198 112 Q200 172 201 201"/>
+      </g>
+      <g id="fontBasin">
+        <ellipse cx="200" cy="238" rx="88" ry="54" fill="#0a0c10"/>
+        <ellipse class="font-rim" cx="200" cy="232" rx="82" ry="50"/>
+        <ellipse cx="200" cy="222" rx="74" ry="44" fill="url(#waterPool)"/>
+        <ellipse class="water-surface" cx="200" cy="214" rx="64" ry="30" fill="url(#waterHighlight)" opacity=".92"/>
+        <path class="water-wave" d="M136 214 Q168 206 200 214 T264 214"/>
+        <g class="water-ripples">
+          <ellipse class="ripple r1" cx="200" cy="216" rx="28" ry="14"/>
+          <ellipse class="ripple r2" cx="200" cy="216" rx="28" ry="14"/>
+          <ellipse class="ripple r3" cx="200" cy="216" rx="28" ry="14"/>
+        </g>
+        <g class="water-mist">
+          <circle cx="186" cy="210" r="3.2"/>
+          <circle cx="200" cy="206" r="2.8"/>
+          <circle cx="214" cy="211" r="3"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+  </div>
+
 <script type="module">
 import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
@@ -1176,7 +1191,16 @@ for (let i = 0; i < 36; i++) {
 }
 
 const stage = document.getElementById("stage");
+const installPreview = document.getElementById("installPreview");
 stage.classList.add("intro-open");
+installPreview.classList.add("intro-open");
+
+function syncPreviewState() {
+  installPreview.classList.remove("intro-open", "awake", "miracle", "finale");
+  for (const c of ["intro-open", "awake", "miracle", "finale"]) {
+    if (stage.classList.contains(c)) installPreview.classList.add(c);
+  }
+}
 const video = document.getElementById("video");
 const cover = document.getElementById("cover");
 const miracleWord = document.getElementById("miracleWord");
@@ -1399,6 +1423,7 @@ function showBibleFinale() {
 
   setTimeout(() => {
     stage.classList.add("finale");
+    syncPreviewState();
     bible.classList.add("eject");
     playPolaroidWhirr();
     setTimeout(() => polaroid?.classList.add("developed"), 2000);
@@ -1413,6 +1438,7 @@ function resetVis() {
   DOTS.forEach(id => document.getElementById(id).classList.remove("lit", "flash"));
   stage.classList.remove("miracle");
   stage.classList.add("awake");
+  syncPreviewState();
   document.querySelectorAll(".led-bead").forEach(b => b.classList.remove("on"));
   updateDotHints();
 }
@@ -1474,6 +1500,7 @@ async function start() {
     sm.reset();
     resetVis();
     stage.classList.add("awake");
+    syncPreviewState();
     frameTs = -1;
     requestAnimationFrame(tick);
   } catch (e) {
@@ -1491,6 +1518,7 @@ function celebrate() {
   stepCue.classList.remove("show");
   stage.classList.remove("awake");
   stage.classList.add("miracle");
+  syncPreviewState();
   document.querySelectorAll(".led-bead").forEach(b => b.classList.add("on"));
 
   miracleWord.classList.add("show");
@@ -1507,6 +1535,7 @@ function resetAll() {
   const polaroidWrap = bible.querySelector(".polaroid-rise");
   polaroidWrap?.style.removeProperty("animation");
   stage.classList.remove("finale");
+  syncPreviewState();
   miracleWord.classList.remove("show");
   celeb = false;
   sm.reset();
