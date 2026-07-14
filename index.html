@@ -263,7 +263,7 @@
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>Allow the camera. Reach each glowing dot in order — top, bottom, left, right.</p>
+        <p>Allow the camera. Sit about arm's length away. Reach each glowing dot — top, bottom, left, right. No need to be exact.</p>
         <button class="btn" id="startBtn">Begin</button>
       </div>
     </div>
@@ -277,17 +277,13 @@
 <script type="module">
 import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
-// Same 3×3 grid + sequence as the Pi build (config/zones.json).
-const ZONES = {
-  "1": { x: 0.00, y: 0.00, w: 0.3333, h: 0.3333 },
-  "2": { x: 0.3333, y: 0.00, w: 0.3333, h: 0.3333 },
-  "3": { x: 0.6666, y: 0.00, w: 0.3334, h: 0.3333 },
-  "4": { x: 0.00, y: 0.3333, w: 0.3333, h: 0.3333 },
-  "8": { x: 0.3333, y: 0.3333, w: 0.3333, h: 0.3333 },
-  "6": { x: 0.6666, y: 0.3333, w: 0.3334, h: 0.3333 },
-  "7": { x: 0.00, y: 0.6666, w: 0.3333, h: 0.3334 },
-  "0": { x: 0.3333, y: 0.6666, w: 0.3333, h: 0.3334 },
-  "5": { x: 0.6666, y: 0.6666, w: 0.3334, h: 0.3334 },
+// Production uses config/zones.json (calibrated on-site). Webcam demo uses wider
+// forgiving targets — guests won't stand at a fixed distance from a laptop.
+const TARGETS = {
+  "2": { x: 0.18, y: 0.00, w: 0.64, h: 0.44 }, // heaven — wide top band
+  "0": { x: 0.18, y: 0.56, w: 0.64, h: 0.44 }, // earth — wide bottom band
+  "4": { x: 0.00, y: 0.18, w: 0.50, h: 0.64 }, // left — tall left band
+  "6": { x: 0.50, y: 0.18, w: 0.50, h: 0.64 }, // right — tall right band
 };
 const SEQUENCE = ["2", "0", "4", "6"];
 const DOTS = ["dotHeaven", "dotEarth", "dotLeft", "dotRight"];
@@ -298,9 +294,16 @@ const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
 const debugHud = document.getElementById("debugHud");
 if (DEBUG) debugHud.classList.add("on");
 
-function zoneAt(x, y) {
-  for (const [name, z] of Object.entries(ZONES)) {
-    if (x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h) return name;
+function inTarget(name, x, y) {
+  const t = TARGETS[name];
+  return x >= t.x && x < t.x + t.w && y >= t.y && y < t.y + t.h;
+}
+
+function zoneAt(x, y, expected) {
+  // Prefer the step we're waiting for — avoids sticky overlap between bands.
+  if (expected && inTarget(expected, x, y)) return expected;
+  for (const name of SEQUENCE) {
+    if (inTarget(name, x, y)) return name;
   }
   return null;
 }
@@ -501,7 +504,7 @@ function tick() {
         if (!hasSmooth) { sx = tx; sy = ty; hasSmooth = true; }
         sx = sx * (1 - SMOOTH) + tx * SMOOTH;
         sy = sy * (1 - SMOOTH) + ty * SMOOTH;
-        zone = zoneAt(sx, sy);
+        zone = zoneAt(sx, sy, sm.exp);
         result = sm.upd(zone, ts);
       } else {
         hasSmooth = false;
