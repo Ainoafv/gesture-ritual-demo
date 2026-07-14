@@ -28,78 +28,86 @@
     width:min(100vw,440px);
   }
 
+  /* Video runs for gesture + polaroid capture — never shown to the guest */
+  #video {
+    position:fixed; inset:0; width:100%; height:100%;
+    object-fit:cover; transform:scaleX(-1);
+    opacity:0 !important; pointer-events:none; z-index:-1;
+  }
+
   .stage {
     position:relative;
     width:100%;
-    height:min(88dvh,780px);
+    height:min(92dvh,780px);
     overflow:hidden;
-    background:#080706;
+    display:flex;
+    flex-direction:column;
+    background:#050504;
     box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 42px 110px rgba(0,0,0,.9);
   }
 
-  /* Ritual: big stone font + small camera lens on top */
-  .ritual-view {
-    position:absolute; inset:0;
-    opacity:0; pointer-events:none;
-    transition:opacity .7s ease;
-  }
-  .stage.awake .ritual-view,
-  .stage.miracle .ritual-view { opacity:1; pointer-events:auto; }
-  .stage.finale .ritual-view {
-    opacity:0 !important; visibility:hidden;
-  }
-
-  .stone-font {
-    position:absolute; left:0; right:0; bottom:0;
-    height:78%;
-    display:block;
-    z-index:1;
-  }
-
-  .camera-lens {
-    position:absolute;
-    left:50%; top:16%;
-    transform:translateX(-50%);
-    width:34%;
-    aspect-ratio:4/5;
-    max-height:28%;
-    border-radius:10px;
+  /* Top — cross guide only. No selfie feed. */
+  .camera-pane {
+    position:relative;
+    flex:1 1 58%;
+    min-height:0;
     overflow:hidden;
-    z-index:6;
     background:#0a0806;
-    border:2px solid rgba(200,185,160,.22);
-    box-shadow:
-      0 10px 36px rgba(0,0,0,.65),
-      inset 0 0 0 1px rgba(255,255,255,.06);
+    opacity:0;
+    transition:opacity .6s ease;
   }
-  .camera-lens::before {
-    content:"";
-    position:absolute; inset:0; z-index:4; pointer-events:none;
-    border-radius:8px;
-    box-shadow:inset 0 0 24px rgba(0,0,0,.35);
-  }
-  .camera-lens #video {
-    position:absolute; inset:0;
-    width:100%; height:100%;
-    object-fit:cover; transform:scaleX(-1);
-    opacity:0; transition:opacity .5s ease;
-  }
-  .stage.awake .camera-lens #video,
-  .stage.miracle .camera-lens #video { opacity:1; }
+  .stage.awake .camera-pane,
+  .stage.miracle .camera-pane { opacity:1; }
 
-  .cross-overlay-lens {
-    position:absolute; inset:0; z-index:5;
+  .camera-vignette {
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:
+      radial-gradient(ellipse 85% 75% at 50% 44%, transparent 35%, rgba(0,0,0,.45) 100%),
+      linear-gradient(180deg, rgba(0,0,0,.25) 0%, transparent 20%, transparent 75%, rgba(5,5,4,.7) 100%);
+  }
+
+  .lens-badge {
+    position:absolute; left:50%; top:10%;
+    transform:translateX(-50%);
+    width:44px; height:34px;
+    z-index:4; pointer-events:none;
+    opacity:.55;
+  }
+  .lens-badge svg { display:block; width:100%; height:100%; }
+
+  .cross-overlay {
+    position:absolute; inset:0; z-index:3;
     width:100%; height:100%;
     pointer-events:none;
   }
-  .cross-overlay-lens .cross-stem { display:none; }
-  .cross-overlay-lens .gesture-dot { r:11; }
 
-  /* During ritual: cross dots only — no cue rail */
-  .stage.awake #stepCue,
-  .stage.awake #progressRail,
-  .stage.miracle #stepCue,
-  .stage.miracle #progressRail { display:none !important; }
+  /* Bottom — stone church font */
+  .font-pane {
+    position:relative;
+    flex:0 0 36%;
+    min-height:220px;
+    background:linear-gradient(180deg, #0a0908 0%, #030302 100%);
+    border-top:1px solid rgba(180,170,155,.12);
+    box-shadow:inset 0 12px 28px rgba(0,0,0,.55);
+    overflow:hidden;
+    opacity:0;
+    transition:opacity .6s ease .1s;
+  }
+  .stage.awake .font-pane,
+  .stage.miracle .font-pane { opacity:1; }
+  .stage.miracle .font-pane {
+    box-shadow:inset 0 12px 28px rgba(0,0,0,.55), 0 -8px 32px rgba(100,200,255,.1);
+  }
+  .font-scene {
+    display:block;
+    width:100%;
+    height:100%;
+  }
+  .stage.finale .camera-pane,
+  .stage.finale .font-pane {
+    opacity:0 !important;
+    visibility:hidden;
+  }
 
   .brand-bar {
     position:absolute; top:0; left:0; right:0; z-index:18;
@@ -110,10 +118,6 @@
     transition:opacity .4s ease;
   }
   .stage.intro-open .brand-bar { opacity:0; }
-  .stage.awake .brand-bar,
-  .stage.miracle .brand-bar {
-    opacity:0; visibility:hidden;
-  }
   .brand-bar .org {
     font:500 9px Inter,sans-serif;
     letter-spacing:.28em;
@@ -151,7 +155,7 @@
   @keyframes dotFlash { 40% { filter:url(#dotBurst); } }
 
   #miracleWord {
-    position:absolute; left:0; right:0; top:48%; z-index:20;
+    position:absolute; left:0; right:0; top:14%; z-index:20;
     text-align:center; pointer-events:none; opacity:0;
     font-family:"Cormorant Garamond",serif;
     font-size:clamp(38px,10vw,56px);
@@ -765,7 +769,9 @@
   .bible-finale.eject .again { opacity:1; }
 
   /* Hide ritual panes once the Bible finale takes over */
-  .stage.finale .ritual-view,
+  .stage.finale .camera-pane,
+  .stage.finale .font-pane,
+  .stage.finale .cross-overlay,
   .stage.finale #miracleWord,
   .stage.finale .brand-bar,
   .stage.finale #stepCue,
@@ -797,11 +803,49 @@
       <div class="title">The Holy Font · Gesture Preview</div>
     </div>
 
-    <div class="ritual-view" id="ritualView" aria-hidden="true">
-      <svg class="stone-font" viewBox="0 0 400 520" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+    <video id="video" playsinline muted></video>
+
+    <div class="camera-pane">
+      <div class="lens-badge" aria-hidden="true">
+        <svg viewBox="0 0 48 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="10" width="32" height="22" rx="4" stroke="rgba(200,185,160,.45)" stroke-width="1.5"/>
+          <circle cx="24" cy="21" r="7" stroke="rgba(200,185,160,.35)" stroke-width="1.2"/>
+          <circle cx="24" cy="21" r="3" fill="rgba(200,185,160,.25)"/>
+          <path d="M24 4v6" stroke="rgba(200,185,160,.3)" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <svg class="cross-overlay" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <filter id="dotGlow">
+            <feGaussianBlur stdDeviation="3" result="b"/>
+            <feFlood flood-color="#ffe8a0" flood-opacity=".85" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="g"/>
+            <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="dotBurst">
+            <feGaussianBlur stdDeviation="6" result="b"/>
+            <feFlood flood-color="#fff8e8" flood-opacity="1" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="g"/>
+            <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <g id="crossGuide">
+          <line class="cross-stem" x1="200" y1="228" x2="200" y2="492"/>
+          <line class="cross-stem" x1="118" y1="360" x2="282" y2="360"/>
+          <circle id="dotHeaven" class="gesture-dot next" cx="200" cy="228" r="13"/>
+          <circle id="dotEarth"  class="gesture-dot"       cx="200" cy="492" r="13"/>
+          <circle id="dotLeft"   class="gesture-dot"       cx="118" cy="360" r="13"/>
+          <circle id="dotRight"  class="gesture-dot"       cx="282" cy="360" r="13"/>
+          <circle cx="200" cy="360" r="7" fill="rgba(255,230,190,.18)" stroke="rgba(255,235,200,.2)" stroke-width="1"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="font-pane">
+      <svg class="font-scene" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <linearGradient id="stoneLight" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#9a9590"/><stop offset="45%" stop-color="#6e6962"/>
+            <stop offset="0%" stop-color="#9a9590"/><stop offset="50%" stop-color="#6e6962"/>
             <stop offset="100%" stop-color="#4a4540"/>
           </linearGradient>
           <linearGradient id="stoneDark" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -824,64 +868,36 @@
             <stop offset="100%" stop-color="rgba(180,245,255,0)"/>
           </radialGradient>
         </defs>
-        <rect width="400" height="520" fill="#060504"/>
-        <ellipse cx="200" cy="508" rx="150" ry="18" fill="rgba(0,0,0,.45)"/>
-        <path fill="url(#stoneDark)" d="M120 510 L140 380 L260 380 L280 510 Z"/>
-        <path fill="url(#stoneLight)" d="M100 380 L130 260 L270 260 L300 380 Z"/>
-        <path fill="url(#stoneDark)" d="M130 260 L155 180 L245 180 L270 260 Z"/>
-        <path fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.5"
-          d="M130 260 L155 180 L245 180 L270 260 L300 380 L280 510 L120 510 L100 380 Z"/>
-        <ellipse cx="200" cy="248" rx="108" ry="62" fill="url(#stoneRim)"/>
-        <ellipse cx="200" cy="244" rx="98" ry="56" fill="url(#stoneDark)"/>
-        <ellipse cx="200" cy="238" rx="88" ry="50" fill="#1a1816"/>
-        <ellipse class="stone-rim" cx="200" cy="232" rx="82" ry="46"/>
+        <rect width="400" height="280" fill="#060504"/>
+        <path fill="url(#stoneDark)" d="M110 268 L128 210 L272 210 L290 268 Z"/>
+        <path fill="url(#stoneLight)" d="M95 210 L125 130 L275 130 L305 210 Z"/>
+        <path fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.5"
+          d="M95 210 L125 130 L275 130 L305 210 L290 268 L110 268 Z"/>
+        <ellipse cx="200" cy="198" rx="96" ry="54" fill="url(#stoneRim)"/>
+        <ellipse cx="200" cy="194" rx="86" ry="48" fill="url(#stoneDark)"/>
+        <ellipse cx="200" cy="188" rx="78" ry="42" fill="#1a1816"/>
+        <ellipse class="stone-rim" cx="200" cy="182" rx="72" ry="38"/>
         <g id="fontBasin" filter="url(#waterGlow)">
-          <ellipse cx="200" cy="228" rx="74" ry="42" fill="url(#waterPool)"/>
-          <ellipse class="water-surface" cx="200" cy="220" rx="64" ry="32" fill="url(#waterHighlight)" opacity=".92"/>
-          <path class="water-wave" d="M136 220 Q168 212 200 220 T264 220"/>
+          <ellipse cx="200" cy="178" rx="66" ry="36" fill="url(#waterPool)"/>
+          <ellipse class="water-surface" cx="200" cy="172" rx="58" ry="28" fill="url(#waterHighlight)" opacity=".92"/>
+          <path class="water-wave" d="M142 172 Q170 166 200 172 T258 172"/>
           <g class="water-ripples">
-            <ellipse class="ripple r1" cx="200" cy="222" rx="28" ry="14"/>
-            <ellipse class="ripple r2" cx="200" cy="222" rx="28" ry="14"/>
-            <ellipse class="ripple r3" cx="200" cy="222" rx="28" ry="14"/>
+            <ellipse class="ripple r1" cx="200" cy="174" rx="24" ry="12"/>
+            <ellipse class="ripple r2" cx="200" cy="174" rx="24" ry="12"/>
+            <ellipse class="ripple r3" cx="200" cy="174" rx="24" ry="12"/>
           </g>
           <g class="water-mist">
-            <circle cx="186" cy="216" r="3.2"/>
-            <circle cx="200" cy="212" r="2.8"/>
-            <circle cx="214" cy="217" r="3"/>
+            <circle cx="188" cy="168" r="3"/>
+            <circle cx="200" cy="164" r="2.6"/>
+            <circle cx="212" cy="169" r="2.8"/>
           </g>
         </g>
-        <g class="water-fall" opacity=".55">
-          <path class="fall-strand" d="M196 178 Q197 198 198 212"/>
-          <path class="fall-strand" d="M200 176 L200 214"/>
-          <path class="fall-strand" d="M204 178 Q203 198 202 212"/>
+        <g class="water-fall" opacity=".5">
+          <path class="fall-strand" d="M196 132 Q197 152 198 168"/>
+          <path class="fall-strand" d="M200 130 L200 170"/>
+          <path class="fall-strand" d="M204 132 Q203 152 202 168"/>
         </g>
       </svg>
-
-      <div class="camera-lens">
-        <video id="video" playsinline muted></video>
-        <svg class="cross-overlay-lens" viewBox="0 0 200 260" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <defs>
-            <filter id="dotGlow">
-              <feGaussianBlur stdDeviation="3" result="b"/>
-              <feFlood flood-color="#ffe8a0" flood-opacity=".85" result="c"/>
-              <feComposite in="c" in2="b" operator="in" result="g"/>
-              <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="dotBurst">
-              <feGaussianBlur stdDeviation="6" result="b"/>
-              <feFlood flood-color="#fff8e8" flood-opacity="1" result="c"/>
-              <feComposite in="c" in2="b" operator="in" result="g"/>
-              <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <g id="crossGuide">
-            <circle id="dotHeaven" class="gesture-dot next" cx="100" cy="36" r="11"/>
-            <circle id="dotEarth"  class="gesture-dot"       cx="100" cy="224" r="11"/>
-            <circle id="dotLeft"   class="gesture-dot"       cx="38" cy="130" r="11"/>
-            <circle id="dotRight"  class="gesture-dot"       cx="162" cy="130" r="11"/>
-          </g>
-        </svg>
-      </div>
     </div>
 
     <p id="miracleWord"><span class="pill">The font is awake.</span></p>
@@ -1509,7 +1525,6 @@ function celebrate() {
   stepCue.classList.remove("show");
   stage.classList.remove("awake");
   stage.classList.add("miracle");
-  document.getElementById("ritualView")?.setAttribute("aria-hidden", "false");
 
   miracleWord.classList.add("show");
   playCameraShutter();
