@@ -10,8 +10,6 @@
     --bg:#020203;
     --ink:#f1eadc;
     --mute:rgba(241,234,220,.55);
-    --warm:rgba(255,215,150,1);
-    --warm2:rgba(255,190,110,1);
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
@@ -22,7 +20,11 @@
     color:var(--ink);
     font-family:Inter,system-ui,sans-serif;
   }
-  #video { position:fixed; opacity:0; width:1px; height:1px; pointer-events:none; left:-9999px; }
+  /* Full-resolution hidden feed — 1×1 breaks MediaPipe on Safari/Chrome */
+  #video {
+    position:fixed; inset:0; width:100%; height:100%;
+    object-fit:cover; opacity:0; pointer-events:none; z-index:-1;
+  }
   .stage {
     position:relative; width:min(100vw,440px); height:min(92dvh,780px);
     overflow:hidden;
@@ -30,16 +32,42 @@
     box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 42px 110px rgba(0,0,0,.9);
   }
   .scene { width:100%; height:100%; display:block; }
+
   .cross-overlay {
     position:absolute; inset:0; z-index:12; pointer-events:none;
-    mix-blend-mode:screen;
-    opacity:.55;
   }
-  .cross-overlay .cross-arm { opacity:.10; }
-  .cross-overlay .cross-arm.lit { opacity:.95; }
-  .cross-overlay .cross-arm.flash { animation:crossFlash .55s ease-out; }
+  .cross-stem {
+    stroke:rgba(255,230,190,.14);
+    stroke-width:2.5;
+    fill:none;
+    stroke-linecap:round;
+  }
+  .gesture-dot {
+    fill:rgba(255,220,160,.22);
+    stroke:rgba(255,235,200,.35);
+    stroke-width:2;
+    transition:fill .45s ease, stroke .45s ease, filter .45s ease, opacity .45s ease;
+  }
+  .gesture-dot.next {
+    fill:rgba(255,220,160,.38);
+    stroke:rgba(255,240,210,.65);
+    animation:dotPulse 1.6s ease-in-out infinite;
+  }
+  .gesture-dot.lit {
+    fill:#fff8e8;
+    stroke:#f0d070;
+    filter:url(#dotGlow);
+    animation:none;
+  }
+  .gesture-dot.flash { animation:dotFlash .55s ease-out; }
+  @keyframes dotPulse {
+    0%, 100% { opacity:.75; }
+    50% { opacity:1; }
+  }
+  @keyframes dotFlash {
+    40% { filter:url(#dotBurst); }
+  }
 
-  /* Cinematic: no HUD, no “REC”, no technical copy. */
   #miracleWord {
     position:absolute; left:0; right:0; top:12%; z-index:20;
     text-align:center; pointer-events:none; opacity:0;
@@ -104,7 +132,6 @@
   }
   @keyframes spin { to{transform:rotate(360deg)} }
 
-  /* LED behaviour (cinematic): Resting breath + Miracle burst. */
   .led-fill { opacity:.22; transition:opacity .8s ease, filter .8s ease; }
   .stage.awake .led-fill { opacity:.42; }
   .stage.miracle .led-fill {
@@ -127,22 +154,10 @@
   }
   .led-bead { fill:rgba(255,215,150,.12); transition:fill .6s ease, filter .6s ease, opacity .6s ease; opacity:.75; }
   .stage.awake .led-bead { fill:rgba(255,220,160,.28); filter:url(#ledSoft); opacity:.9; }
-  .stage.miracle .led-bead {
-    fill:#fffef0; filter:url(#ledBright); opacity:1;
-  }
-  .stage.miracle .led-bead { animation:beadSpark 1.8s ease-in-out infinite; }
+  .stage.miracle .led-bead { fill:#fffef0; filter:url(#ledBright); opacity:1; animation:beadSpark 1.8s ease-in-out infinite; }
   .stage.miracle .led-bead:nth-child(3n) { animation-delay:.18s; }
   .stage.miracle .led-bead:nth-child(3n+1) { animation-delay:.36s; }
-  @keyframes beadSpark {
-    0%, 100% { opacity:.75; }
-    50% { opacity:1; }
-  }
-
-  /* Cross (cinematic): no step-by-step UI. We still fill arms, but subtly. */
-  .cross-arm { opacity:.22; transition:opacity .5s ease, filter .5s ease; }
-  .cross-arm.lit { opacity:.95; filter:url(#crossGlow); }
-  .cross-arm.flash { animation:crossFlash .55s ease-out; }
-  @keyframes crossFlash { 40% { filter:url(#crossBurst); opacity:1; } }
+  @keyframes beadSpark { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
 
   .portrait {
     position:absolute; inset:0; z-index:31; display:flex; align-items:center; justify-content:center;
@@ -153,7 +168,6 @@
   .polaroid .cap { font-family:"Cormorant Garamond",serif; font-size:16px; text-align:center; margin-top:6px; color:#2a2218; }
   .portrait .again { position:absolute; bottom:max(20px, env(safe-area-inset-bottom)); }
 
-  /* Debug (optional): only when ?debug=1 */
   #debugHud {
     position:absolute; left:14px; bottom:14px; z-index:25;
     font:500 11px Inter,system-ui,sans-serif;
@@ -163,6 +177,7 @@
     padding:8px 10px;
     backdrop-filter:blur(6px);
     display:none;
+    white-space:pre-line;
   }
   #debugHud.on { display:block; }
 </style>
@@ -184,13 +199,6 @@
           <stop offset="0%" stop-color="#f0dc98"/><stop offset="50%" stop-color="#a88040"/>
           <stop offset="100%" stop-color="#2a1c0a"/>
         </linearGradient>
-        <linearGradient id="goldLit" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#fffff5"/><stop offset="50%" stop-color="#f0d070"/>
-          <stop offset="100%" stop-color="#b87820"/>
-        </linearGradient>
-        <linearGradient id="crossDim" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#2a2014"/><stop offset="100%" stop-color="#0c0a06"/>
-        </linearGradient>
         <radialGradient id="ledRingFill" cx="50%" cy="50%" r="50%">
           <stop offset="70%" stop-color="rgba(255,220,160,0)"/>
           <stop offset="88%" stop-color="rgba(255,210,140,.35)"/>
@@ -199,64 +207,54 @@
         </radialGradient>
         <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="crossGlow"><feGaussianBlur stdDeviation="2.5" result="b"/><feFlood flood-color="#ffe8a0" flood-opacity=".9" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="crossBurst"><feGaussianBlur stdDeviation="5" result="b"/><feFlood flood-color="#fff8e8" flood-opacity="1" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       </defs>
 
       <rect width="400" height="720" fill="url(#bgNight)"/>
-      <!-- Soft backdrop behind arch (reference: white drape → warm dark silk) -->
       <ellipse cx="200" cy="360" rx="130" ry="170" fill="rgba(255,248,240,.04)"/>
-
-      <!-- Golden arch frame (reference: chamber / niche) -->
       <path fill="none" stroke="url(#archGold)" stroke-width="10"
         d="M 55 520 L 55 280 Q 55 120 200 95 Q 345 120 345 280 L 345 520"/>
       <path fill="none" stroke="rgba(255,240,210,.12)" stroke-width="2"
         d="M 68 510 L 68 285 Q 68 135 200 112 Q 332 135 332 285 L 332 510"/>
-      <!-- Solomonic twist hint on pillars -->
       <path fill="none" stroke="url(#archGold)" stroke-width="6" opacity=".5"
         d="M55 520 Q48 420 55 320 Q62 220 55 120"/>
       <path fill="none" stroke="url(#archGold)" stroke-width="6" opacity=".5"
         d="M345 520 Q352 420 345 320 Q338 220 345 120"/>
 
-      <!-- LED halo BEHIND backplate (Riley: ring behind brass, 15–20mm float) -->
       <circle cx="200" cy="360" r="168" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
       <g id="ledBeads"></g>
 
-      <!-- Brass backplate — centred in arch / lens -->
       <circle cx="200" cy="360" r="8" fill="#080604"/>
       <circle cx="200" cy="360" r="132" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
       <ellipse cx="168" cy="328" rx="48" ry="34" fill="rgba(255,250,235,.12)" transform="rotate(-15 168 328)"/>
 
-      <!-- No on-object cross here (cinematic overlay handles it). -->
-
-      <!-- Bowl — integrated below cross centre -->
       <ellipse cx="200" cy="410" rx="58" ry="36" fill="#0a0806"/>
       <ellipse cx="200" cy="404" rx="46" ry="28" fill="#1a140c" stroke="rgba(255,230,200,.06)" stroke-width="1"/>
     </svg>
 
-    <!-- Cross overlay above the “camera view” (aligned to gesture zones, not the physical plate) -->
+    <!-- Four target dots on a crucifix — matches 3×3 detection grid -->
     <svg class="cross-overlay" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs>
-        <linearGradient id="goldLitOverlay" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#fffff5"/><stop offset="50%" stop-color="#f0d070"/>
-          <stop offset="100%" stop-color="#b87820"/>
-        </linearGradient>
+        <filter id="dotGlow">
+          <feGaussianBlur stdDeviation="3" result="b"/>
+          <feFlood flood-color="#ffe8a0" flood-opacity=".85" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="g"/>
+          <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="dotBurst">
+          <feGaussianBlur stdDeviation="6" result="b"/>
+          <feFlood flood-color="#fff8e8" flood-opacity="1" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="g"/>
+          <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
       </defs>
-      <!-- Cross centered at (200,360). Sized to sit “over the lens”, not inside the plate. -->
-      <g transform="translate(0,0)">
-        <path id="segHeaven" class="cross-arm" fill="url(#goldLitOverlay)"
-          d="M193 360 L193 272 Q193 236 200 224 Q207 236 207 272 L207 360
-             M200 224 Q186 212 178 206 Q186 218 200 230 Q214 218 222 206 Q214 212 200 224 Z"/>
-        <path id="segEarth" class="cross-arm" fill="url(#goldLitOverlay)"
-          d="M193 360 L193 444 Q193 480 200 492 Q207 480 207 444 L207 360
-             M200 492 Q186 504 178 510 Q186 498 200 486 Q214 498 222 510 Q214 504 200 492 Z"/>
-        <path id="segLeft" class="cross-arm" fill="url(#goldLitOverlay)"
-          d="M200 353 L116 353 Q78 360 66 360 Q78 367 116 367 L200 367
-             M66 360 Q54 346 46 338 Q58 352 66 360 Q58 368 46 382 Q54 374 66 360 Z"/>
-        <path id="segRight" class="cross-arm" fill="url(#goldLitOverlay)"
-          d="M200 353 L284 353 Q322 360 334 360 Q322 367 284 367 L200 367
-             M334 360 Q346 346 354 338 Q342 352 334 360 Q342 368 354 382 Q346 374 334 360 Z"/>
-        <circle id="crossBoss" class="cross-arm" cx="200" cy="360" r="12" fill="url(#goldLitOverlay)"/>
+      <g id="crossGuide">
+        <line class="cross-stem" x1="200" y1="228" x2="200" y2="492"/>
+        <line class="cross-stem" x1="118" y1="360" x2="282" y2="360"/>
+        <circle id="dotHeaven" class="gesture-dot next" cx="200" cy="228" r="13"/>
+        <circle id="dotEarth"  class="gesture-dot"       cx="200" cy="492" r="13"/>
+        <circle id="dotLeft"   class="gesture-dot"       cx="118" cy="360" r="13"/>
+        <circle id="dotRight"  class="gesture-dot"       cx="282" cy="360" r="13"/>
+        <circle cx="200" cy="360" r="7" fill="rgba(255,230,190,.18)" stroke="rgba(255,235,200,.2)" stroke-width="1"/>
       </g>
     </svg>
 
@@ -265,7 +263,7 @@
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>Allow the camera. Trace the sign in the air — above, below, left, right.</p>
+        <p>Allow the camera. Reach each glowing dot in order — top, bottom, left, right.</p>
         <button class="btn" id="startBtn">Begin</button>
       </div>
     </div>
@@ -279,144 +277,72 @@
 <script type="module">
 import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
-// Detection zones tuned for human-friendly sweeping gestures:
-// - Heaven/Earth: big top/bottom bands (centered horizontally).
-// - Left/Right: handled by expected-specific logic in zoneAt() (more forgiving than rectangles).
+// Same 3×3 grid + sequence as the Pi build (config/zones.json).
 const ZONES = {
-  "2": { x: 0.20, y: 0.00, w: 0.60, h: 0.42 }, // Heaven
-  "0": { x: 0.20, y: 0.66, w: 0.60, h: 0.34 }, // Earth
-  // Keep rectangles for debug/reference only.
-  "4": { x: 0.00, y: 0.18, w: 0.50, h: 0.48 }, // Left
-  "6": { x: 0.50, y: 0.18, w: 0.50, h: 0.48 }, // Right
+  "1": { x: 0.00, y: 0.00, w: 0.3333, h: 0.3333 },
+  "2": { x: 0.3333, y: 0.00, w: 0.3333, h: 0.3333 },
+  "3": { x: 0.6666, y: 0.00, w: 0.3334, h: 0.3333 },
+  "4": { x: 0.00, y: 0.3333, w: 0.3333, h: 0.3333 },
+  "8": { x: 0.3333, y: 0.3333, w: 0.3333, h: 0.3333 },
+  "6": { x: 0.6666, y: 0.3333, w: 0.3334, h: 0.3333 },
+  "7": { x: 0.00, y: 0.6666, w: 0.3333, h: 0.3334 },
+  "0": { x: 0.3333, y: 0.6666, w: 0.3333, h: 0.3334 },
+  "5": { x: 0.6666, y: 0.6666, w: 0.3334, h: 0.3334 },
 };
-const SEQUENCE = ["2","0","4","6"];
-const SEGMENTS = ["segHeaven","segEarth","segLeft","segRight"];
-const WINDOW_MS = 9500;
-const PALM = [0,5,9,17];
-const PAD = .13;
-const SMOOTH = 0.62;
-const SMOOTH_H = 0.32;   // horizontal strokes need responsiveness
-const SWEEP_TH = 0.12;   // minimum x travel for left/right
-const STEP_MIN_MS = 140;
+const SEQUENCE = ["2", "0", "4", "6"];
+const DOTS = ["dotHeaven", "dotEarth", "dotLeft", "dotRight"];
+const WINDOW_MS = 10000;
+const PALM = [0, 5, 9, 17];
+const SMOOTH = 0.45;
 const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
 const debugHud = document.getElementById("debugHud");
 if (DEBUG) debugHud.classList.add("on");
 
-function _containsRect(name, x, y) {
-  const z = ZONES[name];
-  return (
-    x >= z.x - PAD &&
-    x < z.x + z.w + PAD &&
-    y >= z.y - PAD &&
-    y < z.y + z.h + PAD
-  );
-}
-
-// Important: zones overlap (by design, to be forgiving).
-// Prefer the currently expected zone first; otherwise overlaps can “stick”
-// in the previous step (especially Earth vs Left/Right).
-function zoneAt(x, y, expected) {
-  // Expected-specific logic for the horizontal sweep:
-  // When guests do the left/right stroke, their hand often stays mid-height
-  // and may not travel to the extreme edge of the frame. Use a wide split.
-  if (expected === "4" || expected === "6") {
-    if (y > 0.18 - PAD && y < 0.70 + PAD) {
-      if (expected === "4" && x < 0.55 + PAD) return "4";
-      if (expected === "6" && x > 0.45 - PAD) return "6";
-    }
-    // Fall back to rectangles if we didn't match.
-    if (expected && _containsRect(expected, x, y)) return expected;
-  } else if (expected && _containsRect(expected, x, y)) {
-    return expected;
-  }
-
-  for (const name of Object.keys(ZONES)) {
-    if (name === expected) continue;
-    if (_containsRect(name, x, y)) return name;
+function zoneAt(x, y) {
+  for (const [name, z] of Object.entries(ZONES)) {
+    if (x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h) return name;
   }
   return null;
 }
 
+/** Boundary-entry state machine — mirrors holy-font/src/state_machine.py */
 class SM {
-  reset(){
-    this.step=0; this.t0=null; this.lz=null; this.st="IDLE";
-    this.cz=null; this.cc=0; // candidate zone + stability counter
-    this.lastStepAt = 0;
-    this.sweepX0 = null;
-    this.sweepMinX = null;
-    this.sweepMaxX = null;
+  reset() {
+    this.step = 0;
+    this.t0 = null;
+    this.lastZone = null;
+    this.state = "IDLE";
   }
-  constructor(){ this.reset(); }
-  get exp(){ return this.step<4 ? SEQUENCE[this.step] : null; }
-  upd(z, now, x, y){
-    if (this.st==="IN_PROGRESS" && this.t0 && now-this.t0>WINDOW_MS){
-      this.reset(); return {d:0,a:0,r:1};
+  constructor() { this.reset(); }
+  get exp() { return this.step < 4 ? SEQUENCE[this.step] : null; }
+  upd(zone, now) {
+    if (this.state === "IN_PROGRESS" && this.t0 && now - this.t0 > WINDOW_MS) {
+      this.reset();
+      return { done: false, advance: false, reset: true };
     }
-
-    // Stabilise zone lightly (avoid jitter) + minimum step interval (avoid double-triggers).
-    if (z && z===this.cz) this.cc += 1;
-    else { this.cz = z; this.cc = z ? 1 : 0; }
-    const stable = (this.cc >= 1) ? z : null;
-    const e = stable && stable !== this.lz ? stable : null;
-    if (stable) this.lz = stable;
-    if (!e) return {d:0,a:0,r:0};
-
-    // Special case: horizontal strokes are best detected by direction + distance,
-    // not by hitting an arbitrary rectangle. After Earth, require a clear sweep.
-    if ((this.exp === "4" || this.exp === "6") && typeof x === "number" && typeof y === "number") {
-      // Mid band only (guest sweeps across chest height).
-      if (y > 0.18 - PAD && y < 0.78 + PAD) {
-        if (this.sweepX0 == null) {
-          this.sweepX0 = x;
-          this.sweepMinX = x;
-          this.sweepMaxX = x;
-        }
-        this.sweepMinX = Math.min(this.sweepMinX ?? x, x);
-        this.sweepMaxX = Math.max(this.sweepMaxX ?? x, x);
-        const dx = x - (this.sweepX0 ?? x);
-        const span = (this.sweepMaxX ?? x) - (this.sweepMinX ?? x);
-        const dirOk = (this.exp === "4" && dx < -SWEEP_TH) || (this.exp === "6" && dx > SWEEP_TH);
-        const spanOk = span > SWEEP_TH;
-        if ((dirOk || spanOk) && now - this.lastStepAt >= STEP_MIN_MS) {
-          if(!this.step){ this.t0=now; this.st="IN_PROGRESS"; }
-          this.step++;
-          this.lastStepAt = now;
-          this.sweepX0 = null;
-          this.sweepMinX = null;
-          this.sweepMaxX = null;
-          return {d:this.step>=4,a:1,r:0};
-        }
-      } else {
-        this.sweepX0 = null;
-        this.sweepMinX = null;
-        this.sweepMaxX = null;
-      }
+    const entered = zone !== this.lastZone ? zone : null;
+    this.lastZone = zone;
+    if (!entered || entered !== this.exp) {
+      return { done: false, advance: false, reset: false };
     }
-
-    if (e===this.exp){
-      if (now - this.lastStepAt < STEP_MIN_MS) return {d:0,a:0,r:0};
-      if(!this.step){ this.t0=now; this.st="IN_PROGRESS"; }
-      this.step++;
-      this.lastStepAt = now;
-      this.sweepX0 = null;
-      this.sweepMinX = null;
-      this.sweepMaxX = null;
-      return {d:this.step>=4,a:1,r:0};
+    if (this.step === 0) {
+      this.t0 = now;
+      this.state = "IN_PROGRESS";
     }
-    return {d:0,a:0,r:0};
+    this.step++;
+    return { done: this.step >= 4, advance: true, reset: false };
   }
 }
 
-// LED beads around ring — matches brass diameter
 const beads = document.getElementById("ledBeads");
-const CX=200, CY=360, R=162, N=36;
-for (let i=0;i<N;i++){
-  const a = (i/N)*Math.PI*2 - Math.PI/2;
-  const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
-  c.setAttribute("class","led-bead");
-  c.setAttribute("cx", CX + R*Math.cos(a));
-  c.setAttribute("cy", CY + R*Math.sin(a));
-  c.setAttribute("r", i%3===0 ? 3.2 : 2.2);
+const CX = 200, CY = 360, R = 162, N = 36;
+for (let i = 0; i < N; i++) {
+  const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+  const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  c.setAttribute("class", "led-bead");
+  c.setAttribute("cx", CX + R * Math.cos(a));
+  c.setAttribute("cy", CY + R * Math.sin(a));
+  c.setAttribute("r", i % 3 === 0 ? 3.2 : 2.2);
   beads.appendChild(c);
 }
 
@@ -426,8 +352,17 @@ const cover = document.getElementById("cover");
 const coverContent = document.getElementById("coverContent");
 const miracleWord = document.getElementById("miracleWord");
 const sm = new SM();
-let lm, run=false, celeb=false, lvt=-1;
-let sx=0.5, sy=0.5, hasS=false;
+let lm, run = false, celeb = false, frameTs = -1;
+let sx = 0.5, sy = 0.5, hasSmooth = false;
+
+function updateDotHints() {
+  DOTS.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.remove("next", "lit", "flash");
+    if (i < sm.step) el.classList.add("lit");
+    else if (i === sm.step && !celeb) el.classList.add("next");
+  });
+}
 
 function captureSceneToPolaroid() {
   const canvas = document.getElementById("shot");
@@ -437,11 +372,8 @@ function captureSceneToPolaroid() {
   const h = stageEl.clientHeight;
   canvas.width = Math.max(320, Math.floor(w * 2));
   canvas.height = Math.max(320, Math.floor(h * 2));
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = "#060508";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Render the current SVG scene (no guest face) into the polaroid.
   const svg = document.querySelector("svg.scene");
   const data = new XMLSerializer().serializeToString(svg);
   const blob = new Blob([data], { type: "image/svg+xml" });
@@ -454,123 +386,144 @@ function captureSceneToPolaroid() {
   img.src = url;
 }
 
-function resetVis(){
-  SEGMENTS.forEach(id=>{
-    const el=document.getElementById(id);
-    el.classList.remove("lit","flash");
-    el.setAttribute("fill","url(#crossDim)");
+function resetVis() {
+  DOTS.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove("lit", "flash");
   });
-  document.getElementById("crossBoss").setAttribute("fill","url(#crossDim)");
-  document.getElementById("crossBoss").classList.remove("lit");
   stage.classList.remove("miracle");
   stage.classList.add("awake");
-  document.querySelectorAll(".led-bead").forEach(b=>b.classList.remove("on"));
+  document.querySelectorAll(".led-bead").forEach(b => b.classList.remove("on"));
+  updateDotHints();
 }
 
-function lightStep(n){
-  const el=document.getElementById(SEGMENTS[n-1]);
-  el.setAttribute("fill","url(#goldLit)");
-  el.classList.add("lit","flash");
-  el.addEventListener("animationend",()=>el.classList.remove("flash"),{once:true});
-  if(n>=2){
-    const b=document.getElementById("crossBoss");
-    b.setAttribute("fill","url(#goldLit)"); b.classList.add("lit");
-  }
-  // Cinematic: very subtle hint only; don't “UI” the gesture.
-  document.querySelectorAll(".led-bead").forEach((b,i)=>{ if(i<n*6) b.classList.add("on"); });
+function lightStep(n) {
+  const el = document.getElementById(DOTS[n - 1]);
+  el.classList.remove("next");
+  el.classList.add("lit", "flash");
+  el.addEventListener("animationend", () => el.classList.remove("flash"), { once: true });
+  document.querySelectorAll(".led-bead").forEach((b, i) => { if (i < n * 6) b.classList.add("on"); });
+  updateDotHints();
 }
 
-async function loadModel(){
-  coverContent.innerHTML='<div class="spinner"></div>';
-  const v=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+async function loadModel() {
+  coverContent.innerHTML = '<div class="spinner"></div><p style="color:var(--mute);font-size:11px;margin-top:8px">Loading vision model…</p>';
+  const wasm = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
   const baseOptions = {
-    modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
   };
-  try {
-    lm=await HandLandmarker.createFromOptions(v,{
-      baseOptions:{...baseOptions, delegate:"GPU"},
-      runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.25,minHandPresenceConfidence:.25,minTrackingConfidence:.25,
-    });
-  } catch (e) {
-    lm=await HandLandmarker.createFromOptions(v,{
-      baseOptions:{...baseOptions, delegate:"CPU"},
-      runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.25,minHandPresenceConfidence:.25,minTrackingConfidence:.25,
-    });
+  const opts = {
+    runningMode: "VIDEO",
+    numHands: 1,
+    minHandDetectionConfidence: 0.5,
+    minHandPresenceConfidence: 0.5,
+    minTrackingConfidence: 0.5,
+  };
+  const delegates = isSafari ? ["CPU", "GPU"] : ["GPU", "CPU"];
+  let lastErr;
+  for (const delegate of delegates) {
+    try {
+      lm = await HandLandmarker.createFromOptions(wasm, {
+        baseOptions: { ...baseOptions, delegate },
+        ...opts,
+      });
+      return;
+    } catch (e) {
+      lastErr = e;
+    }
   }
+  throw lastErr ?? new Error("Could not load hand model");
 }
 
-async function start(){
-  try{
-    if(!lm) await loadModel();
-    video.srcObject=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}},audio:false});
+async function start() {
+  try {
+    if (!lm) await loadModel();
+    video.srcObject = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false,
+    });
     await video.play();
     cover.classList.add("hidden");
-    run=true; sm.reset(); resetVis(); stage.classList.add("awake");
-    lvt=-1; requestAnimationFrame(tick);
-  }catch(e){
-    coverContent.innerHTML=`<p style="color:#b89090;font-size:10px">${e.message}</p><button class="btn" id="r">Retry</button>`;
-    document.getElementById("r")?.addEventListener("click",()=>location.reload());
+    run = true;
+    sm.reset();
+    resetVis();
+    stage.classList.add("awake");
+    frameTs = -1;
+    requestAnimationFrame(tick);
+  } catch (e) {
+    coverContent.innerHTML = `<p style="color:#b89090;font-size:11px;line-height:1.5">${e.message}</p><button class="btn" id="r">Retry</button>`;
+    document.getElementById("r")?.addEventListener("click", () => location.reload());
   }
 }
 
-function celebrate(){
-  celeb=true;
-  [...SEGMENTS,"crossBoss"].forEach(id=>{
-    const el=document.getElementById(id);
-    el.setAttribute("fill","url(#goldLit)"); el.classList.add("lit");
-  });
+function celebrate() {
+  celeb = true;
+  run = false;
+  DOTS.forEach(id => document.getElementById(id).classList.add("lit"));
   stage.classList.remove("awake");
   stage.classList.add("miracle");
-  document.querySelectorAll(".led-bead").forEach(b=>b.classList.add("on"));
+  document.querySelectorAll(".led-bead").forEach(b => b.classList.add("on"));
   miracleWord.classList.add("show");
   captureSceneToPolaroid();
-  setTimeout(()=>document.getElementById("portrait").classList.add("show"),2200);
-  // Freeze the vision loop during the celebration to avoid any visual “reset” flicker.
-  run = false;
+  setTimeout(() => document.getElementById("portrait").classList.add("show"), 2200);
 }
 
-function resetAll(){
+function resetAll() {
   document.getElementById("portrait").classList.remove("show");
   miracleWord.classList.remove("show");
-  celeb=false; sm.reset(); resetVis(); lvt=-1;
-  hasS = false;
+  celeb = false;
+  sm.reset();
+  resetVis();
+  hasSmooth = false;
+  frameTs = -1;
   run = true;
   requestAnimationFrame(tick);
 }
 
-function tick(){
-  if(!run) return;
-  if(!celeb && lm && video.readyState>=2 && video.currentTime!==lvt){
-    lvt=video.currentTime;
-    const res=lm.detectForVideo(video,performance.now());
-    const now=performance.now();
-    let r={d:0,a:0,r:0};
-    let zone = null;
-    if(res.landmarks?.length){
-      const L=res.landmarks[0]; let tx=0,ty=0;
-      for(const i of PALM){ tx+=L[i].x; ty+=L[i].y; }
-      tx = Math.min(Math.max(1-tx/4,0),1);
-      ty = Math.min(Math.max(ty/4,0),1);
-      if (!hasS){ sx=tx; sy=ty; hasS=true; }
-      const s = (sm.exp === "4" || sm.exp === "6") ? SMOOTH_H : SMOOTH;
-      sx = sx*(1-s) + tx*s;
-      sy = sy*(1-SMOOTH) + ty*SMOOTH;
-      zone = zoneAt(sx, sy, sm.exp);
-      r=sm.upd(zone, now, sx, sy);
-    } else { hasS=false; r=sm.upd(null, now, null, null); }
-    if(r.r) resetVis();
-    if(r.a) lightStep(sm.step);
-    if(r.d) celebrate();
-    if (DEBUG) {
-      debugHud.textContent =
-        `zone=${zone ?? "—"}  step=${sm.step}/4  expected=${sm.exp ?? "—"}  stable=${sm.cc}  x=${sx.toFixed(2)} y=${sy.toFixed(2)}`;
+function tick() {
+  if (!run) return;
+  if (lm && video.readyState >= 2) {
+    const ts = performance.now();
+    if (ts !== frameTs) {
+      frameTs = ts;
+      const res = lm.detectForVideo(video, ts);
+      let zone = null;
+      let result = { done: false, advance: false, reset: false };
+
+      if (res.landmarks?.length) {
+        const L = res.landmarks[0];
+        let tx = 0, ty = 0;
+        for (const i of PALM) { tx += L[i].x; ty += L[i].y; }
+        tx = Math.min(Math.max(1 - tx / 4, 0), 1);
+        ty = Math.min(Math.max(ty / 4, 0), 1);
+        if (!hasSmooth) { sx = tx; sy = ty; hasSmooth = true; }
+        sx = sx * (1 - SMOOTH) + tx * SMOOTH;
+        sy = sy * (1 - SMOOTH) + ty * SMOOTH;
+        zone = zoneAt(sx, sy);
+        result = sm.upd(zone, ts);
+      } else {
+        hasSmooth = false;
+        result = sm.upd(null, ts);
+      }
+
+      if (result.reset) resetVis();
+      if (result.advance) lightStep(sm.step);
+      if (result.done) celebrate();
+
+      if (DEBUG) {
+        debugHud.textContent =
+          `zone=${zone ?? "—"}  step=${sm.step}/4  next=${sm.exp ?? "—"}\n` +
+          `x=${sx.toFixed(2)} y=${sy.toFixed(2)}  last=${sm.lastZone ?? "—"}`;
+      }
     }
   }
   requestAnimationFrame(tick);
 }
 
-document.getElementById("startBtn").addEventListener("click",start);
-document.getElementById("againBtn").addEventListener("click",resetAll);
+document.getElementById("startBtn").addEventListener("click", start);
+document.getElementById("againBtn").addEventListener("click", resetAll);
 </script>
 </body>
 </html>
