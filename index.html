@@ -25,7 +25,13 @@
 
   .install-preview {
     display:flex; flex-direction:column; align-items:stretch;
-    width:min(100vw,440px);
+    width:min(calc(100vw - 12px), 520px);
+  }
+  @media (min-width: 480px) {
+    .install-preview { width:min(calc(100vw - 20px), 580px); }
+  }
+  @media (min-width: 720px) {
+    .install-preview { width:min(92vw, 680px); }
   }
 
   /* Video runs for gesture + polaroid capture — never shown to the guest */
@@ -38,7 +44,7 @@
   .stage {
     position:relative;
     width:100%;
-    height:min(92dvh,780px);
+    height:min(94dvh, 900px);
     overflow:hidden;
     display:flex;
     flex-direction:column;
@@ -49,8 +55,8 @@
   /* Top — cross guide + golden backdrop. No selfie feed. */
   .camera-pane {
     position:relative;
-    flex:1 1 54%;
-    min-height:0;
+    flex:1 1 50%;
+    min-height:clamp(280px, 48vh, 520px);
     overflow:hidden;
     background:#0a0806;
     opacity:0;
@@ -70,11 +76,11 @@
   .stage.miracle .cross-bg { opacity:.55; }
 
   .gold-lens-mount {
-    position:absolute; left:50%; top:7%;
+    position:absolute; left:50%; top:6%;
     transform:translateX(-50%);
-    width:min(28%, 108px);
+    width:clamp(96px, 34%, 148px);
     z-index:4; pointer-events:none;
-    filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));
+    filter:drop-shadow(0 8px 22px rgba(0,0,0,.6));
   }
   .gold-lens-mount svg { display:block; width:100%; height:auto; }
 
@@ -93,13 +99,13 @@
     pointer-events:none;
   }
 
-  /* Bottom — Holy Font hardware (vertical arch + gold + stone base) */
+  /* Bottom — Holy Font hardware (wide vertical arch) */
   .font-pane {
     position:relative;
-    flex:0 0 42%;
-    min-height:280px;
+    flex:0 0 clamp(340px, 48%, 460px);
+    min-height:clamp(340px, 46vh, 460px);
     background:linear-gradient(180deg, #080706 0%, #030302 100%);
-    border-top:1px solid rgba(255,220,160,.1);
+    border-top:1px solid rgba(255,220,160,.12);
     box-shadow:inset 0 12px 28px rgba(0,0,0,.55);
     overflow:hidden;
     opacity:0;
@@ -117,6 +123,8 @@
     display:block;
     width:100%;
     height:100%;
+    transform:scale(1.08);
+    transform-origin:center bottom;
   }
   .stage.finale .camera-pane,
   .stage.finale .font-pane {
@@ -858,16 +866,16 @@
             <stop offset="100%" stop-color="rgba(255,210,140,0)"/>
           </radialGradient>
         </defs>
-        <ellipse cx="200" cy="310" rx="150" ry="190" fill="url(#bgHalo)"/>
-        <path fill="none" stroke="url(#bgArchGold)" stroke-width="6" opacity=".55"
-          d="M 72 620 L 72 260 Q 72 120 200 88 Q 328 120 328 260 L 328 620"/>
-        <path fill="none" stroke="rgba(255,240,210,.08)" stroke-width="1.5"
-          d="M 84 610 L 84 268 Q 84 132 200 102 Q 316 132 316 268 L 316 610"/>
-        <g opacity=".38" stroke="url(#bgArchGold)" stroke-width="5" fill="none" stroke-linecap="round">
-          <line x1="200" y1="170" x2="200" y2="520"/>
-          <line x1="108" y1="340" x2="292" y2="340"/>
+        <ellipse cx="200" cy="310" rx="185" ry="220" fill="url(#bgHalo)"/>
+        <path fill="none" stroke="url(#bgArchGold)" stroke-width="9" opacity=".6"
+          d="M 24 680 L 24 180 Q 24 40 200 12 Q 376 40 376 180 L 376 680"/>
+        <path fill="none" stroke="rgba(255,240,210,.1)" stroke-width="2"
+          d="M 38 670 L 38 192 Q 38 58 200 28 Q 362 58 362 192 L 362 670"/>
+        <g opacity=".42" stroke="url(#bgArchGold)" stroke-width="6" fill="none" stroke-linecap="round">
+          <line x1="200" y1="150" x2="200" y2="560"/>
+          <line x1="72" y1="355" x2="328" y2="355"/>
         </g>
-        <circle cx="200" cy="340" r="52" fill="none" stroke="rgba(255,220,160,.08)" stroke-width="1"/>
+        <circle cx="200" cy="355" r="68" fill="none" stroke="rgba(255,220,160,.1)" stroke-width="1.5"/>
       </svg>
       <div class="gold-lens-mount" aria-hidden="true">
         <svg viewBox="0 0 140 108" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -918,7 +926,7 @@
     </div>
 
     <div class="font-pane">
-      <svg class="font-scene" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg class="font-scene" viewBox="0 0 400 340" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <linearGradient id="archGold" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#f8ecc8"/><stop offset="40%" stop-color="#c89848"/>
@@ -965,47 +973,47 @@
             <stop offset="100%" stop-color="#0a0806"/>
           </linearGradient>
         </defs>
-        <rect width="400" height="320" fill="#060504"/>
-        <!-- Stone pedestal base -->
+        <rect width="400" height="340" fill="#060504"/>
+        <!-- Stone pedestal base — wide -->
         <g class="stone-pedestal">
-          <path fill="url(#stoneDark)" d="M108 310 L128 268 L272 268 L292 310 Z"/>
-          <path fill="url(#stoneLight)" d="M88 268 L118 248 L282 248 L312 268 L292 310 L108 310 Z"/>
-          <path fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.2"
-            d="M88 268 L118 248 L282 248 L312 268"/>
-          <ellipse cx="200" cy="312" rx="118" ry="10" fill="rgba(0,0,0,.35)"/>
+          <path fill="url(#stoneDark)" d="M72 328 L96 272 L304 272 L328 328 Z"/>
+          <path fill="url(#stoneLight)" d="M48 272 L88 244 L312 244 L352 272 L328 328 L72 328 Z"/>
+          <path fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.4"
+            d="M48 272 L88 244 L312 244 L352 272"/>
+          <ellipse cx="200" cy="330" rx="148" ry="12" fill="rgba(0,0,0,.4)"/>
         </g>
-        <!-- Original vertical Holy Font -->
-        <path fill="none" stroke="url(#archGold)" stroke-width="8"
-          d="M 48 268 L 48 70 Q 48 18 200 6 Q 352 18 352 70 L 352 268"/>
-        <path fill="none" stroke="rgba(255,240,210,.1)" stroke-width="1.5"
-          d="M 58 263 L 58 78 Q 58 28 200 18 Q 342 28 342 78 L 342 263"/>
-        <circle cx="200" cy="92" r="88" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
+        <!-- Wide spanning arch -->
+        <path fill="none" stroke="url(#archGold)" stroke-width="10"
+          d="M 4 328 L 4 52 Q 4 2 200 0 Q 396 2 396 52 L 396 328"/>
+        <path fill="none" stroke="rgba(255,240,210,.12)" stroke-width="2"
+          d="M 16 322 L 16 62 Q 16 10 200 6 Q 384 10 384 62 L 384 322"/>
+        <circle cx="200" cy="88" r="92" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
         <g id="ledBeads"></g>
-        <circle cx="200" cy="92" r="6" fill="#080604"/>
-        <circle cx="200" cy="92" r="68" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
-        <ellipse cx="172" cy="78" rx="36" ry="24" fill="rgba(255,250,235,.1)" transform="rotate(-15 172 78)"/>
-        <ellipse cx="200" cy="108" rx="8" ry="5" fill="url(#spoutDark)" stroke="rgba(100,200,255,.4)" stroke-width="1"/>
+        <circle cx="200" cy="88" r="6" fill="#080604"/>
+        <circle cx="200" cy="88" r="72" fill="url(#plateGold)" stroke="rgba(255,235,200,.14)" stroke-width="2"/>
+        <ellipse cx="170" cy="72" rx="38" ry="26" fill="rgba(255,250,235,.12)" transform="rotate(-15 170 72)"/>
+        <ellipse cx="200" cy="104" rx="9" ry="6" fill="url(#spoutDark)" stroke="rgba(100,200,255,.45)" stroke-width="1"/>
         <g class="water-fall">
-          <path class="fall-strand" d="M196 108 Q197 168 198 198"/>
-          <path class="fall-strand" d="M200 106 L200 200"/>
-          <path class="fall-strand" d="M204 108 Q203 168 202 198"/>
-          <path class="fall-strand" d="M198 112 Q200 172 201 201"/>
+          <path class="fall-strand" d="M196 104 Q197 168 198 208"/>
+          <path class="fall-strand" d="M200 102 L200 212"/>
+          <path class="fall-strand" d="M204 104 Q203 168 202 208"/>
+          <path class="fall-strand" d="M198 108 Q200 172 201 214"/>
         </g>
         <g id="fontBasin" filter="url(#waterGlow)">
-          <ellipse cx="200" cy="238" rx="88" ry="54" fill="#0a0c10"/>
-          <ellipse class="font-rim" cx="200" cy="232" rx="82" ry="50"/>
-          <ellipse cx="200" cy="222" rx="74" ry="44" fill="url(#waterPool)"/>
-          <ellipse class="water-surface" cx="200" cy="214" rx="64" ry="30" fill="url(#waterHighlight)" opacity=".92"/>
-          <path class="water-wave" d="M136 214 Q168 206 200 214 T264 214"/>
+          <ellipse cx="200" cy="252" rx="108" ry="66" fill="#0a0c10"/>
+          <ellipse class="font-rim" cx="200" cy="244" rx="100" ry="60"/>
+          <ellipse cx="200" cy="232" rx="90" ry="52" fill="url(#waterPool)"/>
+          <ellipse class="water-surface" cx="200" cy="222" rx="78" ry="36" fill="url(#waterHighlight)" opacity=".92"/>
+          <path class="water-wave" d="M122 222 Q160 212 200 222 T278 222"/>
           <g class="water-ripples">
-            <ellipse class="ripple r1" cx="200" cy="216" rx="28" ry="14"/>
-            <ellipse class="ripple r2" cx="200" cy="216" rx="28" ry="14"/>
-            <ellipse class="ripple r3" cx="200" cy="216" rx="28" ry="14"/>
+            <ellipse class="ripple r1" cx="200" cy="224" rx="34" ry="16"/>
+            <ellipse class="ripple r2" cx="200" cy="224" rx="34" ry="16"/>
+            <ellipse class="ripple r3" cx="200" cy="224" rx="34" ry="16"/>
           </g>
           <g class="water-mist">
-            <circle cx="186" cy="210" r="3.2"/>
-            <circle cx="200" cy="206" r="2.8"/>
-            <circle cx="214" cy="211" r="3"/>
+            <circle cx="182" cy="218" r="3.6"/>
+            <circle cx="200" cy="212" r="3.2"/>
+            <circle cx="218" cy="219" r="3.4"/>
           </g>
         </g>
       </svg>
@@ -1285,7 +1293,7 @@ dots.forEach(d => d.addEventListener("click", () => goSlide(Number(d.dataset.dot
 
 const beads = document.getElementById("ledBeads");
 if (beads) {
-  const PLATE = { cx: 200, cy: 92, r: 76 };
+  const PLATE = { cx: 200, cy: 88, r: 80 };
   for (let i = 0; i < 36; i++) {
     const a = (i / 36) * Math.PI * 2 - Math.PI / 2;
     const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -1701,7 +1709,6 @@ async function start() {
     sm.reset();
     resetVis();
     stage.classList.add("awake");
-    playWaterAmbience();
     frameTs = -1;
     requestAnimationFrame(tick);
   } catch (e) {
@@ -1742,7 +1749,6 @@ function resetAll() {
   resetVis();
   hasSmooth = false;
   frameTs = -1;
-  playWaterAmbience();
   run = true;
   requestAnimationFrame(tick);
 }
