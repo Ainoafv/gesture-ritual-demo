@@ -387,53 +387,148 @@
   .stage.miracle .led-bead:nth-child(3n+1) { animation-delay:.36s; }
   @keyframes beadSpark { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
 
-  .portrait {
+  /* Bible finale — Polaroid ejects from concealed Bible (production beat) */
+  .bible-finale {
     position:absolute; inset:0; z-index:31;
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    gap:28px;
+    gap:20px;
+    padding:24px 20px max(28px, env(safe-area-inset-bottom));
     background:#020203;
     opacity:0; pointer-events:none;
-    transition:opacity .65s ease;
+    transition:opacity .7s ease;
   }
-  .portrait.show { opacity:1; pointer-events:auto; }
+  .bible-finale.show { opacity:1; pointer-events:auto; }
+
+  .bible-wrap {
+    position:relative;
+    width:min(78%, 300px);
+    height:210px;
+    perspective:900px;
+  }
+  .bible-book {
+    position:absolute; inset:0;
+    border-radius:6px 12px 12px 6px;
+    background:linear-gradient(135deg, #3d2814 0%, #1a0f08 45%, #2a1810 100%);
+    box-shadow:
+      inset 4px 0 12px rgba(255,220,160,.08),
+      inset -2px 0 8px rgba(0,0,0,.5),
+      0 28px 70px rgba(0,0,0,.75);
+    overflow:hidden;
+  }
+  .bible-book::before {
+    content:"";
+    position:absolute; inset:8px 10px 8px 14px;
+    border-radius:3px 8px 8px 3px;
+    border:1px solid rgba(255,220,160,.12);
+    pointer-events:none;
+  }
+  .bible-book::after {
+    content:"";
+    position:absolute; left:0; top:0; bottom:0; width:14px;
+    background:linear-gradient(90deg, rgba(0,0,0,.45), transparent);
+    border-radius:6px 0 0 6px;
+  }
+  .bible-cross {
+    position:absolute; left:50%; top:42%;
+    transform:translate(-50%, -50%);
+    width:36px; height:36px;
+    opacity:.35;
+  }
+  .bible-cross::before,
+  .bible-cross::after {
+    content:"";
+    position:absolute; background:rgba(255,220,160,.85);
+    border-radius:1px;
+  }
+  .bible-cross::before { left:50%; top:0; width:2px; height:100%; transform:translateX(-50%); }
+  .bible-cross::after { left:0; top:50%; width:100%; height:2px; transform:translateY(-50%); }
+
+  .bible-label {
+    position:absolute; bottom:18px; left:0; right:0;
+    text-align:center;
+    font-family:"Cormorant Garamond",serif;
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:rgba(255,230,190,.28);
+  }
+
+  .bible-slot {
+    position:absolute; left:50%; top:0;
+    transform:translateX(-50%);
+    width:min(52%, 130px);
+    height:18px;
+    background:linear-gradient(180deg, #080604, #120a06);
+    border-radius:0 0 4px 4px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.8);
+    z-index:3;
+  }
+
+  .polaroid-eject {
+    position:absolute;
+    left:50%; top:8px;
+    transform:translateX(-50%) translateY(72%);
+    z-index:2;
+    transition:transform 1.35s cubic-bezier(.22, 1, .28, 1);
+  }
+  .bible-finale.eject .polaroid-eject {
+    transform:translateX(-50%) translateY(-118%);
+  }
+
   .polaroid {
-    background:#e6e0d4;
-    padding:8px 8px 28px;
-    width:min(68%, 210px);
-    box-shadow:0 24px 60px rgba(0,0,0,.65);
-    transform:translateY(12px);
-    opacity:0;
-    transition:opacity .55s ease .1s, transform .55s cubic-bezier(.4,0,.2,1) .1s;
-  }
-  .portrait.show .polaroid {
-    opacity:1;
-    transform:translateY(0);
+    background:#e8e2d6;
+    padding:7px 7px 22px;
+    width:118px;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,.25),
+      0 16px 40px rgba(0,0,0,.45);
+    transform:rotate(-1.5deg);
   }
   .polaroid .shot-wrap {
     width:100%;
     aspect-ratio:10/14;
     overflow:hidden;
     background:#060508;
-    border-radius:1px;
   }
   .polaroid canvas {
     display:block;
     width:100%;
     height:100%;
-    object-fit:cover;
   }
   .polaroid .cap {
     font-family:"Cormorant Garamond",serif;
-    font-size:17px;
+    font-size:14px;
     text-align:center;
-    margin-top:8px;
+    margin-top:7px;
     color:#2a2218;
-    letter-spacing:.04em;
+    letter-spacing:.06em;
   }
-  .portrait .again { position:static; margin-top:4px; }
 
-  /* Hide live scene once the polaroid finale takes over */
+  .bible-caption {
+    font-family:"Cormorant Garamond",serif;
+    font-size:15px;
+    font-style:italic;
+    color:rgba(255,240,210,.45);
+    text-align:center;
+    max-width:280px;
+    line-height:1.5;
+    opacity:0;
+    transform:translateY(8px);
+    transition:opacity .6s ease .9s, transform .6s ease .9s;
+  }
+  .bible-finale.eject .bible-caption {
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  .bible-finale .again {
+    opacity:0;
+    transition:opacity .5s ease 1.2s;
+  }
+  .bible-finale.eject .again { opacity:1; }
+
+  /* Hide live scene once the Bible finale takes over */
   .stage.finale .scene,
   .stage.finale .cross-overlay,
   .stage.finale #miracleWord,
@@ -667,11 +762,21 @@
       </div>
     </div>
 
-    <div class="portrait" id="portrait">
-      <div class="polaroid">
-        <div class="shot-wrap"><canvas id="shot"></canvas></div>
-        <div class="cap">Blessed &#10007;</div>
+    <div class="bible-finale" id="bibleFinale">
+      <div class="bible-wrap">
+        <div class="bible-book">
+          <div class="bible-slot"></div>
+          <div class="bible-cross" aria-hidden="true"></div>
+          <div class="bible-label">Holy Bible</div>
+          <div class="polaroid-eject">
+            <div class="polaroid">
+              <div class="shot-wrap"><canvas id="shot"></canvas></div>
+              <div class="cap">Blessed &#10007;</div>
+            </div>
+          </div>
+        </div>
       </div>
+      <p class="bible-caption">A moment from the Font — printed later, from the Bible.</p>
       <button class="btn ghost again" id="againBtn" type="button">Again</button>
     </div>
   </div>
@@ -824,6 +929,70 @@ function showTimeoutToast() {
   setTimeout(() => timeoutToast.classList.remove("show"), 2800);
 }
 
+function drawMiracleFrame(ctx, w, h) {
+  const cx = w / 2;
+  const cy = h * 0.46;
+  const bg = ctx.createRadialGradient(cx, h * 0.2, 0, cx, cy, h * 0.7);
+  bg.addColorStop(0, "#1c1620");
+  bg.addColorStop(1, "#030303");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.42);
+  halo.addColorStop(0, "rgba(255,210,140,.35)");
+  halo.addColorStop(0.55, "rgba(255,200,120,.12)");
+  halo.addColorStop(1, "rgba(255,200,120,0)");
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(cx, cy, w * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  const plate = ctx.createRadialGradient(cx - w * 0.08, cy - h * 0.06, 0, cx, cy, w * 0.28);
+  plate.addColorStop(0, "#f0dc98");
+  plate.addColorStop(0.55, "#a88040");
+  plate.addColorStop(1, "#2a1c0a");
+  ctx.fillStyle = plate;
+  ctx.beginPath();
+  ctx.arc(cx, cy, w * 0.26, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(255,235,200,.15)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, w * 0.26, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const dots = [
+    [cx, cy - h * 0.18],
+    [cx, cy + h * 0.18],
+    [cx - w * 0.2, cy],
+    [cx + w * 0.2, cy],
+  ];
+  for (const [dx, dy] of dots) {
+    const g = ctx.createRadialGradient(dx, dy, 0, dx, dy, 12);
+    g.addColorStop(0, "#fff8e8");
+    g.addColorStop(1, "#c89848");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(dx, dy, 10, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.strokeStyle = "rgba(255,230,190,.25)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - h * 0.18);
+  ctx.lineTo(cx, cy + h * 0.18);
+  ctx.moveTo(cx - w * 0.2, cy);
+  ctx.lineTo(cx + w * 0.2, cy);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(255,230,190,.9)";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 function captureSceneToPolaroid() {
   const canvas = document.getElementById("shot");
   const ctx = canvas.getContext("2d");
@@ -831,41 +1000,56 @@ function captureSceneToPolaroid() {
   const outH = 560;
   canvas.width = outW;
   canvas.height = outH;
-  ctx.fillStyle = "#060508";
-  ctx.fillRect(0, 0, outW, outH);
 
-  const sceneSvg = document.querySelector("svg.scene");
-  const crossSvg = document.querySelector("svg.cross-overlay");
-  const wrap = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  wrap.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  wrap.setAttribute("viewBox", "0 0 400 720");
-  wrap.innerHTML =
-    sceneSvg.innerHTML +
-    (crossSvg.querySelector("defs")?.outerHTML ?? "") +
-    (crossSvg.querySelector("#crossGuide")?.outerHTML ?? "");
+  return new Promise((resolve) => {
+    const sceneSvg = document.querySelector("svg.scene");
+    const crossSvg = document.querySelector("svg.cross-overlay");
+    const wrap = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    wrap.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    wrap.setAttribute("viewBox", "0 0 400 720");
+    wrap.innerHTML =
+      sceneSvg.innerHTML +
+      (crossSvg.querySelector("defs")?.outerHTML ?? "") +
+      (crossSvg.querySelector("#crossGuide")?.outerHTML ?? "");
 
-  const blob = new Blob([new XMLSerializer().serializeToString(wrap)], { type: "image/svg+xml" });
-  const url = URL.createObjectURL(blob);
-  const img = new Image();
-  img.onload = () => {
-    const aspect = 400 / 720;
-    const targetAspect = outW / outH;
-    let dw, dh, dx, dy;
-    if (aspect > targetAspect) {
-      dh = outH;
-      dw = outH * aspect;
-      dx = (outW - dw) / 2;
-      dy = 0;
-    } else {
-      dw = outW;
-      dh = outW / aspect;
-      dx = 0;
-      dy = (outH - dh) / 2;
-    }
-    ctx.drawImage(img, dx, dy, dw, dh);
-    URL.revokeObjectURL(url);
-  };
-  img.src = url;
+    const svgText = new XMLSerializer().serializeToString(wrap);
+    const img = new Image();
+    let settled = false;
+    const done = (ok) => {
+      if (settled) return;
+      settled = true;
+      if (!ok) drawMiracleFrame(ctx, outW, outH);
+      resolve();
+    };
+    img.onload = () => {
+      try {
+        const aspect = 400 / 720;
+        const targetAspect = outW / outH;
+        let dw, dh, dx, dy;
+        if (aspect > targetAspect) {
+          dh = outH; dw = outH * aspect; dx = (outW - dw) / 2; dy = 0;
+        } else {
+          dw = outW; dh = outW / aspect; dx = 0; dy = (outH - dh) / 2;
+        }
+        ctx.drawImage(img, dx, dy, dw, dh);
+        done(true);
+      } catch {
+        done(false);
+      }
+    };
+    img.onerror = () => done(false);
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+    setTimeout(() => done(false), 1400);
+  });
+}
+
+function showBibleFinale() {
+  stage.classList.add("finale");
+  const bible = document.getElementById("bibleFinale");
+  bible.classList.add("show");
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => bible.classList.add("eject"));
+  });
 }
 
 function resetVis() {
@@ -951,15 +1135,14 @@ function celebrate() {
   stage.classList.add("miracle");
   document.querySelectorAll(".led-bead").forEach(b => b.classList.add("on"));
   miracleWord.classList.add("show");
-  captureSceneToPolaroid();
-  setTimeout(() => {
-    stage.classList.add("finale");
-    document.getElementById("portrait").classList.add("show");
-  }, 2200);
+  captureSceneToPolaroid().then(() => {
+    setTimeout(showBibleFinale, 2200);
+  });
 }
 
 function resetAll() {
-  document.getElementById("portrait").classList.remove("show");
+  const bible = document.getElementById("bibleFinale");
+  bible.classList.remove("show", "eject");
   stage.classList.remove("finale");
   miracleWord.classList.remove("show");
   celeb = false;
