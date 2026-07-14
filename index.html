@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Gesture Ritual — Live Demo</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<title>The Holy Font — Gesture Preview · The QU4RTER</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
     --bg:#020203;
     --ink:#f1eadc;
     --mute:rgba(241,234,220,.55);
+    --gold:rgba(255,220,160,1);
+    --gold-dim:rgba(255,220,160,.35);
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
@@ -20,7 +22,6 @@
     color:var(--ink);
     font-family:Inter,system-ui,sans-serif;
   }
-  /* Full-resolution hidden feed — 1×1 breaks MediaPipe on Safari/Chrome */
   #video {
     position:fixed; inset:0; width:100%; height:100%;
     object-fit:cover; opacity:0; pointer-events:none; z-index:-1;
@@ -33,14 +34,31 @@
   }
   .scene { width:100%; height:100%; display:block; }
 
-  .cross-overlay {
-    position:absolute; inset:0; z-index:12; pointer-events:none;
+  .brand-bar {
+    position:absolute; top:0; left:0; right:0; z-index:18;
+    padding:max(14px, env(safe-area-inset-top)) 20px 10px;
+    text-align:center;
+    pointer-events:none;
+    background:linear-gradient(180deg, rgba(0,0,0,.55) 0%, transparent 100%);
   }
+  .brand-bar .org {
+    font:500 9px Inter,sans-serif;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:rgba(255,235,200,.45);
+  }
+  .brand-bar .title {
+    font-family:"Cormorant Garamond",serif;
+    font-size:15px;
+    font-weight:500;
+    color:rgba(255,245,230,.7);
+    margin-top:4px;
+    letter-spacing:.04em;
+  }
+
+  .cross-overlay { position:absolute; inset:0; z-index:12; pointer-events:none; }
   .cross-stem {
-    stroke:rgba(255,230,190,.14);
-    stroke-width:2.5;
-    fill:none;
-    stroke-linecap:round;
+    stroke:rgba(255,230,190,.14); stroke-width:2.5; fill:none; stroke-linecap:round;
   }
   .gesture-dot {
     fill:rgba(255,220,160,.22);
@@ -54,22 +72,14 @@
     animation:dotPulse 1.6s ease-in-out infinite;
   }
   .gesture-dot.lit {
-    fill:#fff8e8;
-    stroke:#f0d070;
-    filter:url(#dotGlow);
-    animation:none;
+    fill:#fff8e8; stroke:#f0d070; filter:url(#dotGlow); animation:none;
   }
   .gesture-dot.flash { animation:dotFlash .55s ease-out; }
-  @keyframes dotPulse {
-    0%, 100% { opacity:.75; }
-    50% { opacity:1; }
-  }
-  @keyframes dotFlash {
-    40% { filter:url(#dotBurst); }
-  }
+  @keyframes dotPulse { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
+  @keyframes dotFlash { 40% { filter:url(#dotBurst); } }
 
   #miracleWord {
-    position:absolute; left:0; right:0; top:12%; z-index:20;
+    position:absolute; left:0; right:0; top:14%; z-index:20;
     text-align:center; pointer-events:none; opacity:0;
     font-family:"Cormorant Garamond",serif;
     font-size:clamp(38px,10vw,56px);
@@ -90,79 +100,217 @@
   }
   #miracleWord.show { opacity:1; }
 
+  /* Live step cue during ritual */
+  #stepCue {
+    position:absolute; left:20px; right:20px; bottom:max(18px, env(safe-area-inset-bottom));
+    z-index:16; pointer-events:none; opacity:0;
+    transition:opacity .4s ease;
+    text-align:center;
+  }
+  #stepCue.show { opacity:1; }
+  #stepCue .cue-pill {
+    display:inline-flex; align-items:center; gap:10px;
+    padding:10px 16px;
+    border-radius:999px;
+    background:rgba(0,0,0,.5);
+    border:1px solid rgba(255,235,200,.1);
+    backdrop-filter:blur(8px);
+    font-size:12px;
+    color:rgba(255,240,210,.85);
+  }
+  #stepCue .cue-num {
+    font:600 10px Inter,sans-serif;
+    letter-spacing:.08em;
+    color:rgba(255,220,160,.65);
+    min-width:28px;
+  }
+  #stepCue .cue-label {
+    font-family:"Cormorant Garamond",serif;
+    font-size:17px;
+    font-weight:500;
+  }
+
+  #progressRail {
+    position:absolute; left:50%; bottom:max(62px, calc(env(safe-area-inset-bottom) + 44px));
+    transform:translateX(-50%);
+    z-index:16; display:flex; gap:8px; pointer-events:none; opacity:0;
+    transition:opacity .4s ease;
+  }
+  #progressRail.show { opacity:1; }
+  #progressRail span {
+    width:28px; height:2px; border-radius:1px;
+    background:rgba(255,235,200,.15);
+    transition:background .4s ease, box-shadow .4s ease;
+  }
+  #progressRail span.done { background:rgba(255,220,160,.55); }
+  #progressRail span.active {
+    background:var(--gold);
+    box-shadow:0 0 12px rgba(255,210,140,.5);
+  }
+
+  #timeoutToast {
+    position:absolute; top:22%; left:20px; right:20px; z-index:22;
+    text-align:center; pointer-events:none; opacity:0;
+    transition:opacity .35s ease;
+    font-size:12px; color:rgba(255,230,200,.75);
+    padding:10px 14px;
+    border-radius:8px;
+    background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,235,200,.08);
+  }
+  #timeoutToast.show { opacity:1; }
+
+  /* Intro carousel */
   .cover {
     position:absolute; inset:0; z-index:30;
-    display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
-    padding:0 28px max(36px, env(safe-area-inset-bottom));
-    background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,.92) 100%);
+    display:flex; flex-direction:column;
+    background:#050504;
     text-align:center;
   }
   .cover.hidden { display:none; }
-  .cover-lead {
+  .cover-top {
+    padding:max(18px, env(safe-area-inset-top)) 24px 0;
+    flex-shrink:0;
+  }
+  .cover-top .org {
+    font:500 9px Inter,sans-serif;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color:rgba(255,235,200,.42);
+  }
+  .cover-top .preview-tag {
+    display:inline-block;
+    margin-top:10px;
+    font:500 9px Inter,sans-serif;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:rgba(255,220,160,.55);
+    border:1px solid rgba(255,220,160,.18);
+    padding:4px 10px;
+    border-radius:999px;
+  }
+
+  .carousel {
+    flex:1; display:flex; flex-direction:column;
+    justify-content:center;
+    padding:20px 28px;
+    min-height:0;
+  }
+  .carousel-track {
+    position:relative; flex:1;
+    display:flex; align-items:center; justify-content:center;
+    min-height:280px;
+  }
+  .slide {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:0 8px;
+    opacity:0; transform:translateX(24px);
+    pointer-events:none;
+    transition:opacity .45s ease, transform .45s ease;
+  }
+  .slide.active {
+    opacity:1; transform:translateX(0); pointer-events:auto;
+  }
+  .slide.leave { opacity:0; transform:translateX(-24px); }
+
+  .slide-icon {
+    width:88px; height:88px;
+    margin-bottom:22px;
+    color:rgba(255,220,160,.7);
+  }
+  .slide h2 {
     font-family:"Cormorant Garamond",serif;
-    font-size:22px;
+    font-size:clamp(26px,6vw,32px);
     font-weight:600;
-    color:rgba(255,245,230,.92);
+    color:rgba(255,245,230,.95);
     margin-bottom:12px;
     letter-spacing:.02em;
+    line-height:1.15;
   }
-  .cover-steps {
-    list-style:none;
-    text-align:left;
-    max-width:300px;
-    margin:0 auto 14px;
-    padding:0;
-  }
-  .cover-steps li {
+  .slide p {
     color:var(--mute);
-    font-size:12.5px;
-    line-height:1.55;
-    padding:6px 0 6px 18px;
-    position:relative;
-  }
-  .cover-steps li::before {
-    content:"";
-    position:absolute;
-    left:0;
-    top:12px;
-    width:6px;
-    height:6px;
-    border-radius:50%;
-    background:rgba(255,220,160,.45);
-  }
-  .cover-steps strong { color:rgba(255,240,210,.85); font-weight:500; }
-  .cover-note {
-    color:rgba(241,234,220,.38);
-    font-size:11px;
-    line-height:1.55;
+    font-size:13px;
+    line-height:1.65;
     max-width:300px;
-    margin:0 auto 18px;
-    font-style:italic;
   }
-  .cover p {
+  .slide p em { color:rgba(255,240,210,.7); font-style:normal; font-weight:500; }
+
+  .mini-cross {
+    margin:8px 0 20px;
+  }
+  .mini-cross svg { display:block; margin:0 auto; }
+
+  .step-list {
+    list-style:none; text-align:left; max-width:280px; margin-top:8px;
+  }
+  .step-list li {
+    display:flex; align-items:baseline; gap:12px;
+    padding:7px 0;
+    font-size:12.5px;
     color:var(--mute);
-    font-size:12.5px;
-    line-height:1.6;
-    max-width:300px;
-    margin-bottom:16px;
+    border-bottom:1px solid rgba(255,235,200,.06);
+  }
+  .step-list li:last-child { border-bottom:none; }
+  .step-list .n {
+    font:600 10px Inter,sans-serif;
+    color:rgba(255,220,160,.55);
+    letter-spacing:.06em;
+    min-width:18px;
+  }
+  .step-list strong { color:rgba(255,240,210,.82); font-weight:500; }
+
+  .carousel-dots {
+    display:flex; justify-content:center; gap:8px;
+    padding:16px 0 8px;
+    flex-shrink:0;
+  }
+  .carousel-dots button {
+    width:6px; height:6px; border-radius:50%;
+    border:none; padding:0;
+    background:rgba(255,235,200,.18);
+    cursor:pointer;
+    transition:background .3s ease, transform .3s ease;
+  }
+  .carousel-dots button.active {
+    background:rgba(255,220,160,.85);
+    transform:scale(1.25);
+  }
+
+  .cover-actions {
+    padding:8px 28px max(28px, env(safe-area-inset-bottom));
+    display:flex; gap:10px; justify-content:center; align-items:center;
+    flex-shrink:0;
   }
   .btn {
-    font:500 12px Inter,sans-serif;
+    font:500 11px Inter,sans-serif;
     letter-spacing:.12em;
     text-transform:uppercase;
     background:linear-gradient(180deg, rgba(255,235,200,.98), rgba(226,182,110,.92));
     color:#120e08;
     border:none;
-    padding:12px 28px;
+    padding:13px 26px;
     cursor:pointer;
+    min-width:120px;
   }
   .btn.ghost {
     background:transparent;
-    color:rgba(255,235,200,.8);
-    border:1px solid rgba(255,235,200,.18);
-    padding:10px 20px;
-    font-size:11px;
+    color:rgba(255,235,200,.75);
+    border:1px solid rgba(255,235,200,.16);
+    padding:12px 18px;
+    min-width:auto;
   }
+  .btn:disabled { opacity:.4; cursor:default; }
+
+  .cover-foot {
+    padding:0 28px 12px;
+    font-size:10px;
+    color:rgba(241,234,220,.28);
+    line-height:1.5;
+    flex-shrink:0;
+  }
+
   .spinner {
     width:18px; height:18px;
     border:1px solid rgba(255,235,200,.18);
@@ -176,22 +324,16 @@
   .led-fill { opacity:.22; transition:opacity .8s ease, filter .8s ease; }
   .stage.awake .led-fill { opacity:.42; }
   .stage.miracle .led-fill {
-    opacity:1;
-    filter:url(#ledBright);
+    opacity:1; filter:url(#ledBright);
     animation:ledPulse 4.2s ease-in-out forwards;
   }
   .stage.miracle #miracleWord .pill {
     border-color:rgba(255,235,200,.22);
-    box-shadow:
-      0 14px 55px rgba(0,0,0,.45),
-      0 0 28px rgba(255,210,140,.45),
+    box-shadow:0 14px 55px rgba(0,0,0,.45), 0 0 28px rgba(255,210,140,.45),
       inset 0 0 18px rgba(255,230,180,.16);
   }
   @keyframes ledPulse {
-    0% { opacity:.25; }
-    25% { opacity:1; }
-    55% { opacity:1; }
-    100% { opacity:.5; }
+    0% { opacity:.25; } 25% { opacity:1; } 55% { opacity:1; } 100% { opacity:.5; }
   }
   .led-bead { fill:rgba(255,215,150,.12); transition:fill .6s ease, filter .6s ease, opacity .6s ease; opacity:.75; }
   .stage.awake .led-bead { fill:rgba(255,220,160,.28); filter:url(#ledSoft); opacity:.9; }
@@ -201,7 +343,8 @@
   @keyframes beadSpark { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
 
   .portrait {
-    position:absolute; inset:0; z-index:31; display:flex; align-items:center; justify-content:center;
+    position:absolute; inset:0; z-index:31;
+    display:flex; align-items:center; justify-content:center;
     background:rgba(0,0,0,.94); opacity:0; pointer-events:none; transition:opacity .55s;
   }
   .portrait.show { opacity:1; pointer-events:auto; }
@@ -217,8 +360,7 @@
     border:1px solid rgba(255,235,200,.12);
     padding:8px 10px;
     backdrop-filter:blur(6px);
-    display:none;
-    white-space:pre-line;
+    display:none; white-space:pre-line;
   }
   #debugHud.on { display:block; }
 </style>
@@ -226,6 +368,11 @@
 <body>
   <div class="stage" id="stage">
     <video id="video" playsinline muted></video>
+
+    <div class="brand-bar" id="brandBar">
+      <div class="org">The QU4RTER</div>
+      <div class="title">The Holy Font · Gesture Preview</div>
+    </div>
 
     <svg class="scene" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -249,7 +396,6 @@
         <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       </defs>
-
       <rect width="400" height="720" fill="url(#bgNight)"/>
       <ellipse cx="200" cy="360" rx="130" ry="170" fill="rgba(255,248,240,.04)"/>
       <path fill="none" stroke="url(#archGold)" stroke-width="10"
@@ -260,19 +406,15 @@
         d="M55 520 Q48 420 55 320 Q62 220 55 120"/>
       <path fill="none" stroke="url(#archGold)" stroke-width="6" opacity=".5"
         d="M345 520 Q352 420 345 320 Q338 220 345 120"/>
-
       <circle cx="200" cy="360" r="168" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
       <g id="ledBeads"></g>
-
       <circle cx="200" cy="360" r="8" fill="#080604"/>
       <circle cx="200" cy="360" r="132" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
       <ellipse cx="168" cy="328" rx="48" ry="34" fill="rgba(255,250,235,.12)" transform="rotate(-15 168 328)"/>
-
       <ellipse cx="200" cy="410" rx="58" ry="36" fill="#0a0806"/>
       <ellipse cx="200" cy="404" rx="46" ry="28" fill="#1a140c" stroke="rgba(255,230,200,.06)" stroke-width="1"/>
     </svg>
 
-    <!-- Four target dots on a crucifix — matches 3×3 detection grid -->
     <svg class="cross-overlay" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs>
         <filter id="dotGlow">
@@ -300,40 +442,130 @@
     </svg>
 
     <p id="miracleWord"><span class="pill">The font is awake.</span></p>
+    <div id="timeoutToast">Gesture paused — take your time and try again.</div>
+
+    <div id="progressRail" aria-hidden="true">
+      <span data-i="0"></span><span data-i="1"></span><span data-i="2"></span><span data-i="3"></span>
+    </div>
+    <div id="stepCue">
+      <div class="cue-pill">
+        <span class="cue-num" id="cueNum">1 / 4</span>
+        <span class="cue-label" id="cueLabel">Reach up</span>
+      </div>
+    </div>
+
     <div id="debugHud"></div>
 
     <div class="cover" id="cover">
-      <div id="coverContent">
-        <p class="cover-lead">Before you begin</p>
-        <ul class="cover-steps">
-          <li>Stand about <strong>arm's length</strong> from the screen</li>
-          <li>Keep your hand at <strong>chest height</strong> — where you'd naturally trace the cross</li>
-          <li>Allow the camera, then reach each glowing dot: <strong>top → bottom → left → right</strong></li>
-        </ul>
-        <p class="cover-note">This preview uses your webcam. At the Holy Font, touch points will be set to the mounted camera and where guests stand on site.</p>
-        <button class="btn" id="startBtn">Begin</button>
+      <div class="cover-top">
+        <div class="org">The QU4RTER</div>
+        <div class="preview-tag">Confidential preview · M2</div>
       </div>
+
+      <div class="carousel" id="carousel">
+        <div class="carousel-track">
+          <section class="slide active" data-slide="0">
+            <svg class="slide-icon" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="44" cy="44" r="40" stroke="currentColor" stroke-width="1" opacity=".35"/>
+              <path d="M44 18v52M26 44h36" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+              <circle cx="44" cy="18" r="4" fill="currentColor"/><circle cx="44" cy="70" r="4" fill="currentColor"/>
+              <circle cx="26" cy="44" r="4" fill="currentColor"/><circle cx="62" cy="44" r="4" fill="currentColor"/>
+            </svg>
+            <h2>The Holy Font</h2>
+            <p>A private preview of the guest gesture — trace the sign of the cross in the air to awaken the font.</p>
+          </section>
+
+          <section class="slide" data-slide="1">
+            <svg class="slide-icon" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="30" y="12" width="28" height="40" rx="4" stroke="currentColor" stroke-width="1.5" opacity=".5"/>
+              <circle cx="44" cy="62" r="10" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M20 72h48" stroke="currentColor" stroke-width="1" opacity=".35"/>
+              <path d="M58 48c8-4 14-2 18 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="76" cy="52" r="5" fill="currentColor" opacity=".6"/>
+            </svg>
+            <h2>Your position</h2>
+            <p>Stand about <em>arm's length</em> from the screen. Keep your signing hand at <em>chest height</em> — where you'd naturally trace the cross.</p>
+          </section>
+
+          <section class="slide" data-slide="2">
+            <div class="mini-cross">
+              <svg width="72" height="96" viewBox="0 0 72 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <line x1="36" y1="8" x2="36" y2="88" stroke="rgba(255,230,190,.25)" stroke-width="2"/>
+                <line x1="8" y1="48" x2="64" y2="48" stroke="rgba(255,230,190,.25)" stroke-width="2"/>
+                <circle cx="36" cy="8" r="6" fill="rgba(255,220,160,.55)"/>
+                <circle cx="36" cy="88" r="6" fill="rgba(255,220,160,.25)"/>
+                <circle cx="8" cy="48" r="6" fill="rgba(255,220,160,.25)"/>
+                <circle cx="64" cy="48" r="6" fill="rgba(255,220,160,.25)"/>
+              </svg>
+            </div>
+            <h2>The four touches</h2>
+            <ul class="step-list">
+              <li><span class="n">1</span> <strong>Up</strong> — heaven</li>
+              <li><span class="n">2</span> <strong>Down</strong> — earth</li>
+              <li><span class="n">3</span> <strong>Left</strong> — across your chest</li>
+              <li><span class="n">4</span> <strong>Right</strong> — complete the sign</li>
+            </ul>
+          </section>
+
+          <section class="slide" data-slide="3">
+            <svg class="slide-icon" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="44" cy="44" r="28" stroke="currentColor" stroke-width="1.5" opacity=".45"/>
+              <circle cx="44" cy="44" r="6" fill="currentColor" opacity=".5"/>
+              <path d="M44 16v-6M44 78v6M16 44h-6M78 44h6" stroke="currentColor" stroke-width="1" opacity=".3"/>
+            </svg>
+            <h2>On site</h2>
+            <p>This preview uses your webcam. At the rooftop Font, touch points will be <em>calibrated to the mounted camera</em> and where guests stand — typically a 15-minute remote setup once hardware is installed.</p>
+          </section>
+
+          <section class="slide" data-slide="4">
+            <svg class="slide-icon" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="44" cy="44" r="32" stroke="currentColor" stroke-width="1.5" opacity=".4"/>
+              <path d="M32 44l8 8 16-16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h2>Ready when you are</h2>
+            <p>Allow the camera when prompted. Each glowing dot will light as you reach it. On-site, guests sign <em>without</em> seeing the dots — the ritual stays invisible.</p>
+          </section>
+        </div>
+
+        <div class="carousel-dots" id="carouselDots">
+          <button type="button" aria-label="Slide 1" data-dot="0" class="active"></button>
+          <button type="button" aria-label="Slide 2" data-dot="1"></button>
+          <button type="button" aria-label="Slide 3" data-dot="2"></button>
+          <button type="button" aria-label="Slide 4" data-dot="3"></button>
+          <button type="button" aria-label="Slide 5" data-dot="4"></button>
+        </div>
+      </div>
+
+      <div class="cover-actions">
+        <button class="btn ghost" id="prevBtn" type="button" disabled>Back</button>
+        <button class="btn" id="nextBtn" type="button">Next</button>
+      </div>
+      <p class="cover-foot">Gesture engine prototype · Built by Ainoa Figueroa · Confidential</p>
     </div>
 
     <div class="portrait" id="portrait">
       <div class="polaroid"><canvas id="shot"></canvas><div class="cap">Blessed &#10007;</div></div>
-      <button class="btn ghost again" id="againBtn">Again</button>
+      <button class="btn ghost again" id="againBtn" type="button">Again</button>
     </div>
   </div>
 
 <script type="module">
 import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
-// Production uses config/zones.json (calibrated on-site). Webcam demo uses wider
-// forgiving targets — guests won't stand at a fixed distance from a laptop.
 const TARGETS = {
-  "2": { x: 0.18, y: 0.00, w: 0.64, h: 0.44 }, // heaven — wide top band
-  "0": { x: 0.18, y: 0.56, w: 0.64, h: 0.44 }, // earth — wide bottom band
-  "4": { x: 0.00, y: 0.18, w: 0.50, h: 0.64 }, // left — tall left band
-  "6": { x: 0.50, y: 0.18, w: 0.50, h: 0.64 }, // right — tall right band
+  "2": { x: 0.18, y: 0.00, w: 0.64, h: 0.44 },
+  "0": { x: 0.18, y: 0.56, w: 0.64, h: 0.44 },
+  "4": { x: 0.00, y: 0.18, w: 0.50, h: 0.64 },
+  "6": { x: 0.50, y: 0.18, w: 0.50, h: 0.64 },
 };
 const SEQUENCE = ["2", "0", "4", "6"];
 const DOTS = ["dotHeaven", "dotEarth", "dotLeft", "dotRight"];
+const STEP_CUES = [
+  { label: "Reach up", sub: "Heaven" },
+  { label: "Reach down", sub: "Earth" },
+  { label: "Sweep left", sub: "Across" },
+  { label: "Sweep right", sub: "Complete" },
+];
 const WINDOW_MS = 10000;
 const PALM = [0, 5, 9, 17];
 const SMOOTH = 0.45;
@@ -345,9 +577,7 @@ function inTarget(name, x, y) {
   const t = TARGETS[name];
   return x >= t.x && x < t.x + t.w && y >= t.y && y < t.y + t.h;
 }
-
 function zoneAt(x, y, expected) {
-  // Prefer the step we're waiting for — avoids sticky overlap between bands.
   if (expected && inTarget(expected, x, y)) return expected;
   for (const name of SEQUENCE) {
     if (inTarget(name, x, y)) return name;
@@ -355,13 +585,9 @@ function zoneAt(x, y, expected) {
   return null;
 }
 
-/** Boundary-entry state machine — mirrors holy-font/src/state_machine.py */
 class SM {
   reset() {
-    this.step = 0;
-    this.t0 = null;
-    this.lastZone = null;
-    this.state = "IDLE";
+    this.step = 0; this.t0 = null; this.lastZone = null; this.state = "IDLE";
   }
   constructor() { this.reset(); }
   get exp() { return this.step < 4 ? SEQUENCE[this.step] : null; }
@@ -375,23 +601,46 @@ class SM {
     if (!entered || entered !== this.exp) {
       return { done: false, advance: false, reset: false };
     }
-    if (this.step === 0) {
-      this.t0 = now;
-      this.state = "IN_PROGRESS";
-    }
+    if (this.step === 0) { this.t0 = now; this.state = "IN_PROGRESS"; }
     this.step++;
     return { done: this.step >= 4, advance: true, reset: false };
   }
 }
 
+/* Carousel */
+let slideIdx = 0;
+const slides = [...document.querySelectorAll(".slide")];
+const dots = [...document.querySelectorAll("#carouselDots button")];
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const LAST = slides.length - 1;
+
+function goSlide(i) {
+  if (i < 0 || i > LAST || i === slideIdx) return;
+  slides[slideIdx].classList.remove("active");
+  slides[slideIdx].classList.add("leave");
+  setTimeout(() => slides[slideIdx].classList.remove("leave"), 450);
+  slideIdx = i;
+  slides[slideIdx].classList.add("active");
+  dots.forEach((d, j) => d.classList.toggle("active", j === slideIdx));
+  prevBtn.disabled = slideIdx === 0;
+  nextBtn.textContent = slideIdx === LAST ? "Begin" : "Next";
+}
+
+prevBtn.addEventListener("click", () => goSlide(slideIdx - 1));
+nextBtn.addEventListener("click", () => {
+  if (slideIdx === LAST) start();
+  else goSlide(slideIdx + 1);
+});
+dots.forEach(d => d.addEventListener("click", () => goSlide(Number(d.dataset.dot))));
+
 const beads = document.getElementById("ledBeads");
-const CX = 200, CY = 360, R = 162, N = 36;
-for (let i = 0; i < N; i++) {
-  const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+for (let i = 0; i < 36; i++) {
+  const a = (i / 36) * Math.PI * 2 - Math.PI / 2;
   const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   c.setAttribute("class", "led-bead");
-  c.setAttribute("cx", CX + R * Math.cos(a));
-  c.setAttribute("cy", CY + R * Math.sin(a));
+  c.setAttribute("cx", 200 + 162 * Math.cos(a));
+  c.setAttribute("cy", 360 + 162 * Math.sin(a));
   c.setAttribute("r", i % 3 === 0 ? 3.2 : 2.2);
   beads.appendChild(c);
 }
@@ -399,11 +648,35 @@ for (let i = 0; i < N; i++) {
 const stage = document.getElementById("stage");
 const video = document.getElementById("video");
 const cover = document.getElementById("cover");
-const coverContent = document.getElementById("coverContent");
 const miracleWord = document.getElementById("miracleWord");
+const stepCue = document.getElementById("stepCue");
+const cueNum = document.getElementById("cueNum");
+const cueLabel = document.getElementById("cueLabel");
+const progressRail = document.getElementById("progressRail");
+const progressSpans = [...progressRail.querySelectorAll("span")];
+const timeoutToast = document.getElementById("timeoutToast");
 const sm = new SM();
-let lm, run = false, celeb = false, frameTs = -1;
+let lm = null, modelLoading = null, run = false, celeb = false, frameTs = -1;
 let sx = 0.5, sy = 0.5, hasSmooth = false;
+
+function updateProgressUI() {
+  const i = sm.step;
+  progressSpans.forEach((s, j) => {
+    s.classList.toggle("done", j < i);
+    s.classList.toggle("active", j === i && !celeb);
+  });
+  if (celeb || !run) {
+    stepCue.classList.remove("show");
+    progressRail.classList.remove("show");
+    return;
+  }
+  stepCue.classList.add("show");
+  progressRail.classList.add("show");
+  if (i < 4) {
+    cueNum.textContent = `${i + 1} / 4`;
+    cueLabel.textContent = STEP_CUES[i].label;
+  }
+}
 
 function updateDotHints() {
   DOTS.forEach((id, i) => {
@@ -412,35 +685,32 @@ function updateDotHints() {
     if (i < sm.step) el.classList.add("lit");
     else if (i === sm.step && !celeb) el.classList.add("next");
   });
+  updateProgressUI();
+}
+
+function showTimeoutToast() {
+  timeoutToast.classList.add("show");
+  setTimeout(() => timeoutToast.classList.remove("show"), 2800);
 }
 
 function captureSceneToPolaroid() {
   const canvas = document.getElementById("shot");
   const ctx = canvas.getContext("2d");
-  const stageEl = document.getElementById("stage");
-  const w = stageEl.clientWidth;
-  const h = stageEl.clientHeight;
+  const w = stage.clientWidth, h = stage.clientHeight;
   canvas.width = Math.max(320, Math.floor(w * 2));
   canvas.height = Math.max(320, Math.floor(h * 2));
   ctx.fillStyle = "#060508";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   const svg = document.querySelector("svg.scene");
-  const data = new XMLSerializer().serializeToString(svg);
-  const blob = new Blob([data], { type: "image/svg+xml" });
+  const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" });
   const url = URL.createObjectURL(blob);
   const img = new Image();
-  img.onload = () => {
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    URL.revokeObjectURL(url);
-  };
+  img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); URL.revokeObjectURL(url); };
   img.src = url;
 }
 
 function resetVis() {
-  DOTS.forEach(id => {
-    const el = document.getElementById(id);
-    el.classList.remove("lit", "flash");
-  });
+  DOTS.forEach(id => document.getElementById(id).classList.remove("lit", "flash"));
   stage.classList.remove("miracle");
   stage.classList.add("awake");
   document.querySelectorAll(".led-bead").forEach(b => b.classList.remove("on"));
@@ -459,37 +729,39 @@ function lightStep(n) {
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 async function loadModel() {
-  coverContent.innerHTML = '<div class="spinner"></div><p style="color:var(--mute);font-size:11px;margin-top:8px">Loading vision model…</p>';
-  const wasm = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
-  const baseOptions = {
-    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-  };
-  const opts = {
-    runningMode: "VIDEO",
-    numHands: 1,
-    minHandDetectionConfidence: 0.5,
-    minHandPresenceConfidence: 0.5,
-    minTrackingConfidence: 0.5,
-  };
-  const delegates = isSafari ? ["CPU", "GPU"] : ["GPU", "CPU"];
-  let lastErr;
-  for (const delegate of delegates) {
-    try {
-      lm = await HandLandmarker.createFromOptions(wasm, {
-        baseOptions: { ...baseOptions, delegate },
-        ...opts,
-      });
-      return;
-    } catch (e) {
-      lastErr = e;
+  if (lm) return lm;
+  if (modelLoading) return modelLoading;
+  modelLoading = (async () => {
+    const wasm = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+    const base = {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+    };
+    const opts = {
+      runningMode: "VIDEO", numHands: 1,
+      minHandDetectionConfidence: 0.5,
+      minHandPresenceConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    };
+    for (const delegate of (isSafari ? ["CPU", "GPU"] : ["GPU", "CPU"])) {
+      try {
+        lm = await HandLandmarker.createFromOptions(wasm, {
+          baseOptions: { ...base, delegate }, ...opts,
+        });
+        return lm;
+      } catch (_) { /* try next delegate */ }
     }
-  }
-  throw lastErr ?? new Error("Could not load hand model");
+    throw new Error("Could not load hand model");
+  })();
+  return modelLoading;
 }
 
+loadModel().catch(() => {});
+
 async function start() {
+  nextBtn.disabled = true;
+  nextBtn.textContent = "Loading…";
   try {
-    if (!lm) await loadModel();
+    await loadModel();
     video.srcObject = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
       audio: false,
@@ -503,8 +775,9 @@ async function start() {
     frameTs = -1;
     requestAnimationFrame(tick);
   } catch (e) {
-    coverContent.innerHTML = `<p style="color:#b89090;font-size:11px;line-height:1.5">${e.message}</p><button class="btn" id="r">Retry</button>`;
-    document.getElementById("r")?.addEventListener("click", () => location.reload());
+    alert(e.message || "Camera access failed. Please allow the camera and try again.");
+    nextBtn.disabled = false;
+    nextBtn.textContent = "Begin";
   }
 }
 
@@ -512,6 +785,8 @@ function celebrate() {
   celeb = true;
   run = false;
   DOTS.forEach(id => document.getElementById(id).classList.add("lit"));
+  progressSpans.forEach(s => { s.classList.add("done"); s.classList.remove("active"); });
+  stepCue.classList.remove("show");
   stage.classList.remove("awake");
   stage.classList.add("miracle");
   document.querySelectorAll(".led-bead").forEach(b => b.classList.add("on"));
@@ -558,21 +833,20 @@ function tick() {
         result = sm.upd(null, ts);
       }
 
-      if (result.reset) resetVis();
+      if (result.reset) { resetVis(); showTimeoutToast(); }
       if (result.advance) lightStep(sm.step);
       if (result.done) celebrate();
 
       if (DEBUG) {
         debugHud.textContent =
           `zone=${zone ?? "—"}  step=${sm.step}/4  next=${sm.exp ?? "—"}\n` +
-          `x=${sx.toFixed(2)} y=${sy.toFixed(2)}  last=${sm.lastZone ?? "—"}`;
+          `x=${sx.toFixed(2)} y=${sy.toFixed(2)}`;
       }
     }
   }
   requestAnimationFrame(tick);
 }
 
-document.getElementById("startBtn").addEventListener("click", start);
 document.getElementById("againBtn").addEventListener("click", resetAll);
 </script>
 </body>
