@@ -389,13 +389,66 @@
   .stage.miracle .led-bead:nth-child(3n+1) { animation-delay:.36s; }
   @keyframes beadSpark { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
 
-  /* Bible finale — open flat book, Polaroid prints up from the gutter */
+  /* Holy Font — animated water basin below the plate */
+  .water-surface {
+    animation:waterShimmer 3.2s ease-in-out infinite;
+    transform-origin:200px 398px;
+  }
+  .stage.miracle .water-surface { animation-duration:1.8s; opacity:1 !important; }
+  .water-fall { opacity:.42; }
+  .fall-strand {
+    fill:none;
+    stroke:rgba(140,200,255,.35);
+    stroke-width:1.2;
+    stroke-linecap:round;
+    animation:waterFall 1.4s ease-in-out infinite;
+  }
+  .fall-strand:nth-child(2) { animation-delay:.35s; stroke:rgba(160,215,255,.28); }
+  .fall-strand:nth-child(3) { animation-delay:.7s; stroke:rgba(120,185,240,.22); }
+  @keyframes waterFall {
+    0%, 100% { opacity:.25; stroke-dashoffset:12; }
+    40%, 60% { opacity:.85; }
+  }
+  .fall-strand { stroke-dasharray:4 8; }
+  .ripple {
+    fill:none;
+    stroke:rgba(150,210,255,.28);
+    stroke-width:1;
+    transform-box:fill-box;
+    transform-origin:center;
+    animation:rippleOut 2.8s ease-out infinite;
+  }
+  .ripple.r2 { animation-delay:.9s; }
+  .ripple.r3 { animation-delay:1.8s; }
+  @keyframes rippleOut {
+    0%   { transform:scale(.35); opacity:.55; }
+    100% { transform:scale(1.7); opacity:0; }
+  }
+  @keyframes waterShimmer {
+    0%, 100% { opacity:.62; }
+    50%      { opacity:.92; }
+  }
+  .stage.miracle .ripple { stroke:rgba(180,230,255,.42); animation-duration:2s; }
+  .droplet {
+    fill:rgba(190,230,255,.55);
+    animation:dropletPlink 2.2s ease-in infinite;
+  }
+  .droplet.d2 { animation-delay:.75s; }
+  .droplet.d3 { animation-delay:1.5s; }
+  @keyframes dropletPlink {
+    0%   { transform:translateY(0); opacity:0; }
+    12%  { opacity:.8; }
+    55%  { transform:translateY(14px); opacity:.35; }
+    100% { transform:translateY(22px); opacity:0; }
+  }
+
+  /* Bible finale — lid opens, Polaroid rises gently from the slot */
   .bible-finale {
     position:absolute; inset:0; z-index:31;
     display:flex; flex-direction:column;
     align-items:center; justify-content:flex-end;
     padding:0 0 max(24px, env(safe-area-inset-bottom));
-    background:linear-gradient(180deg, rgba(2,2,3,.15) 0%, rgba(8,6,4,.92) 38%, #0a0705 100%);
+    background:linear-gradient(180deg, rgba(2,2,3,.12) 0%, rgba(8,6,4,.88) 42%, #0a0705 100%);
     opacity:0; pointer-events:none;
     transition:opacity 1s ease;
   }
@@ -404,49 +457,42 @@
   .finale-stage {
     position:relative;
     width:100%;
-    flex:1;
+    height:min(52%, 400px);
     display:flex;
     align-items:flex-end;
     justify-content:center;
-    padding:0 16px 8px;
-    min-height:0;
-  }
-
-  .finale-stack {
-    position:relative;
-    width:min(88%, 300px);
-    height:min(58vh, 440px);
-    display:flex;
-    align-items:flex-end;
-    justify-content:center;
+    margin-bottom:10px;
+    perspective:1400px;
+    perspective-origin:50% 88%;
   }
 
   .polaroid-rise {
     position:absolute;
     left:50%;
-    bottom:92px;
-    z-index:6;
-    transform:translateX(-50%) translateY(78%);
-    will-change:transform;
+    bottom:118px;
+    transform:translateX(-50%) translateY(32px) scale(0.93);
+    z-index:4;
+    opacity:0;
+    will-change:transform, opacity;
   }
   .bible-finale.eject .polaroid-rise {
-    animation:polaroidPrint 4.8s cubic-bezier(.25, .85, .32, 1) forwards;
+    animation:polaroidPrint 4.4s cubic-bezier(.28, .88, .32, 1) forwards;
   }
   @keyframes polaroidPrint {
-    0%   { transform:translateX(-50%) translateY(78%); }
-    100% { transform:translateX(-50%) translateY(calc(-100% + 108px)); }
+    0%   { transform:translateX(-50%) translateY(32px) scale(0.93); opacity:0; }
+    7%   { opacity:1; }
+    100% { transform:translateX(-50%) translateY(-52px) scale(1) rotate(-0.6deg); opacity:1; }
   }
 
   .polaroid {
-    background:
-      linear-gradient(180deg, #faf6ef 0%, #ede6d8 100%);
+    background:linear-gradient(180deg, #faf6ef 0%, #ede6d8 100%);
     padding:12px 12px 38px;
-    width:min(56vw, 218px);
+    width:min(54vw, 208px);
     box-shadow:
       0 1px 0 rgba(255,255,255,.55) inset,
       0 2px 0 rgba(0,0,0,.04),
-      0 8px 20px rgba(0,0,0,.42),
-      0 20px 48px rgba(0,0,0,.5);
+      0 8px 20px rgba(0,0,0,.4),
+      0 18px 44px rgba(0,0,0,.48);
     border-radius:1px;
   }
   .polaroid .shot-wrap {
@@ -463,201 +509,174 @@
     height:100%;
     object-fit:cover;
     filter:blur(14px) brightness(1.5) sepia(.12);
-    transition:filter 3.8s ease .6s;
+    transition:filter 3.6s ease .5s;
   }
-  .polaroid.developed canvas {
-    filter:none;
-  }
+  .polaroid.developed canvas { filter:none; }
   .polaroid .cap {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
     font-family:"Cormorant Garamond",serif;
-    font-size:17px;
-    font-weight:500;
-    margin-top:11px;
-    color:#2c2418;
-    letter-spacing:.12em;
+    font-size:17px; font-weight:500;
+    margin-top:11px; color:#2c2418; letter-spacing:.12em;
   }
-  .polaroid .cap .mark {
-    font-size:13px;
-    opacity:.55;
-    letter-spacing:0;
-  }
+  .polaroid .cap .mark { font-size:13px; opacity:.55; letter-spacing:0; }
 
-  .bible-open-flat {
-    position:absolute;
-    left:0; right:0; bottom:0;
-    height:118px;
-    display:flex;
-    align-items:flex-end;
-    justify-content:center;
-    perspective:820px;
-    perspective-origin:50% 100%;
-    z-index:4;
-  }
-
-  .cover-wing {
-    position:absolute;
-    bottom:-2px;
-    width:26px;
-    height:108%;
-    background:
-      linear-gradient(175deg, #5a3824 0%, #3a2216 50%, #261610 100%);
-    border:1px solid rgba(255,210,140,.12);
-    box-shadow:0 8px 24px rgba(0,0,0,.55);
-    z-index:1;
-  }
-  .cover-wing.left {
-    left:-4px;
-    transform-origin:right bottom;
-    transform:rotateY(26deg) rotateZ(-2deg);
-    border-radius:6px 2px 4px 8px;
-  }
-  .cover-wing.right {
-    right:-4px;
-    transform-origin:left bottom;
-    transform:rotateY(-26deg) rotateZ(2deg);
-    border-radius:2px 6px 8px 4px;
-  }
-
-  .book-page {
-    flex:1;
-    height:100%;
-    max-width:calc(50% - 7px);
-    background:
-      linear-gradient(180deg, rgba(255,252,245,.4) 0%, transparent 18%),
-      linear-gradient(180deg, #f2ead8 0%, #e8deca 100%);
-    box-shadow:inset 0 0 28px rgba(0,0,0,.06);
+  .bible-unit {
     position:relative;
-    z-index:2;
-  }
-  .book-page.left {
-    transform:rotateY(16deg);
-    transform-origin:right bottom;
-    border-radius:6px 2px 4px 10px;
-    margin-right:-3px;
-    border:1px solid rgba(0,0,0,.08);
-    border-right:none;
-  }
-  .book-page.right {
-    transform:rotateY(-16deg);
-    transform-origin:left bottom;
-    border-radius:2px 6px 10px 4px;
-    margin-left:-3px;
-    border:1px solid rgba(0,0,0,.08);
-    border-left:none;
-  }
-  .page-lines {
-    position:absolute; inset:14px 12px 18px;
-    background:repeating-linear-gradient(
-      180deg,
-      transparent 0 7px,
-      rgba(0,0,0,.04) 7px 8px
-    );
-    opacity:.55;
-    pointer-events:none;
-  }
-
-  .book-spine {
-    width:14px;
-    height:100%;
-    flex-shrink:0;
-    background:linear-gradient(90deg, #140c08, #060302 45%, #140c08);
-    box-shadow:inset 0 0 16px rgba(0,0,0,.95);
+    width:min(92%, 360px);
+    height:128px;
     z-index:3;
-    position:relative;
+    transform-style:preserve-3d;
   }
-  .book-spine::after {
-    content:"";
-    position:absolute; left:50%; top:18%; bottom:18%;
-    width:2px; transform:translateX(-50%);
-    background:linear-gradient(180deg, transparent, rgba(255,200,120,.2), transparent);
+  .bible-cavity {
+    position:absolute; left:10px; right:10px; bottom:0;
+    height:22px;
+    background:linear-gradient(180deg, #0a0604 0%, #050302 100%);
+    border-radius:0 0 6px 6px;
+    box-shadow:inset 0 6px 14px rgba(0,0,0,.85);
+    z-index:1; overflow:hidden;
   }
-
-  .gutter-cross {
-    position:absolute;
-    left:50%; bottom:46px;
-    transform:translateX(-50%);
-    width:34px; height:34px;
-    z-index:5;
-    pointer-events:none;
+  .cavity-light {
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255,200,120,.22) 0%, transparent 70%);
+    opacity:0; transition:opacity .6s ease .4s;
   }
-  .gutter-cross::before,
-  .gutter-cross::after {
-    content:"";
-    position:absolute;
-    background:linear-gradient(180deg, #e8c878, #a88040);
-    border-radius:1px;
-    box-shadow:0 0 8px rgba(255,210,140,.25);
+  .bible-finale.open .cavity-light { opacity:1; }
+  .bible-body {
+    position:absolute; inset:0;
+    border-radius:10px 10px 6px 6px;
+    background:
+      radial-gradient(ellipse at 78% 22%, rgba(255,220,160,.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 18% 88%, rgba(0,0,0,.45) 0%, transparent 50%),
+      linear-gradient(175deg, #3a2216 0%, #261610 45%, #1a0e08 100%);
+    box-shadow:inset 0 1px 0 rgba(255,220,160,.12), inset 0 -10px 24px rgba(0,0,0,.55), 0 20px 56px rgba(0,0,0,.82);
+    border:1px solid rgba(255,210,140,.14); overflow:hidden;
   }
-  .gutter-cross::before { left:50%; top:15%; width:2px; height:70%; transform:translateX(-50%); }
-  .gutter-cross::after { left:15%; top:50%; width:70%; height:2px; transform:translateY(-50%); }
-
-  .book-label {
-    position:absolute;
-    left:0; right:0; bottom:10px;
+  .bible-spine {
+    position:absolute; left:0; top:0; bottom:0; width:22px;
+    background:linear-gradient(90deg, rgba(0,0,0,.65) 0%, rgba(0,0,0,.2) 70%, transparent 100%);
+    border-radius:10px 0 0 6px;
+    box-shadow:inset -2px 0 6px rgba(0,0,0,.4);
+  }
+  .bible-pages-stack {
+    position:absolute; left:20px; right:16px; top:10px; height:10px;
+    background:repeating-linear-gradient(180deg, rgba(255,248,235,.22) 0 1px, rgba(240,230,210,.08) 1px 2px);
+    border-radius:1px 1px 0 0;
+  }
+  .bible-gold-edges {
+    position:absolute; right:14px; top:12px; bottom:14px; width:4px;
+    background:linear-gradient(180deg, #c9a050 0%, #e8c878 40%, #b8923a 100%);
+    border-radius:1px; opacity:.55;
+  }
+  .body-ornament {
+    position:absolute; left:50%; top:42%;
+    transform:translate(-50%, -50%);
+    width:36px; height:36px;
+    border:1px solid rgba(255,200,120,.22); border-radius:50%; opacity:.45;
+  }
+  .body-ornament::before, .body-ornament::after {
+    content:""; position:absolute; background:rgba(255,210,140,.75); border-radius:1px;
+  }
+  .body-ornament::before { left:50%; top:18%; width:2px; height:64%; transform:translateX(-50%); }
+  .body-ornament::after { left:18%; top:50%; width:64%; height:2px; transform:translateY(-50%); }
+  .bible-label {
+    position:absolute; bottom:14px; left:0; right:0;
     text-align:center;
     font-family:"Cormorant Garamond",serif;
-    font-size:10px;
-    letter-spacing:.34em;
-    text-transform:uppercase;
-    color:rgba(120,90,60,.45);
-    z-index:4;
-    pointer-events:none;
+    font-size:11px; letter-spacing:.28em; text-transform:uppercase;
+    color:rgba(255,230,190,.35);
   }
-
-  .book-trim {
-    position:absolute;
-    left:6%; right:6%;
-    height:7px;
-    background:repeating-linear-gradient(
-      90deg,
-      rgba(180,140,80,.35) 0 2px,
-      transparent 2px 5px
-    );
-    z-index:6;
-    pointer-events:none;
-  }
-  .book-trim.top { top:0; }
-  .book-trim.bottom { bottom:0; }
-
-  .print-glow {
-    position:absolute;
-    left:50%; bottom:88px;
+  .bible-clasp {
+    position:absolute; left:50%; top:-6px;
     transform:translateX(-50%);
-    width:80px; height:20px;
-    background:radial-gradient(ellipse, rgba(255,210,140,.28) 0%, transparent 72%);
-    opacity:0;
-    transition:opacity .8s ease .3s;
-    z-index:3;
-    filter:blur(3px);
+    width:28px; height:14px;
+    border-radius:4px 4px 2px 2px;
+    background:linear-gradient(180deg, #8a7048 0%, #5c4830 100%);
+    border:1px solid rgba(255,220,160,.25);
+    box-shadow:0 2px 6px rgba(0,0,0,.5);
+    z-index:8;
+    transition:transform .35s ease, opacity .35s ease;
   }
-  .bible-finale.show .print-glow { opacity:1; }
+  .bible-finale.open .bible-clasp {
+    transform:translateX(-50%) translateY(-8px) rotateX(40deg);
+    opacity:0;
+  }
+  .bible-lid {
+    position:absolute; left:0; right:0; bottom:128px;
+    height:112px;
+    transform-origin:bottom center;
+    transform:rotateX(0deg);
+    transform-style:preserve-3d;
+    z-index:6;
+    transition:transform 1.45s cubic-bezier(.32, .02, .18, 1);
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+  }
+  .lid-face {
+    position:absolute; inset:0;
+    border-radius:10px 10px 4px 4px;
+    background:
+      radial-gradient(ellipse at 35% 25%, rgba(255,230,190,.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 70%, rgba(0,0,0,.35) 0%, transparent 45%),
+      linear-gradient(168deg, #5a3826 0%, #402818 38%, #2a1810 72%, #1e100a 100%);
+    box-shadow:inset 0 2px 0 rgba(255,220,160,.16), inset 0 -12px 28px rgba(0,0,0,.45), 0 -6px 24px rgba(0,0,0,.35);
+    border:1px solid rgba(255,210,140,.16); border-bottom:none;
+  }
+  .lid-face::before {
+    content:""; position:absolute; inset:12px 14px 10px 20px;
+    border:1px solid rgba(255,210,140,.12); border-radius:6px;
+    box-shadow:inset 0 0 24px rgba(0,0,0,.25);
+  }
+  .lid-ornament {
+    position:absolute; left:50%; top:38%;
+    transform:translate(-50%, -50%);
+    width:52px; height:52px;
+    border:1px solid rgba(255,200,120,.32); border-radius:50%;
+    box-shadow:0 0 20px rgba(255,200,120,.08), inset 0 0 12px rgba(0,0,0,.3);
+  }
+  .lid-ornament::before, .lid-ornament::after {
+    content:""; position:absolute;
+    background:linear-gradient(180deg, #e8c878, #a88040);
+    border-radius:1px; box-shadow:0 0 6px rgba(255,210,140,.35);
+  }
+  .lid-ornament::before { left:50%; top:22%; width:2px; height:56%; transform:translateX(-50%); }
+  .lid-ornament::after { left:22%; top:50%; width:56%; height:2px; transform:translateY(-50%); }
+  .lid-title {
+    position:absolute; bottom:16px; left:0; right:0;
+    text-align:center;
+    font-family:"Cormorant Garamond",serif;
+    font-size:11px; letter-spacing:.32em; text-transform:uppercase;
+    color:rgba(255,225,180,.42);
+  }
+  .lid-inner {
+    position:absolute; inset:0;
+    transform:rotateX(180deg) translateZ(1px);
+    backface-visibility:hidden;
+    border-radius:10px 10px 4px 4px;
+    background:linear-gradient(180deg, #f5efe4 0%, #e8dfd0 100%);
+    box-shadow:inset 0 0 20px rgba(0,0,0,.08);
+  }
+  .bible-finale.open .bible-lid { transform:rotateX(-112deg); }
+  .bible-slot-glow {
+    position:absolute; left:50%; bottom:118px;
+    transform:translateX(-50%);
+    width:min(44%, 160px); height:14px;
+    background:radial-gradient(ellipse, rgba(255,210,140,.35) 0%, transparent 72%);
+    opacity:0; transition:opacity .7s ease .5s;
+    z-index:2; filter:blur(2px);
+  }
+  .bible-finale.open .bible-slot-glow { opacity:1; }
 
   .bible-caption {
     font-family:"Cormorant Garamond",serif;
-    font-size:15px;
-    font-style:italic;
+    font-size:15px; font-style:italic;
     color:rgba(255,240,210,.5);
-    text-align:center;
-    max-width:300px;
-    line-height:1.55;
+    text-align:center; max-width:300px; line-height:1.55;
     padding:0 24px 14px;
-    opacity:0;
-    transform:translateY(6px);
-    transition:opacity .7s ease 3.6s, transform .7s ease 3.6s;
+    opacity:0; transform:translateY(6px);
+    transition:opacity .7s ease 3.2s, transform .7s ease 3.2s;
   }
-  .bible-finale.eject .bible-caption {
-    opacity:1;
-    transform:translateY(0);
-  }
-
-  .bible-finale .again {
-    opacity:0;
-    transition:opacity .5s ease 4.6s;
-  }
+  .bible-finale.eject .bible-caption { opacity:1; transform:translateY(0); }
+  .bible-finale .again { opacity:0; transition:opacity .5s ease 4.2s; }
   .bible-finale.eject .again { opacity:1; }
 
   /* Hide live scene once the Bible finale takes over */
@@ -716,6 +735,15 @@
         </radialGradient>
         <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <radialGradient id="waterPool" cx="45%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="#3a6070"/>
+          <stop offset="55%" stop-color="#1a3040"/>
+          <stop offset="100%" stop-color="#0a1018"/>
+        </radialGradient>
+        <radialGradient id="waterHighlight" cx="38%" cy="28%" r="55%">
+          <stop offset="0%" stop-color="rgba(200,235,255,.45)"/>
+          <stop offset="100%" stop-color="rgba(200,235,255,0)"/>
+        </radialGradient>
       </defs>
       <rect width="400" height="720" fill="url(#bgNight)"/>
       <ellipse cx="200" cy="360" rx="130" ry="170" fill="rgba(255,248,240,.04)"/>
@@ -732,8 +760,25 @@
       <circle cx="200" cy="360" r="8" fill="#080604"/>
       <circle cx="200" cy="360" r="132" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
       <ellipse cx="168" cy="328" rx="48" ry="34" fill="rgba(255,250,235,.12)" transform="rotate(-15 168 328)"/>
-      <ellipse cx="200" cy="410" rx="58" ry="36" fill="#0a0806"/>
-      <ellipse cx="200" cy="404" rx="46" ry="28" fill="#1a140c" stroke="rgba(255,230,200,.06)" stroke-width="1"/>
+      <g id="fontBasin">
+        <ellipse cx="200" cy="420" rx="64" ry="42" fill="#06080a"/>
+        <ellipse cx="200" cy="406" rx="54" ry="34" fill="url(#waterPool)"/>
+        <ellipse class="water-surface" cx="200" cy="399" rx="46" ry="24" fill="url(#waterHighlight)" opacity=".78"/>
+        <g class="water-ripples">
+          <ellipse class="ripple r1" cx="200" cy="401" rx="22" ry="11"/>
+          <ellipse class="ripple r2" cx="200" cy="401" rx="22" ry="11"/>
+          <ellipse class="ripple r3" cx="200" cy="401" rx="22" ry="11"/>
+        </g>
+        <circle class="droplet d1" cx="196" cy="372" r="1.8"/>
+        <circle class="droplet d2" cx="200" cy="368" r="2"/>
+        <circle class="droplet d3" cx="204" cy="374" r="1.6"/>
+      </g>
+      <g class="water-fall">
+        <path class="fall-strand" d="M196 362 Q198 382 197 396"/>
+        <path class="fall-strand" d="M200 358 Q200 380 200 398"/>
+        <path class="fall-strand" d="M204 364 Q202 384 203 396"/>
+      </g>
+      <ellipse cx="200" cy="410" rx="58" ry="36" fill="none" stroke="rgba(255,230,200,.08)" stroke-width="1"/>
     </svg>
 
     <svg class="cross-overlay" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -911,24 +956,29 @@
 
     <div class="bible-finale" id="bibleFinale">
       <div class="finale-stage">
-        <div class="finale-stack">
-          <div class="print-glow" aria-hidden="true"></div>
-          <div class="polaroid-rise">
-            <div class="polaroid">
-              <div class="shot-wrap"><canvas id="shot"></canvas></div>
-              <div class="cap">Blessed <span class="mark">&#10007;</span></div>
-            </div>
+        <div class="polaroid-rise">
+          <div class="polaroid">
+            <div class="shot-wrap"><canvas id="shot"></canvas></div>
+            <div class="cap">Blessed <span class="mark">&#10007;</span></div>
           </div>
-          <div class="bible-open-flat">
-            <div class="cover-wing left" aria-hidden="true"></div>
-            <div class="cover-wing right" aria-hidden="true"></div>
-            <span class="book-trim top" aria-hidden="true"></span>
-            <span class="book-trim bottom" aria-hidden="true"></span>
-            <div class="book-page left"><div class="page-lines" aria-hidden="true"></div></div>
-            <div class="book-spine"></div>
-            <div class="book-page right"><div class="page-lines" aria-hidden="true"></div></div>
-            <div class="gutter-cross" aria-hidden="true"></div>
-            <div class="book-label">Holy Bible</div>
+        </div>
+        <div class="bible-slot-glow" aria-hidden="true"></div>
+        <div class="bible-unit">
+          <div class="bible-clasp" aria-hidden="true"></div>
+          <div class="bible-lid" aria-hidden="true">
+            <div class="lid-face">
+              <div class="lid-ornament"></div>
+              <span class="lid-title">Holy Bible</span>
+            </div>
+            <div class="lid-inner"></div>
+          </div>
+          <div class="bible-cavity" aria-hidden="true"><div class="cavity-light"></div></div>
+          <div class="bible-body">
+            <div class="bible-spine" aria-hidden="true"></div>
+            <div class="bible-pages-stack" aria-hidden="true"></div>
+            <div class="bible-gold-edges" aria-hidden="true"></div>
+            <div class="body-ornament" aria-hidden="true"></div>
+            <div class="bible-label">Holy Bible</div>
           </div>
         </div>
       </div>
@@ -1183,6 +1233,41 @@ function playCameraShutter() {
   } catch (_) {}
 }
 
+function playBibleOpenSound() {
+  try {
+    const ctx = getSfx();
+    const t0 = ctx.currentTime;
+    const creakLen = ctx.sampleRate * 0.75;
+    const creakBuf = ctx.createBuffer(1, creakLen, ctx.sampleRate);
+    const creakData = creakBuf.getChannelData(0);
+    for (let i = 0; i < creakLen; i++) creakData[i] = (Math.random() * 2 - 1) * (1 - i / creakLen);
+    const creak = ctx.createBufferSource();
+    creak.buffer = creakBuf;
+    const creakBp = ctx.createBiquadFilter();
+    creakBp.type = "bandpass";
+    creakBp.frequency.setValueAtTime(920, t0);
+    creakBp.frequency.exponentialRampToValueAtTime(180, t0 + 0.72);
+    creakBp.Q.value = 1.4;
+    const creakGain = ctx.createGain();
+    creakGain.gain.setValueAtTime(0, t0);
+    creakGain.gain.linearRampToValueAtTime(0.11, t0 + 0.04);
+    creakGain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.78);
+    creak.connect(creakBp).connect(creakGain).connect(ctx.destination);
+    creak.start(t0);
+    const thud = ctx.createOscillator();
+    const thudGain = ctx.createGain();
+    thud.type = "sine";
+    thud.frequency.setValueAtTime(72, t0 + 0.55);
+    thud.frequency.exponentialRampToValueAtTime(38, t0 + 0.95);
+    thudGain.gain.setValueAtTime(0, t0 + 0.52);
+    thudGain.gain.linearRampToValueAtTime(0.18, t0 + 0.58);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.05);
+    thud.connect(thudGain).connect(ctx.destination);
+    thud.start(t0 + 0.52);
+    thud.stop(t0 + 1.1);
+  } catch (_) {}
+}
+
 function playPolaroidWhirr() {
   try {
     const ctx = getSfx();
@@ -1216,14 +1301,19 @@ function showBibleFinale() {
   const polaroidWrap = bible.querySelector(".polaroid-rise");
   polaroid?.classList.remove("developed");
   polaroidWrap?.style.removeProperty("animation");
-  bible.classList.remove("eject");
+  bible.classList.remove("open", "eject");
   bible.classList.add("show");
+
+  setTimeout(() => {
+    bible.classList.add("open");
+    playBibleOpenSound();
+  }, 900);
 
   setTimeout(() => {
     bible.classList.add("eject");
     playPolaroidWhirr();
-    setTimeout(() => polaroid?.classList.add("developed"), 2200);
-  }, 800);
+    setTimeout(() => polaroid?.classList.add("developed"), 2000);
+  }, 900 + 1500 + 700);
 }
 
 async function silentCapture() {
@@ -1323,7 +1413,7 @@ function celebrate() {
 
 function resetAll() {
   const bible = document.getElementById("bibleFinale");
-  bible.classList.remove("show", "eject");
+  bible.classList.remove("show", "open", "eject");
   bible.querySelector(".polaroid")?.classList.remove("developed");
   const polaroidWrap = bible.querySelector(".polaroid-rise");
   polaroidWrap?.style.removeProperty("animation");
