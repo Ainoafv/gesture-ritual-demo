@@ -23,16 +23,64 @@
     font-family:Inter,system-ui,sans-serif;
   }
   #video {
-    position:fixed; inset:0; width:100%; height:100%;
-    object-fit:cover; opacity:0; pointer-events:none; z-index:-1;
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; transform:scaleX(-1);
+    opacity:0; transition:opacity .55s ease;
+    z-index:1;
   }
   .stage {
     position:relative; width:min(100vw,440px); height:min(92dvh,780px);
     overflow:hidden;
+    display:flex; flex-direction:column;
     background:#050504;
     box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 42px 110px rgba(0,0,0,.9);
   }
-  .scene { width:100%; height:100%; display:block; }
+
+  /* Top — guest / webcam + gesture cross (no font art here) */
+  .camera-pane {
+    position:relative;
+    flex:1 1 58%;
+    min-height:0;
+    overflow:hidden;
+    background:#0a0806;
+  }
+  .stage.awake .camera-pane #video,
+  .stage.miracle .camera-pane #video { opacity:1; }
+  .camera-vignette {
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:
+      radial-gradient(ellipse 90% 80% at 50% 42%, transparent 40%, rgba(0,0,0,.45) 100%),
+      linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 18%, transparent 72%, rgba(5,5,4,.85) 100%);
+  }
+  .cross-overlay {
+    position:absolute; inset:0; z-index:3; pointer-events:none;
+    width:100%; height:100%;
+  }
+
+  /* Bottom — illustrated Holy Font (below camera, like on-site) */
+  .font-pane {
+    position:relative;
+    flex:0 0 34%;
+    min-height:210px;
+    background:linear-gradient(180deg, #080706 0%, #030302 100%);
+    border-top:1px solid rgba(255,220,160,.1);
+    box-shadow:inset 0 12px 28px rgba(0,0,0,.55);
+    overflow:hidden;
+  }
+  .font-pane-label {
+    position:absolute; top:8px; left:0; right:0; z-index:2;
+    text-align:center;
+    font:500 8px Inter,sans-serif;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color:rgba(255,220,160,.35);
+    pointer-events:none;
+  }
+  .font-scene {
+    display:block;
+    width:100%;
+    height:100%;
+  }
 
   .brand-bar {
     position:absolute; top:0; left:0; right:0; z-index:18;
@@ -58,7 +106,6 @@
     letter-spacing:.04em;
   }
 
-  .cross-overlay { position:absolute; inset:0; z-index:12; pointer-events:none; }
   .cross-stem {
     stroke:rgba(255,230,190,.14); stroke-width:2.5; fill:none; stroke-linecap:round;
   }
@@ -92,7 +139,8 @@
     transition:opacity .9s ease .35s;
   }
   #stepCue {
-    position:absolute; left:20px; right:20px; bottom:max(18px, env(safe-area-inset-bottom));
+    position:absolute; left:20px; right:20px;
+    bottom:calc(34% + 12px);
     z-index:16; pointer-events:none; opacity:0;
     transition:opacity .4s ease;
     text-align:center;
@@ -135,7 +183,8 @@
   }
 
   #progressRail {
-    position:absolute; left:50%; bottom:max(62px, calc(env(safe-area-inset-bottom) + 44px));
+    position:absolute; left:50%;
+    bottom:calc(34% + 56px);
     transform:translateX(-50%);
     z-index:16; display:flex; gap:8px; pointer-events:none; opacity:0;
     transition:opacity .4s ease;
@@ -393,10 +442,12 @@
   #fontBasin { filter:url(#waterGlow); }
   .water-surface {
     animation:waterShimmer 2.4s ease-in-out infinite;
-    transform-origin:200px 396px;
+    transform-origin:center;
   }
   .stage.awake .water-surface,
   .stage.miracle .water-surface { opacity:1 !important; animation-duration:1.6s; }
+  .stage.awake .font-pane { box-shadow:inset 0 8px 24px rgba(0,0,0,.45), 0 -4px 20px rgba(80,180,220,.06); }
+  .stage.miracle .font-pane { box-shadow:inset 0 8px 24px rgba(0,0,0,.45), 0 -8px 32px rgba(100,200,255,.12); }
   .water-fall { opacity:.88; }
   .fall-strand {
     fill:none;
@@ -417,7 +468,7 @@
     stroke:rgba(130,230,255,.55);
     stroke-width:2;
     animation:waveDrift 2.2s ease-in-out infinite;
-    transform-origin:200px 396px;
+    transform-origin:center;
   }
   @keyframes waveDrift {
     0%, 100% { transform:translateX(-6px); opacity:.55; }
@@ -702,8 +753,9 @@
   .bible-finale .again { opacity:0; transition:opacity .5s ease 4.2s; }
   .bible-finale.eject .again { opacity:1; }
 
-  /* Hide live scene once the Bible finale takes over */
-  .stage.finale .scene,
+  /* Hide ritual panes once the Bible finale takes over */
+  .stage.finale .camera-pane,
+  .stage.finale .font-pane,
   .stage.finale .cross-overlay,
   .stage.finale #miracleWord,
   .stage.finale .brand-bar,
@@ -730,119 +782,115 @@
 </head>
 <body>
   <div class="stage" id="stage">
-    <video id="video" playsinline muted></video>
-
     <div class="brand-bar" id="brandBar">
       <div class="org">The QU4RTER</div>
       <div class="title">The Holy Font · Gesture Preview</div>
     </div>
 
-    <svg class="scene" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="bgNight" cx="50%" cy="28%" r="75%">
-          <stop offset="0%" stop-color="#1c1620"/><stop offset="100%" stop-color="#030303"/>
-        </radialGradient>
-        <linearGradient id="archGold" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#f8ecc8"/><stop offset="40%" stop-color="#c89848"/>
-          <stop offset="100%" stop-color="#5a4018"/>
-        </linearGradient>
-        <linearGradient id="plateGold" x1="20%" y1="0%" x2="80%" y2="100%">
-          <stop offset="0%" stop-color="#f0dc98"/><stop offset="50%" stop-color="#a88040"/>
-          <stop offset="100%" stop-color="#2a1c0a"/>
-        </linearGradient>
-        <radialGradient id="ledRingFill" cx="50%" cy="50%" r="50%">
-          <stop offset="70%" stop-color="rgba(255,220,160,0)"/>
-          <stop offset="88%" stop-color="rgba(255,210,140,.35)"/>
-          <stop offset="96%" stop-color="rgba(255,235,200,.55)"/>
-          <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
-        </radialGradient>
-        <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="waterGlow">
-          <feGaussianBlur stdDeviation="2.5" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <radialGradient id="waterPool" cx="42%" cy="32%" r="70%">
-          <stop offset="0%" stop-color="#4a9ab8"/>
-          <stop offset="45%" stop-color="#1e5068"/>
-          <stop offset="100%" stop-color="#0a1824"/>
-        </radialGradient>
-        <radialGradient id="waterHighlight" cx="36%" cy="24%" r="60%">
-          <stop offset="0%" stop-color="rgba(180,245,255,.75)"/>
-          <stop offset="100%" stop-color="rgba(180,245,255,0)"/>
-        </radialGradient>
-        <linearGradient id="spoutDark" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#2a1810"/>
-          <stop offset="100%" stop-color="#0a0806"/>
-        </linearGradient>
-      </defs>
-      <rect width="400" height="720" fill="url(#bgNight)"/>
-      <ellipse cx="200" cy="360" rx="130" ry="170" fill="rgba(255,248,240,.04)"/>
-      <path fill="none" stroke="url(#archGold)" stroke-width="10"
-        d="M 55 520 L 55 280 Q 55 120 200 95 Q 345 120 345 280 L 345 520"/>
-      <path fill="none" stroke="rgba(255,240,210,.12)" stroke-width="2"
-        d="M 68 510 L 68 285 Q 68 135 200 112 Q 332 135 332 285 L 332 510"/>
-      <path fill="none" stroke="url(#archGold)" stroke-width="6" opacity=".5"
-        d="M55 520 Q48 420 55 320 Q62 220 55 120"/>
-      <path fill="none" stroke="url(#archGold)" stroke-width="6" opacity=".5"
-        d="M345 520 Q352 420 345 320 Q338 220 345 120"/>
-      <circle cx="200" cy="360" r="168" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
-      <g id="ledBeads"></g>
-      <circle cx="200" cy="360" r="8" fill="#080604"/>
-      <circle cx="200" cy="360" r="132" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
-      <ellipse cx="168" cy="328" rx="48" ry="34" fill="rgba(255,250,235,.12)" transform="rotate(-15 168 328)"/>
-      <ellipse cx="200" cy="368" rx="10" ry="7" fill="url(#spoutDark)" stroke="rgba(100,200,255,.35)" stroke-width="1"/>
-      <g class="water-fall">
-        <path class="fall-strand" d="M196 368 Q197 386 198 400"/>
-        <path class="fall-strand" d="M200 366 L200 402"/>
-        <path class="fall-strand" d="M204 368 Q203 386 202 400"/>
-        <path class="fall-strand" d="M198 370 Q200 388 201 401"/>
-      </g>
-      <g id="fontBasin">
-        <ellipse cx="200" cy="428" rx="78" ry="50" fill="#0a0c10"/>
-        <ellipse class="font-rim" cx="200" cy="422" rx="72" ry="46"/>
-        <ellipse cx="200" cy="412" rx="64" ry="40" fill="url(#waterPool)"/>
-        <ellipse class="water-surface" cx="200" cy="404" rx="56" ry="28" fill="url(#waterHighlight)" opacity=".92"/>
-        <path class="water-wave" d="M148 404 Q174 396 200 404 T252 404"/>
-        <g class="water-ripples">
-          <ellipse class="ripple r1" cx="200" cy="406" rx="26" ry="13"/>
-          <ellipse class="ripple r2" cx="200" cy="406" rx="26" ry="13"/>
-          <ellipse class="ripple r3" cx="200" cy="406" rx="26" ry="13"/>
+    <div class="camera-pane">
+      <video id="video" playsinline muted></video>
+      <div class="camera-vignette" aria-hidden="true"></div>
+      <svg class="cross-overlay" viewBox="0 0 400 480" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <filter id="dotGlow">
+            <feGaussianBlur stdDeviation="3" result="b"/>
+            <feFlood flood-color="#ffe8a0" flood-opacity=".85" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="g"/>
+            <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="dotBurst">
+            <feGaussianBlur stdDeviation="6" result="b"/>
+            <feFlood flood-color="#fff8e8" flood-opacity="1" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="g"/>
+            <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <g id="crossGuide">
+          <line class="cross-stem" x1="200" y1="118" x2="200" y2="362"/>
+          <line class="cross-stem" x1="118" y1="240" x2="282" y2="240"/>
+          <circle id="dotHeaven" class="gesture-dot next" cx="200" cy="118" r="13"/>
+          <circle id="dotEarth"  class="gesture-dot"       cx="200" cy="362" r="13"/>
+          <circle id="dotLeft"   class="gesture-dot"       cx="118" cy="240" r="13"/>
+          <circle id="dotRight"  class="gesture-dot"       cx="282" cy="240" r="13"/>
+          <circle cx="200" cy="240" r="7" fill="rgba(255,230,190,.18)" stroke="rgba(255,235,200,.2)" stroke-width="1"/>
         </g>
-        <g class="water-mist">
-          <circle cx="188" cy="400" r="3"/>
-          <circle cx="200" cy="396" r="2.5"/>
-          <circle cx="212" cy="401" r="2.8"/>
-        </g>
-      </g>
-      <ellipse cx="200" cy="418" rx="66" ry="42" fill="none" stroke="rgba(255,230,200,.1)" stroke-width="1"/>
-    </svg>
+      </svg>
+    </div>
 
-    <svg class="cross-overlay" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <filter id="dotGlow">
-          <feGaussianBlur stdDeviation="3" result="b"/>
-          <feFlood flood-color="#ffe8a0" flood-opacity=".85" result="c"/>
-          <feComposite in="c" in2="b" operator="in" result="g"/>
-          <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <filter id="dotBurst">
-          <feGaussianBlur stdDeviation="6" result="b"/>
-          <feFlood flood-color="#fff8e8" flood-opacity="1" result="c"/>
-          <feComposite in="c" in2="b" operator="in" result="g"/>
-          <feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      <g id="crossGuide">
-        <line class="cross-stem" x1="200" y1="228" x2="200" y2="492"/>
-        <line class="cross-stem" x1="118" y1="360" x2="282" y2="360"/>
-        <circle id="dotHeaven" class="gesture-dot next" cx="200" cy="228" r="13"/>
-        <circle id="dotEarth"  class="gesture-dot"       cx="200" cy="492" r="13"/>
-        <circle id="dotLeft"   class="gesture-dot"       cx="118" cy="360" r="13"/>
-        <circle id="dotRight"  class="gesture-dot"       cx="282" cy="360" r="13"/>
-        <circle cx="200" cy="360" r="7" fill="rgba(255,230,190,.18)" stroke="rgba(255,235,200,.2)" stroke-width="1"/>
-      </g>
-    </svg>
+    <div class="font-pane">
+      <div class="font-pane-label">The Font · below the lens</div>
+      <svg class="font-scene" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="archGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f8ecc8"/><stop offset="40%" stop-color="#c89848"/>
+            <stop offset="100%" stop-color="#5a4018"/>
+          </linearGradient>
+          <linearGradient id="plateGold" x1="20%" y1="0%" x2="80%" y2="100%">
+            <stop offset="0%" stop-color="#f0dc98"/><stop offset="50%" stop-color="#a88040"/>
+            <stop offset="100%" stop-color="#2a1c0a"/>
+          </linearGradient>
+          <radialGradient id="ledRingFill" cx="50%" cy="50%" r="50%">
+            <stop offset="70%" stop-color="rgba(255,220,160,0)"/>
+            <stop offset="88%" stop-color="rgba(255,210,140,.35)"/>
+            <stop offset="96%" stop-color="rgba(255,235,200,.55)"/>
+            <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
+          </radialGradient>
+          <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="waterGlow">
+            <feGaussianBlur stdDeviation="2.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <radialGradient id="waterPool" cx="42%" cy="32%" r="70%">
+            <stop offset="0%" stop-color="#4a9ab8"/>
+            <stop offset="45%" stop-color="#1e5068"/>
+            <stop offset="100%" stop-color="#0a1824"/>
+          </radialGradient>
+          <radialGradient id="waterHighlight" cx="36%" cy="24%" r="60%">
+            <stop offset="0%" stop-color="rgba(180,245,255,.75)"/>
+            <stop offset="100%" stop-color="rgba(180,245,255,0)"/>
+          </radialGradient>
+          <linearGradient id="spoutDark" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#2a1810"/>
+            <stop offset="100%" stop-color="#0a0806"/>
+          </linearGradient>
+        </defs>
+        <rect width="400" height="280" fill="#060504"/>
+        <path fill="none" stroke="url(#archGold)" stroke-width="8"
+          d="M 48 250 L 48 70 Q 48 18 200 6 Q 352 18 352 70 L 352 250"/>
+        <path fill="none" stroke="rgba(255,240,210,.1)" stroke-width="1.5"
+          d="M 58 245 L 58 78 Q 58 28 200 18 Q 342 28 342 78 L 342 245"/>
+        <circle cx="200" cy="92" r="88" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
+        <g id="ledBeads"></g>
+        <circle cx="200" cy="92" r="6" fill="#080604"/>
+        <circle cx="200" cy="92" r="68" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
+        <ellipse cx="172" cy="78" rx="36" ry="24" fill="rgba(255,250,235,.1)" transform="rotate(-15 172 78)"/>
+        <ellipse cx="200" cy="108" rx="8" ry="5" fill="url(#spoutDark)" stroke="rgba(100,200,255,.4)" stroke-width="1"/>
+        <g class="water-fall">
+          <path class="fall-strand" d="M196 108 Q197 168 198 198"/>
+          <path class="fall-strand" d="M200 106 L200 200"/>
+          <path class="fall-strand" d="M204 108 Q203 168 202 198"/>
+          <path class="fall-strand" d="M198 112 Q200 172 201 201"/>
+        </g>
+        <g id="fontBasin">
+          <ellipse cx="200" cy="238" rx="88" ry="54" fill="#0a0c10"/>
+          <ellipse class="font-rim" cx="200" cy="232" rx="82" ry="50"/>
+          <ellipse cx="200" cy="222" rx="74" ry="44" fill="url(#waterPool)"/>
+          <ellipse class="water-surface" cx="200" cy="214" rx="64" ry="30" fill="url(#waterHighlight)" opacity=".92"/>
+          <path class="water-wave" d="M136 214 Q168 206 200 214 T264 214"/>
+          <g class="water-ripples">
+            <ellipse class="ripple r1" cx="200" cy="216" rx="28" ry="14"/>
+            <ellipse class="ripple r2" cx="200" cy="216" rx="28" ry="14"/>
+            <ellipse class="ripple r3" cx="200" cy="216" rx="28" ry="14"/>
+          </g>
+          <g class="water-mist">
+            <circle cx="186" cy="210" r="3.2"/>
+            <circle cx="200" cy="206" r="2.8"/>
+            <circle cx="214" cy="211" r="3"/>
+          </g>
+        </g>
+      </svg>
+    </div>
 
     <p id="miracleWord"><span class="pill">The font is awake.</span></p>
 
@@ -1116,12 +1164,13 @@ nextBtn.addEventListener("click", () => {
 dots.forEach(d => d.addEventListener("click", () => goSlide(Number(d.dataset.dot))));
 
 const beads = document.getElementById("ledBeads");
+const PLATE = { cx: 200, cy: 92, r: 76 };
 for (let i = 0; i < 36; i++) {
   const a = (i / 36) * Math.PI * 2 - Math.PI / 2;
   const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   c.setAttribute("class", "led-bead");
-  c.setAttribute("cx", 200 + 162 * Math.cos(a));
-  c.setAttribute("cy", 360 + 162 * Math.sin(a));
+  c.setAttribute("cx", PLATE.cx + PLATE.r * Math.cos(a));
+  c.setAttribute("cy", PLATE.cy + PLATE.r * Math.sin(a) * 0.82);
   c.setAttribute("r", i % 3 === 0 ? 3.2 : 2.2);
   beads.appendChild(c);
 }
