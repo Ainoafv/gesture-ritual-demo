@@ -98,6 +98,47 @@
     text-align:center;
   }
   .cover.hidden { display:none; }
+  .cover-lead {
+    font-family:"Cormorant Garamond",serif;
+    font-size:22px;
+    font-weight:600;
+    color:rgba(255,245,230,.92);
+    margin-bottom:12px;
+    letter-spacing:.02em;
+  }
+  .cover-steps {
+    list-style:none;
+    text-align:left;
+    max-width:300px;
+    margin:0 auto 14px;
+    padding:0;
+  }
+  .cover-steps li {
+    color:var(--mute);
+    font-size:12.5px;
+    line-height:1.55;
+    padding:6px 0 6px 18px;
+    position:relative;
+  }
+  .cover-steps li::before {
+    content:"";
+    position:absolute;
+    left:0;
+    top:12px;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:rgba(255,220,160,.45);
+  }
+  .cover-steps strong { color:rgba(255,240,210,.85); font-weight:500; }
+  .cover-note {
+    color:rgba(241,234,220,.38);
+    font-size:11px;
+    line-height:1.55;
+    max-width:300px;
+    margin:0 auto 18px;
+    font-style:italic;
+  }
   .cover p {
     color:var(--mute);
     font-size:12.5px;
@@ -263,7 +304,13 @@
 
     <div class="cover" id="cover">
       <div id="coverContent">
-        <p>Allow the camera. Sit about arm's length away. Reach each glowing dot — top, bottom, left, right. No need to be exact.</p>
+        <p class="cover-lead">Before you begin</p>
+        <ul class="cover-steps">
+          <li>Stand about <strong>arm's length</strong> from the screen</li>
+          <li>Keep your hand at <strong>chest height</strong> — where you'd naturally trace the cross</li>
+          <li>Allow the camera, then reach each glowing dot: <strong>top → bottom → left → right</strong></li>
+        </ul>
+        <p class="cover-note">This preview uses your webcam. At the Holy Font, touch points will be set to the mounted camera and where guests stand on site.</p>
         <button class="btn" id="startBtn">Begin</button>
       </div>
     </div>
