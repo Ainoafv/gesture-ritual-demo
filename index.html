@@ -390,56 +390,74 @@
   @keyframes beadSpark { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
 
   /* Holy Font — animated water basin below the plate */
+  #fontBasin { filter:url(#waterGlow); }
   .water-surface {
-    animation:waterShimmer 3.2s ease-in-out infinite;
-    transform-origin:200px 398px;
+    animation:waterShimmer 2.4s ease-in-out infinite;
+    transform-origin:200px 396px;
   }
-  .stage.miracle .water-surface { animation-duration:1.8s; opacity:1 !important; }
-  .water-fall { opacity:.42; }
+  .stage.awake .water-surface,
+  .stage.miracle .water-surface { opacity:1 !important; animation-duration:1.6s; }
+  .water-fall { opacity:.88; }
   .fall-strand {
     fill:none;
-    stroke:rgba(140,200,255,.35);
-    stroke-width:1.2;
+    stroke:rgba(100,210,255,.72);
+    stroke-width:2.4;
     stroke-linecap:round;
-    animation:waterFall 1.4s ease-in-out infinite;
+    animation:waterFall 1.1s ease-in-out infinite;
   }
-  .fall-strand:nth-child(2) { animation-delay:.35s; stroke:rgba(160,215,255,.28); }
-  .fall-strand:nth-child(3) { animation-delay:.7s; stroke:rgba(120,185,240,.22); }
+  .fall-strand:nth-child(2) { animation-delay:.22s; stroke:rgba(130,225,255,.55); stroke-width:2; }
+  .fall-strand:nth-child(3) { animation-delay:.44s; stroke:rgba(80,190,250,.45); stroke-width:1.8; }
+  .fall-strand:nth-child(4) { animation-delay:.66s; stroke:rgba(150,235,255,.35); stroke-width:1.4; }
   @keyframes waterFall {
-    0%, 100% { opacity:.25; stroke-dashoffset:12; }
-    40%, 60% { opacity:.85; }
+    0%, 100% { opacity:.35; }
+    45%, 55% { opacity:1; }
   }
-  .fall-strand { stroke-dasharray:4 8; }
+  .water-wave {
+    fill:none;
+    stroke:rgba(130,230,255,.55);
+    stroke-width:2;
+    animation:waveDrift 2.2s ease-in-out infinite;
+    transform-origin:200px 396px;
+  }
+  @keyframes waveDrift {
+    0%, 100% { transform:translateX(-6px); opacity:.55; }
+    50%      { transform:translateX(6px); opacity:.95; }
+  }
+  .water-mist circle {
+    fill:rgba(180,235,255,.35);
+    animation:mistRise 2.8s ease-out infinite;
+  }
+  .water-mist circle:nth-child(2) { animation-delay:.9s; }
+  .water-mist circle:nth-child(3) { animation-delay:1.7s; }
+  @keyframes mistRise {
+    0%   { transform:translateY(0) scale(.6); opacity:0; }
+    20%  { opacity:.7; }
+    100% { transform:translateY(-18px) scale(1.4); opacity:0; }
+  }
   .ripple {
     fill:none;
-    stroke:rgba(150,210,255,.28);
-    stroke-width:1;
+    stroke:rgba(120,220,255,.45);
+    stroke-width:1.4;
     transform-box:fill-box;
     transform-origin:center;
-    animation:rippleOut 2.8s ease-out infinite;
+    animation:rippleOut 2.4s ease-out infinite;
   }
-  .ripple.r2 { animation-delay:.9s; }
-  .ripple.r3 { animation-delay:1.8s; }
+  .ripple.r2 { animation-delay:.8s; }
+  .ripple.r3 { animation-delay:1.6s; }
   @keyframes rippleOut {
-    0%   { transform:scale(.35); opacity:.55; }
-    100% { transform:scale(1.7); opacity:0; }
+    0%   { transform:scale(.3); opacity:.65; }
+    100% { transform:scale(1.85); opacity:0; }
   }
   @keyframes waterShimmer {
-    0%, 100% { opacity:.62; }
-    50%      { opacity:.92; }
+    0%, 100% { opacity:.78; }
+    50%      { opacity:1; }
   }
-  .stage.miracle .ripple { stroke:rgba(180,230,255,.42); animation-duration:2s; }
-  .droplet {
-    fill:rgba(190,230,255,.55);
-    animation:dropletPlink 2.2s ease-in infinite;
-  }
-  .droplet.d2 { animation-delay:.75s; }
-  .droplet.d3 { animation-delay:1.5s; }
-  @keyframes dropletPlink {
-    0%   { transform:translateY(0); opacity:0; }
-    12%  { opacity:.8; }
-    55%  { transform:translateY(14px); opacity:.35; }
-    100% { transform:translateY(22px); opacity:0; }
+  .stage.miracle .ripple { stroke:rgba(160,240,255,.65); animation-duration:1.6s; }
+  .stage.miracle .water-fall { opacity:1; }
+  .font-rim {
+    fill:none;
+    stroke:rgba(200,170,120,.35);
+    stroke-width:2;
   }
 
   /* Bible finale — lid opens, Polaroid rises gently from the slot */
@@ -448,16 +466,21 @@
     display:flex; flex-direction:column;
     align-items:center; justify-content:flex-end;
     padding:0 0 max(24px, env(safe-area-inset-bottom));
-    background:linear-gradient(180deg, rgba(2,2,3,.12) 0%, rgba(8,6,4,.88) 42%, #0a0705 100%);
+    background:transparent;
     opacity:0; pointer-events:none;
-    transition:opacity 1s ease;
+    transition:opacity .85s ease, background .9s ease;
   }
   .bible-finale.show { opacity:1; pointer-events:auto; }
+  .bible-finale.eject {
+    background:linear-gradient(180deg, rgba(2,2,3,0) 0%, rgba(8,6,4,.55) 50%, rgba(10,7,5,.88) 100%);
+  }
 
   .finale-stage {
     position:relative;
     width:100%;
-    height:min(52%, 400px);
+    max-width:380px;
+    height:auto;
+    min-height:240px;
     display:flex;
     align-items:flex-end;
     justify-content:center;
@@ -735,15 +758,23 @@
         </radialGradient>
         <filter id="ledSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         <filter id="ledBright"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <radialGradient id="waterPool" cx="45%" cy="35%" r="65%">
-          <stop offset="0%" stop-color="#3a6070"/>
-          <stop offset="55%" stop-color="#1a3040"/>
-          <stop offset="100%" stop-color="#0a1018"/>
+        <filter id="waterGlow">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <radialGradient id="waterPool" cx="42%" cy="32%" r="70%">
+          <stop offset="0%" stop-color="#4a9ab8"/>
+          <stop offset="45%" stop-color="#1e5068"/>
+          <stop offset="100%" stop-color="#0a1824"/>
         </radialGradient>
-        <radialGradient id="waterHighlight" cx="38%" cy="28%" r="55%">
-          <stop offset="0%" stop-color="rgba(200,235,255,.45)"/>
-          <stop offset="100%" stop-color="rgba(200,235,255,0)"/>
+        <radialGradient id="waterHighlight" cx="36%" cy="24%" r="60%">
+          <stop offset="0%" stop-color="rgba(180,245,255,.75)"/>
+          <stop offset="100%" stop-color="rgba(180,245,255,0)"/>
         </radialGradient>
+        <linearGradient id="spoutDark" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#2a1810"/>
+          <stop offset="100%" stop-color="#0a0806"/>
+        </linearGradient>
       </defs>
       <rect width="400" height="720" fill="url(#bgNight)"/>
       <ellipse cx="200" cy="360" rx="130" ry="170" fill="rgba(255,248,240,.04)"/>
@@ -760,25 +791,31 @@
       <circle cx="200" cy="360" r="8" fill="#080604"/>
       <circle cx="200" cy="360" r="132" fill="url(#plateGold)" stroke="rgba(255,235,200,.12)" stroke-width="2"/>
       <ellipse cx="168" cy="328" rx="48" ry="34" fill="rgba(255,250,235,.12)" transform="rotate(-15 168 328)"/>
-      <g id="fontBasin">
-        <ellipse cx="200" cy="420" rx="64" ry="42" fill="#06080a"/>
-        <ellipse cx="200" cy="406" rx="54" ry="34" fill="url(#waterPool)"/>
-        <ellipse class="water-surface" cx="200" cy="399" rx="46" ry="24" fill="url(#waterHighlight)" opacity=".78"/>
-        <g class="water-ripples">
-          <ellipse class="ripple r1" cx="200" cy="401" rx="22" ry="11"/>
-          <ellipse class="ripple r2" cx="200" cy="401" rx="22" ry="11"/>
-          <ellipse class="ripple r3" cx="200" cy="401" rx="22" ry="11"/>
-        </g>
-        <circle class="droplet d1" cx="196" cy="372" r="1.8"/>
-        <circle class="droplet d2" cx="200" cy="368" r="2"/>
-        <circle class="droplet d3" cx="204" cy="374" r="1.6"/>
-      </g>
+      <ellipse cx="200" cy="368" rx="10" ry="7" fill="url(#spoutDark)" stroke="rgba(100,200,255,.35)" stroke-width="1"/>
       <g class="water-fall">
-        <path class="fall-strand" d="M196 362 Q198 382 197 396"/>
-        <path class="fall-strand" d="M200 358 Q200 380 200 398"/>
-        <path class="fall-strand" d="M204 364 Q202 384 203 396"/>
+        <path class="fall-strand" d="M196 368 Q197 386 198 400"/>
+        <path class="fall-strand" d="M200 366 L200 402"/>
+        <path class="fall-strand" d="M204 368 Q203 386 202 400"/>
+        <path class="fall-strand" d="M198 370 Q200 388 201 401"/>
       </g>
-      <ellipse cx="200" cy="410" rx="58" ry="36" fill="none" stroke="rgba(255,230,200,.08)" stroke-width="1"/>
+      <g id="fontBasin">
+        <ellipse cx="200" cy="428" rx="78" ry="50" fill="#0a0c10"/>
+        <ellipse class="font-rim" cx="200" cy="422" rx="72" ry="46"/>
+        <ellipse cx="200" cy="412" rx="64" ry="40" fill="url(#waterPool)"/>
+        <ellipse class="water-surface" cx="200" cy="404" rx="56" ry="28" fill="url(#waterHighlight)" opacity=".92"/>
+        <path class="water-wave" d="M148 404 Q174 396 200 404 T252 404"/>
+        <g class="water-ripples">
+          <ellipse class="ripple r1" cx="200" cy="406" rx="26" ry="13"/>
+          <ellipse class="ripple r2" cx="200" cy="406" rx="26" ry="13"/>
+          <ellipse class="ripple r3" cx="200" cy="406" rx="26" ry="13"/>
+        </g>
+        <g class="water-mist">
+          <circle cx="188" cy="400" r="3"/>
+          <circle cx="200" cy="396" r="2.5"/>
+          <circle cx="212" cy="401" r="2.8"/>
+        </g>
+      </g>
+      <ellipse cx="200" cy="418" rx="66" ry="42" fill="none" stroke="rgba(255,230,200,.1)" stroke-width="1"/>
     </svg>
 
     <svg class="cross-overlay" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -991,10 +1028,10 @@
 import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
 const TARGETS = {
-  "2": { x: 0.18, y: 0.00, w: 0.64, h: 0.44 },
-  "0": { x: 0.18, y: 0.56, w: 0.64, h: 0.44 },
-  "4": { x: 0.00, y: 0.18, w: 0.50, h: 0.64 },
-  "6": { x: 0.50, y: 0.18, w: 0.50, h: 0.64 },
+  "2": { x: 0.30, y: 0.02, w: 0.40, h: 0.30 },
+  "0": { x: 0.30, y: 0.68, w: 0.40, h: 0.30 },
+  "4": { x: 0.02, y: 0.32, w: 0.30, h: 0.36 },
+  "6": { x: 0.68, y: 0.32, w: 0.30, h: 0.36 },
 };
 const SEQUENCE = ["2", "0", "4", "6"];
 const DOTS = ["dotHeaven", "dotEarth", "dotLeft", "dotRight"];
@@ -1005,8 +1042,9 @@ const STEP_CUES = [
   { label: "Sweep right", sub: "Complete" },
 ];
 const WINDOW_MS = 10000;
+const STEP_MIN_MS = 480;
 const PALM = [0, 5, 9, 17];
-const SMOOTH = 0.45;
+const SMOOTH = 0.52;
 const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
 const debugHud = document.getElementById("debugHud");
 if (DEBUG) debugHud.classList.add("on");
@@ -1016,16 +1054,14 @@ function inTarget(name, x, y) {
   return x >= t.x && x < t.x + t.w && y >= t.y && y < t.y + t.h;
 }
 function zoneAt(x, y, expected) {
-  if (expected && inTarget(expected, x, y)) return expected;
-  for (const name of SEQUENCE) {
-    if (inTarget(name, x, y)) return name;
-  }
-  return null;
+  if (!expected) return null;
+  return inTarget(expected, x, y) ? expected : null;
 }
 
 class SM {
   reset() {
     this.step = 0; this.t0 = null; this.lastZone = null; this.state = "IDLE";
+    this.lastAdvance = 0;
   }
   constructor() { this.reset(); }
   get exp() { return this.step < 4 ? SEQUENCE[this.step] : null; }
@@ -1039,7 +1075,11 @@ class SM {
     if (!entered || entered !== this.exp) {
       return { done: false, advance: false, reset: false };
     }
+    if (this.step > 0 && now - this.lastAdvance < STEP_MIN_MS) {
+      return { done: false, advance: false, reset: false };
+    }
     if (this.step === 0) { this.t0 = now; this.state = "IN_PROGRESS"; }
+    this.lastAdvance = now;
     this.step++;
     return { done: this.step >= 4, advance: true, reset: false };
   }
@@ -1295,7 +1335,6 @@ function playPolaroidWhirr() {
 }
 
 function showBibleFinale() {
-  stage.classList.add("finale");
   const bible = document.getElementById("bibleFinale");
   const polaroid = bible.querySelector(".polaroid");
   const polaroidWrap = bible.querySelector(".polaroid-rise");
@@ -1310,6 +1349,7 @@ function showBibleFinale() {
   }, 900);
 
   setTimeout(() => {
+    stage.classList.add("finale");
     bible.classList.add("eject");
     playPolaroidWhirr();
     setTimeout(() => polaroid?.classList.add("developed"), 2000);
