@@ -52,13 +52,25 @@
     box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 42px 110px rgba(0,0,0,.9);
   }
 
+  /* One arch spanning gesture zone + font — ties the layout together */
+  .stage-monument {
+    position:absolute; left:0; right:0; top:8%; bottom:2%;
+    z-index:0; pointer-events:none;
+    opacity:0; transition:opacity .7s ease;
+  }
+  .stage.awake .stage-monument,
+  .stage.miracle .stage-monument { opacity:1; }
+  .stage.finale .stage-monument { opacity:0; visibility:hidden; }
+  .stage-monument svg { width:100%; height:100%; display:block; }
+
   /* Top — cross guide + golden backdrop. No selfie feed. */
   .camera-pane {
     position:relative;
-    flex:1 1 50%;
-    min-height:clamp(280px, 48vh, 520px);
+    flex:1 1 46%;
+    min-height:clamp(260px, 44vh, 480px);
     overflow:hidden;
-    background:#0a0806;
+    background:transparent;
+    z-index:1;
     opacity:0;
     transition:opacity .6s ease;
   }
@@ -69,11 +81,11 @@
     position:absolute; inset:0; z-index:1;
     width:100%; height:100%;
     pointer-events:none;
-    opacity:.32;
+    opacity:.5;
     transition:opacity .6s ease;
   }
-  .stage.awake .cross-bg { opacity:.42; }
-  .stage.miracle .cross-bg { opacity:.55; }
+  .stage.awake .cross-bg { opacity:.62; }
+  .stage.miracle .cross-bg { opacity:.72; }
 
   .gold-lens-mount {
     position:absolute; left:50%; top:6%;
@@ -87,8 +99,8 @@
   .camera-vignette {
     position:absolute; inset:0; z-index:2; pointer-events:none;
     background:
-      radial-gradient(ellipse 85% 75% at 50% 44%, transparent 35%, rgba(0,0,0,.45) 100%),
-      linear-gradient(180deg, rgba(0,0,0,.25) 0%, transparent 20%, transparent 75%, rgba(5,5,4,.7) 100%);
+      radial-gradient(ellipse 88% 78% at 50% 46%, transparent 38%, rgba(0,0,0,.35) 100%),
+      linear-gradient(180deg, rgba(0,0,0,.15) 0%, transparent 22%, transparent 88%, rgba(5,5,4,.55) 100%);
   }
 
   .lens-badge { display:none; }
@@ -99,32 +111,28 @@
     pointer-events:none;
   }
 
-  /* Bottom — Holy Font hardware (wide vertical arch) */
+  /* Bottom — Holy Font hardware */
   .font-pane {
     position:relative;
-    flex:0 0 clamp(340px, 48%, 460px);
-    min-height:clamp(340px, 46vh, 460px);
-    background:linear-gradient(180deg, #080706 0%, #030302 100%);
-    border-top:1px solid rgba(255,220,160,.12);
-    box-shadow:inset 0 12px 28px rgba(0,0,0,.55);
+    flex:0 0 50%;
+    min-height:clamp(320px, 48vh, 480px);
+    background:transparent;
+    border-top:none;
+    box-shadow:none;
     overflow:hidden;
+    z-index:1;
     opacity:0;
     transition:opacity .6s ease .1s;
   }
   .stage.awake .font-pane,
   .stage.miracle .font-pane { opacity:1; }
-  .stage.awake .font-pane {
-    box-shadow:inset 0 8px 24px rgba(0,0,0,.45), 0 -4px 20px rgba(80,180,220,.06);
-  }
   .stage.miracle .font-pane {
-    box-shadow:inset 0 8px 24px rgba(0,0,0,.45), 0 -8px 36px rgba(100,200,255,.18);
+    filter:drop-shadow(0 -8px 36px rgba(100,200,255,.12));
   }
   .font-scene {
     display:block;
     width:100%;
     height:100%;
-    transform:scale(1.08);
-    transform-origin:center bottom;
   }
   .stage.finale .camera-pane,
   .stage.finale .font-pane {
@@ -189,11 +197,14 @@
     transition:opacity .9s ease .35s;
   }
   #stepCue {
-    position:absolute; left:20px; right:20px; bottom:max(18px, env(safe-area-inset-bottom));
+    position:absolute; left:20px; right:20px;
+    bottom:max(18px, env(safe-area-inset-bottom));
     z-index:16; pointer-events:none; opacity:0;
     transition:opacity .4s ease;
     text-align:center;
   }
+  .stage.awake #stepCue,
+  .stage.awake #progressRail { display:none !important; }
   #miracleWord .pill {
     display:inline-block;
     padding:10px 16px 12px;
@@ -855,6 +866,26 @@
 
     <video id="video" playsinline muted></video>
 
+    <div class="stage-monument" aria-hidden="true">
+      <svg viewBox="0 0 400 800" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="monArchGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f0dc98"/><stop offset="45%" stop-color="#c89848"/>
+            <stop offset="100%" stop-color="#4a3010"/>
+          </linearGradient>
+          <radialGradient id="monHalo" cx="50%" cy="38%" r="42%">
+            <stop offset="0%" stop-color="rgba(255,210,140,.14)"/>
+            <stop offset="100%" stop-color="rgba(255,210,140,0)"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="200" cy="320" rx="168" ry="240" fill="url(#monHalo)"/>
+        <path fill="none" stroke="url(#monArchGold)" stroke-width="11"
+          d="M 8 790 L 8 120 Q 8 16 200 4 Q 392 16 392 120 L 392 790"/>
+        <path fill="none" stroke="rgba(255,240,210,.14)" stroke-width="2.5"
+          d="M 22 780 L 22 132 Q 22 28 200 18 Q 378 28 378 132 L 378 780"/>
+      </svg>
+    </div>
+
     <div class="camera-pane">
       <svg class="cross-bg" viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
@@ -926,7 +957,7 @@
     </div>
 
     <div class="font-pane">
-      <svg class="font-scene" viewBox="0 0 400 340" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg class="font-scene" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <linearGradient id="archGold" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#f8ecc8"/><stop offset="40%" stop-color="#c89848"/>
@@ -972,48 +1003,44 @@
             <stop offset="0%" stop-color="#2a1810"/>
             <stop offset="100%" stop-color="#0a0806"/>
           </linearGradient>
+          <clipPath id="fallClip"><rect x="150" y="84" width="100" height="100"/></clipPath>
         </defs>
-        <rect width="400" height="340" fill="#060504"/>
-        <!-- Stone pedestal base — wide -->
+        <rect width="400" height="300" fill="transparent"/>
+        <!-- Stone pedestal base -->
         <g class="stone-pedestal">
-          <path fill="url(#stoneDark)" d="M72 328 L96 272 L304 272 L328 328 Z"/>
-          <path fill="url(#stoneLight)" d="M48 272 L88 244 L312 244 L352 272 L328 328 L72 328 Z"/>
+          <path fill="url(#stoneDark)" d="M72 288 L96 238 L304 238 L328 288 Z"/>
+          <path fill="url(#stoneLight)" d="M48 238 L88 212 L312 212 L352 238 L328 288 L72 288 Z"/>
           <path fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.4"
-            d="M48 272 L88 244 L312 244 L352 272"/>
-          <ellipse cx="200" cy="330" rx="148" ry="12" fill="rgba(0,0,0,.4)"/>
+            d="M48 238 L88 212 L312 212 L352 238"/>
+          <ellipse cx="200" cy="292" rx="148" ry="10" fill="rgba(0,0,0,.4)"/>
         </g>
-        <!-- Wide spanning arch -->
-        <path fill="none" stroke="url(#archGold)" stroke-width="10"
-          d="M 4 328 L 4 52 Q 4 2 200 0 Q 396 2 396 52 L 396 328"/>
-        <path fill="none" stroke="rgba(255,240,210,.12)" stroke-width="2"
-          d="M 16 322 L 16 62 Q 16 10 200 6 Q 384 10 384 62 L 384 322"/>
-        <circle cx="200" cy="88" r="92" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
+        <!-- Gold plate + LEDs + water (arch is on stage-monument) -->
+        <circle cx="200" cy="72" r="92" class="led-fill" fill="url(#ledRingFill)" filter="url(#ledSoft)"/>
         <g id="ledBeads"></g>
-        <circle cx="200" cy="88" r="6" fill="#080604"/>
-        <circle cx="200" cy="88" r="72" fill="url(#plateGold)" stroke="rgba(255,235,200,.14)" stroke-width="2"/>
-        <ellipse cx="170" cy="72" rx="38" ry="26" fill="rgba(255,250,235,.12)" transform="rotate(-15 170 72)"/>
-        <ellipse cx="200" cy="104" rx="9" ry="6" fill="url(#spoutDark)" stroke="rgba(100,200,255,.45)" stroke-width="1"/>
-        <g class="water-fall">
-          <path class="fall-strand" d="M196 104 Q197 168 198 208"/>
-          <path class="fall-strand" d="M200 102 L200 212"/>
-          <path class="fall-strand" d="M204 104 Q203 168 202 208"/>
-          <path class="fall-strand" d="M198 108 Q200 172 201 214"/>
+        <circle cx="200" cy="72" r="6" fill="#080604"/>
+        <circle cx="200" cy="72" r="72" fill="url(#plateGold)" stroke="rgba(255,235,200,.14)" stroke-width="2"/>
+        <ellipse cx="170" cy="58" rx="38" ry="26" fill="rgba(255,250,235,.12)" transform="rotate(-15 170 58)"/>
+        <ellipse cx="200" cy="88" rx="9" ry="6" fill="url(#spoutDark)" stroke="rgba(100,200,255,.45)" stroke-width="1"/>
+        <g class="water-fall" clip-path="url(#fallClip)">
+          <path class="fall-strand" d="M196 88 Q197 130 198 168"/>
+          <path class="fall-strand" d="M200 86 L200 172"/>
+          <path class="fall-strand" d="M204 88 Q203 130 202 168"/>
         </g>
         <g id="fontBasin" filter="url(#waterGlow)">
-          <ellipse cx="200" cy="252" rx="108" ry="66" fill="#0a0c10"/>
-          <ellipse class="font-rim" cx="200" cy="244" rx="100" ry="60"/>
-          <ellipse cx="200" cy="232" rx="90" ry="52" fill="url(#waterPool)"/>
-          <ellipse class="water-surface" cx="200" cy="222" rx="78" ry="36" fill="url(#waterHighlight)" opacity=".92"/>
-          <path class="water-wave" d="M122 222 Q160 212 200 222 T278 222"/>
+          <ellipse cx="200" cy="218" rx="108" ry="66" fill="#0a0c10"/>
+          <ellipse class="font-rim" cx="200" cy="210" rx="100" ry="60"/>
+          <ellipse cx="200" cy="198" rx="90" ry="52" fill="url(#waterPool)"/>
+          <ellipse class="water-surface" cx="200" cy="188" rx="78" ry="36" fill="url(#waterHighlight)" opacity=".92"/>
+          <path class="water-wave" d="M122 188 Q160 178 200 188 T278 188"/>
           <g class="water-ripples">
-            <ellipse class="ripple r1" cx="200" cy="224" rx="34" ry="16"/>
-            <ellipse class="ripple r2" cx="200" cy="224" rx="34" ry="16"/>
-            <ellipse class="ripple r3" cx="200" cy="224" rx="34" ry="16"/>
+            <ellipse class="ripple r1" cx="200" cy="190" rx="34" ry="16"/>
+            <ellipse class="ripple r2" cx="200" cy="190" rx="34" ry="16"/>
+            <ellipse class="ripple r3" cx="200" cy="190" rx="34" ry="16"/>
           </g>
           <g class="water-mist">
-            <circle cx="182" cy="218" r="3.6"/>
-            <circle cx="200" cy="212" r="3.2"/>
-            <circle cx="218" cy="219" r="3.4"/>
+            <circle cx="182" cy="184" r="3.6"/>
+            <circle cx="200" cy="178" r="3.2"/>
+            <circle cx="218" cy="185" r="3.4"/>
           </g>
         </g>
       </svg>
@@ -1293,7 +1320,7 @@ dots.forEach(d => d.addEventListener("click", () => goSlide(Number(d.dataset.dot
 
 const beads = document.getElementById("ledBeads");
 if (beads) {
-  const PLATE = { cx: 200, cy: 88, r: 80 };
+  const PLATE = { cx: 200, cy: 72, r: 80 };
   for (let i = 0; i < 36; i++) {
     const a = (i / 36) * Math.PI * 2 - Math.PI / 2;
     const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
